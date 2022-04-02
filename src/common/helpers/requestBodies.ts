@@ -12,6 +12,24 @@ export const getUserSel = (userid: number): IRequestBody => ({
     }
 })
 
+export const getPatientSel = (patientid: number = 0): IRequestBody => ({
+    method: "UFN_PATIENT_SEL",
+    key: "UFN_PATIENT_SEL",
+    parameters: {
+        id: patientid,
+        all: true
+    }
+})
+
+export const getAppointmentByPatient = (patientid: number = 0): IRequestBody => ({
+    method: "UFN_APPOINTMENT_SEL",
+    key: "UFN_APPOINTMENT_SEL",
+    parameters: {
+        id: patientid,
+        all: false
+    }
+})
+
 export const getUserLst = (userid: number): IRequestBody => ({
     method: "UFN_USER_LST",
     key: "UFN_USER_LST",
@@ -330,13 +348,31 @@ export const insUser = (parameters: Dictionary): IRequestBody => ({
     method: "UFN_USER_INS",
     key: "UFN_USER_INS",
     parameters: {
+        password: '',
         ...parameters,
-        image: null,
-        description: '',
-        pwdchangefirstlogin: false,
+        pwdchangefirstlogin: true,
         twofactorauthentication: false,
         registercode: '',
-        password: parameters.password || ""
+        image: '',
+        zone: '',
+        address: '',
+        district: '',
+        phone: '',
+        roleid: 2,
+        description: '',
+        type: 'NINGUNO'
+    }
+});
+
+export const insPatient = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_PATIENT_INS",
+    key: "UFN_PATIENT_INS",
+    parameters: {
+        ...parameters,
+        patientid: parameters.id,
+        description: '',
+        type: 'NINGUNO',
+        
     }
 });
 

@@ -17,3 +17,4 @@ export { default as ReportSKU } from './ReportSKU';
 
 export { default as Organizations } from './Organizations';
 export { default as Vehicles } from './Vehicles';
+export { default as Patient } from './Patient';

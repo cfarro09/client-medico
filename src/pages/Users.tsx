@@ -3,8 +3,8 @@ import React, { FC, useEffect, useState } from 'react'; // we need this to make 
 import { useSelector } from 'hooks';
 import { useDispatch } from 'react-redux';
 import Button from '@material-ui/core/Button';
-import { DialogZyx, TemplateIcons, TemplateBreadcrumbs, TitleDetail, FieldView, FieldEdit, FieldSelect, FieldMultiSelect, TemplateSwitch } from 'components';
-import { getOrgUserSel, getUserSel, getValuesFromDomain, getOrgsByCorp, getClients, getStoresByClientId, getApplicationsByRole, insUser, insOrgUser, randomText, getRoles, getTypeUserSel, getSectorSel } from 'common/helpers';
+import { DialogZyx, TemplateIcons, TemplateBreadcrumbs, TitleDetail, FieldEdit, FieldSelect, FieldMultiSelect, TemplateSwitch } from 'components';
+import { getOrgUserSel, getUserSel, getValuesFromDomain, insUser, insOrgUser, randomText, getRoles } from 'common/helpers';
 import { Dictionary, MultiData } from "@types";
 import TableZyx from '../components/fields/table-simple';
 import { makeStyles } from '@material-ui/core/styles';
@@ -12,25 +12,14 @@ import SaveIcon from '@material-ui/icons/Save';
 import { useTranslation } from 'react-i18next';
 import { langKeys } from 'lang/keys';
 import { useForm } from 'react-hook-form';
-import Avatar from '@material-ui/core/Avatar';
-import { uploadFile } from 'store/main/actions';
 import {
     getCollection, resetAllMain, getMultiCollection,
-    execute, getCollectionAux, resetMainAux, getMultiCollectionAux
+    execute, resetMainAux
 } from 'store/main/actions';
 import { showSnackbar, showBackdrop, manageConfirmation } from 'store/popus/actions';
 import LockOpenIcon from '@material-ui/icons/LockOpen';
-import AddIcon from '@material-ui/icons/Add';
-import CameraAltIcon from '@material-ui/icons/CameraAlt';
 import ClearIcon from '@material-ui/icons/Clear';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import Typography from '@material-ui/core/Typography';
-import { Divider, Grid, ListItem, Box, IconButton } from '@material-ui/core';
-import { Skeleton } from '@material-ui/lab';
-import DeleteIcon from '@material-ui/icons/Delete';
+import { IconButton } from '@material-ui/core';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
@@ -46,22 +35,21 @@ interface DetailProps {
     multiData: MultiData[];
     fetchData?: () => void
 }
-interface ModalProps {
-    data: RowSelected;
-    multiData: MultiData[];
-    preData: (Dictionary | null)[]; //ORGANIZATIONS
-    openModal?: boolean;
-    setOpenModal?: (open: boolean) => void;
-    updateRecords?: (record: any) => void; //SETDATAORGANIZATION
-    triggerSave?: boolean;
-    index: number;
-    setAllIndex: (index: any) => void;
-    handleDelete: (row: Dictionary | null, index: number) => void;
-}
 const arrayBread = [
-    { id: "view-1", name: "Users" },
-    { id: "view-2", name: "User detail" }
+    { id: "view-1", name: "Usuarios" },
+    { id: "view-2", name: "Detalle de usuario" }
 ];
+
+const data_type_document = [
+    { domainvalue: 'DNI', domaindesc: 'DNI' },
+    { domainvalue: 'PASAPORTE', domaindesc: 'PASAPORTE' },
+    { domainvalue: 'RUC', domaindesc: 'RUC' }
+]
+
+const data_status = [
+    { domainvalue: 'ACTIVO', domaindesc: 'ACTIVO' },
+    { domainvalue: 'ELIMINADO', domaindesc: 'ELIMINADO' }
+]
 
 const useStyles = makeStyles((theme) => ({
     containerDetail: {
@@ -84,26 +72,6 @@ const useStyles = makeStyles((theme) => ({
         textTransform: 'initial'
     }
 }));
-const ListItemSkeleton: FC = () => (
-    <ListItem style={{ display: 'flex', paddingLeft: 0, paddingRight: 0, paddingBottom: 8 }}>
-        <Box style={{ padding: 20, backgroundColor: 'white', display: 'flex', flexDirection: 'column', flexGrow: 1, }}>
-            <Grid container direction="column">
-                <Grid container direction="row" spacing={1}>
-                    <Grid item sm={12} xl={12} xs={12} md={12} lg={12}>
-                        <Skeleton />
-                    </Grid>
-                </Grid>
-                <Divider style={{ margin: '10px 0' }} />
-                <Grid container direction="row" spacing={1}>
-                    <Grid item sm={12} xl={12} xs={12} md={12} lg={12}>
-                        <Skeleton />
-                    </Grid>
-                </Grid>
-            </Grid>
-        </Box>
-    </ListItem>
-)
-
 interface ModalPasswordProps {
     openModal: boolean;
     setOpenModal: (value: boolean) => any;
@@ -219,43 +187,10 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
 
     const [waitSave, setWaitSave] = useState(false);
     const executeRes = useSelector(state => state.main.execute);
-    const detailRes = useSelector(state => state.main.mainAux); //RESULTADO DEL DETALLE
-
-    const [dataOrganizations, setDataOrganizations] = useState<(Dictionary | null)[]>([]);
-    const [orgsToDelete, setOrgsToDelete] = useState<Dictionary[]>([]);
     const [openDialogPassword, setOpenDialogPassword] = useState(false);
-    const [allIndex, setAllIndex] = useState([])
-    const [getOrganizations, setGetOrganizations] = useState(false);
-    const [triggerSave, setTriggerSave] = useState(false)
-    
-    const dataDocType = multiData[0] && multiData[0].success ? multiData[0].data : [];
-    const dataStatusUsers = multiData[2] && multiData[2].success ? multiData[2].data : [];
-    const roleData = multiData[3] && multiData[3].success ? multiData[3].data : [];
-    const supervisorData = multiData[4] && multiData[4].success ? multiData[4].data : [];
-    const sectorData = multiData[5] && multiData[5].success ? multiData[5].data : [];
-
-    // useEffect(() => { //RECIBE LA DATA DE LAS ORGANIZACIONES 
-    //     if (!detailRes.loading && !detailRes.error && getOrganizations) {
-    //         setDataOrganizations(detailRes.data);
-    //     }
-    // }, [detailRes]);
-
-    // const handleRegister = () => {
-    //     setDataOrganizations(p => [...p, null]);
-    // }
-    // const handleDelete = (row: Dictionary | null, index: number) => {
-    //     if (row && row.operation !== "INSERT") {
-    //         setOrgsToDelete(p => [...p, { ...row, operation: "DELETE", status: 'ELIMINADO' }]);
-    //     }
-    //     if (row)
-    //         setDataOrganizations(p => p.filter((x) => row.orgid !== x?.orgid));
-    //     else
-    //         setDataOrganizations(p => p.filter((x, i) => i !== index));
-    // }
 
     const { register, handleSubmit, setValue, getValues, formState: { errors } } = useForm({
         defaultValues: {
-            type: 'NINGUNO',
             id: row ? row.userid : 0,
             operation: row ? "UPDATE" : "INSERT",
             firstname: row?.firstname || '',
@@ -263,16 +198,10 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
             password: row?.password || '',
             usr: row?.usr || '',
             email: row?.email || '',
-            doctype: row?.doctype || '',
+            doctype: row?.doctype || 'DNI',
             docnum: row?.docnum || '',
             status: row?.status || 'ACTIVO',
             roleid: row?.roleid || 0,
-            zone: row?.zone || '',
-            address: row?.address || '',
-            district: row?.district || '',
-            phone: row?.phone || '',
-            supervisorid : row?.supervisorid || 0,
-            sectorid: row?.sectorid || 0
         }
     });
 
@@ -293,11 +222,8 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
     }, [executeRes, waitSave])
 
     React.useEffect(() => {
-        register('type');
         register('id');
         register('password');
-        register('supervisorid');
-        register('sectorid');
         register('status', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register('firstname', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register('lastname', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
@@ -305,36 +231,9 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
         register('usr', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register('doctype', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register('docnum', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register('roleid', { validate: (value) => (value && value > 0) || t(langKeys.field_required) });
-        register('zone', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register('address', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register('district', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register('phone', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
+        // register('roleid', { validate: (value) => (value && value > 0) || t(langKeys.field_required) });
         dispatch(resetMainAux())
     }, [register]);
-
-    useEffect(() => {
-        if (allIndex.length === dataOrganizations.length && triggerSave) {
-            setTriggerSave(false);
-            const error = allIndex.some((x: any) => !x.allOk)
-            if (error) {
-                return
-            }
-            const data = getValues();
-
-            const callback = () => {
-                dispatch(showBackdrop(true));
-                dispatch(execute(insUser(data)));
-                setWaitSave(true)
-            }
-
-            dispatch(manageConfirmation({
-                visible: true,
-                question: t(langKeys.confirmation_save),
-                callback
-            }))
-        }
-    }, [allIndex, triggerSave])
 
 
     const onSubmit = handleSubmit((data) => {
@@ -342,8 +241,17 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
             dispatch(showSnackbar({ show: true, success: false, message: t(langKeys.password_required) }));
             return;
         }
-        setAllIndex([])
-        setTriggerSave(true)
+        const callback = () => {
+            dispatch(showBackdrop(true));
+            dispatch(execute(insUser(data)));
+            setWaitSave(true)
+        }
+
+        dispatch(manageConfirmation({
+            visible: true,
+            question: t(langKeys.confirmation_save),
+            callback
+        }))
     });
 
 
@@ -429,17 +337,17 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
                         <FieldSelect
                             label={t(langKeys.docType)}
                             className="col-6"
-                            valueDefault={row?.doctype || ""}
+                            valueDefault={getValues('doctype')}
                             onChange={(value) => setValue('doctype', value ? value.domainvalue : '')}
                             error={errors?.doctype?.message}
-                            data={dataDocType}
+                            data={data_type_document}
                             optionDesc="domaindesc"
                             optionValue="domainvalue"
                         />
                         <FieldEdit
                             label={t(langKeys.docNumber)}
                             className="col-6"
-                            valueDefault={row?.docnum || ""}
+                            valueDefault={getValues('docnum')}
                             onChange={(value) => setValue('docnum', value)}
                             error={errors?.docnum?.message}
                         />
@@ -451,14 +359,13 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
                             className="col-6"
                             valueDefault={row?.status || "ACTIVO"}
                             onChange={(value) => setValue('status', value ? value.domainvalue : '')}
-                            uset={true}
                             error={errors?.status?.message}
-                            data={dataStatusUsers}
+                            data={data_status}
                             prefixTranslation="status_"
                             optionDesc="domaindesc"
                             optionValue="domainvalue"
                         />
-                        <FieldSelect
+                        {/* <FieldSelect
                             label={t(langKeys.role)}
                             className="col-6"
                             valueDefault={row?.roleid || ""}
@@ -467,64 +374,7 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
                             data={roleData}
                             optionDesc="roldesc"
                             optionValue="roleid"
-                        />
-                    </div>
-
-                    <div className="row-zyx">
-                        <FieldSelect
-                            label={t(langKeys.supervisor)}
-                            className="col-6"
-                            valueDefault={getValues('supervisorid')}
-                            onChange={(value) => setValue('supervisorid', value ? value.userid : 0)}
-                            error={errors?.supervisorid?.message}
-                            data={supervisorData.map(i => ({...i, filter: i.docnum + '-' + i.description}))}
-                            optionDesc="filter"
-                            optionValue="userid"
-                        />
-                        <FieldEdit
-                            label={t(langKeys.address)}
-                            className="col-6"
-                            valueDefault={row?.address || ""}
-                            onChange={(value) => setValue('address', value)}
-                            error={errors?.address?.message}
-                        />
-                    </div>
-
-                    <div className="row-zyx">
-                        <FieldEdit
-                            label={t(langKeys.district)}
-                            className="col-6"
-                            valueDefault={row?.district || ""}
-                            onChange={(value) => setValue('district', value)}
-                            error={errors?.district?.message}
-                        />
-                        <FieldEdit
-                            label={t(langKeys.phone)}
-                            className="col-6"
-                            valueDefault={row?.phone || ""}
-                            onChange={(value) => setValue('phone', value)}
-                            error={errors?.phone?.message}
-                        />
-                    </div>
-
-                    <div className="row-zyx">
-                        <FieldEdit
-                            label={t(langKeys.zone)}
-                            className="col-6"
-                            valueDefault={row?.zone || ""}
-                            onChange={(value) => setValue('zone', value)}
-                            error={errors?.zone?.message}
-                        />
-                        <FieldSelect
-                            label={'Sector'}
-                            className="col-6"
-                            valueDefault={getValues('sectorid')}
-                            onChange={(value) => setValue('sectorid', value ? value.sectorid : 0)}
-                            error={errors?.sectorid?.message}
-                            data={sectorData}
-                            optionDesc="description"
-                            optionValue="sectorid"
-                        />
+                        /> */}
                     </div>
                 </div>
             </form>
@@ -577,12 +427,17 @@ const Users: FC = () => {
                 NoFilter: true
             },
             {
-                Header: t(langKeys.fullname),
-                accessor: 'description',
+                Header: t(langKeys.firstname),
+                accessor: 'firstname',
                 NoFilter: true
             },
             {
-                Header: t(langKeys.docNumber),
+                Header: t(langKeys.lastname),
+                accessor: 'lastname',
+                NoFilter: true
+            },
+            {
+                Header: "N° doc",
                 accessor: 'docnum',
                 NoFilter: true
             },
@@ -591,11 +446,11 @@ const Users: FC = () => {
                 accessor: 'email',
                 NoFilter: true
             },
-            {
-                Header: t(langKeys.role),
-                accessor: 'role_name',
-                NoFilter: true
-            },
+            // {
+            //     Header: t(langKeys.role),
+            //     accessor: 'role_name',
+            //     NoFilter: true
+            // },
             {
                 Header: t(langKeys.status),
                 accessor: 'status',
@@ -620,14 +475,11 @@ const Users: FC = () => {
 
     useEffect(() => {
         fetchData();
-        dispatch(getMultiCollection([
-            getValuesFromDomain("TIPODOCUMENTO"), //0
-            getValuesFromDomain("ESTADOUSUARIO"), //1
-            getValuesFromDomain("ESTADOGENERICO"), //2
-            getRoles(), //formulario orguser 4
-            getTypeUserSel(4),
-            getSectorSel(),
-        ]));
+        // dispatch(getMultiCollection([
+        //     getValuesFromDomain("TIPODOCUMENTO"), //0
+        //     getValuesFromDomain("ESTADOUSUARIO"), //1
+        //     getRoles(), //formulario orguser 4
+        // ]));
         return () => {
             dispatch(resetAllMain());
         };
@@ -666,7 +518,7 @@ const Users: FC = () => {
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(execute(insUser({ ...row, operation: 'DELETE', status: 'ELIMINADO', id: row.userid })));
+            dispatch(execute(insUser({ ...row, operation: 'UPDATE', status: 'ELIMINADO', id: row.userid })));
             dispatch(showBackdrop(true));
             setWaitSave(true);
         }

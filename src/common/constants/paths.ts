@@ -18,6 +18,7 @@ const paths = {
     CONFIGURATION: '/configuration',
     EXTRAS: '/extras',
     PROPERTIES: '/extras/properties',
+    PATIENT: '/pacient',
     USERS: '/user',
     ROLES_PERMISSIONS: '/roles-permissions',
     DISTRIBUTORS: '/distributors',

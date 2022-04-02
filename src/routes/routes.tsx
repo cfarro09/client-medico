@@ -30,6 +30,13 @@ export const routes: RouteConfig[] = [
         icon: (className) => <AccountCircle style={{ width: 22, height: 22 }} className={className} />,
     },
     {
+        key: paths.PATIENT,
+        description: "Paciente",
+        tooltip: "Paciente",
+        path: paths.PATIENT,
+        icon: (className) => <AccountCircle style={{ width: 22, height: 22 }} className={className} />,
+    },
+    {
         key: paths.ROLES_PERMISSIONS,
         description: <Trans i18nKey={langKeys.roles_permissions} />,
         tooltip: <Trans i18nKey={langKeys.roles_permissions} />,
@@ -164,13 +171,13 @@ export const routes: RouteConfig[] = [
         path: paths.FLEET,
         icon: (color) => <ExtrasIcon stroke={color} fill={color} />,
     },
-    {
-        key: paths.CLIENTS,
-        description: <Trans i18nKey={langKeys.client} count={2} />,
-        tooltip: <Trans i18nKey={langKeys.client} />,
-        path: paths.CLIENTS,
-        icon: (color) => <People stroke={color} fill={color} />,
-    },
+    // {
+    //     key: paths.CLIENTS,
+    //     description: <Trans i18nKey={langKeys.client} count={2} />,
+    //     tooltip: <Trans i18nKey={langKeys.client} />,
+    //     path: paths.CLIENTS,
+    //     icon: (color) => <People stroke={color} fill={color} />,
+    // },
     {
         key: paths.KPIS,
         description: <Trans i18nKey={langKeys.kpis} count={2} />,

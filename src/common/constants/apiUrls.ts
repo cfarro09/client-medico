@@ -19,7 +19,7 @@ const APIS_URL = {
         CULQIKEY: 'pk_test_wXgBHymgNU4CZknl'
     },
     PRODUCTION: {
-        API: 'http://167.114.83.199/api',
+        API: 'http://54.209.220.118:6066/api',
         WS: 'https://broker.laraigo.com',
         CHATFLOW: 'https://chatflow.s3-web.us-east.cloud-object-storage.appdomain.cloud',
         FACEBOOKAPP: '1980305408682607',
