@@ -13,10 +13,13 @@ export const showBackdrop = (state: IState, action: IAction): IState => {
     }
 }
 
-export const openDrawer = (state: IState, action: IAction): IState => ({
-    ...state,
-    openDrawer: action.payload,
-})
+export const openDrawer = (state: IState, action: IAction): IState => {
+    localStorage.setItem("openDrawer", action.payload ? "true" : "");
+    return {
+        ...state,
+        openDrawer: action.payload,
+    }
+}
 
 export const manageConfirmation = (state: IState, action: IAction): IState => ({
     ...state,

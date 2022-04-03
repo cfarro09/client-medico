@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { FC } from 'react'; // we need this to make JSX compile
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import Header from './Header';
@@ -10,7 +11,7 @@ import { routes } from 'routes/routes';
 import Popus from 'components/layout/Popus';
 
 const drawerWidth = 240;
-const drawerWidthCompressed = 73;
+const drawerWidthCompressed = 0;
 const headerHeight = 54;
 
 const useStyles = makeStyles((theme) => ({
@@ -46,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
     menuButton: {
         marginRight: 36,
     },
-    
+
     drawer: {
         display: 'flex',
         width: drawerWidth,
@@ -97,12 +98,12 @@ const useStyles = makeStyles((theme) => ({
             duration: theme.transitions.duration.leavingScreen,
         }),
         overflowX: 'hidden',
-        width: theme.spacing(9) + 1,
+        width: 0,
         [theme.breakpoints.up('sm')]: {
-            width: theme.spacing(9) + 1,
+            width: 0,
         },
         border: 'none',
-        backgroundColor: "#7721AD",
+        // backgroundColor: "#7721AD",
         zIndex: 1202,
     },
     drawerItemActive: {
@@ -200,7 +201,7 @@ const useStyles = makeStyles((theme) => ({
         maxWidth: `calc(100vw - ${drawerWidthCompressed}px)`,
     },
     mainContent: {
-        
+
     },
     mainContentBox: {
         flex: 1,
@@ -220,13 +221,13 @@ interface LayoutProps {
 const Layout: FC<LayoutProps> = ({ children, mainClasses }) => {
     const theme = useTheme();
     const classes = useStyles(theme);
-    const dataRes = useSelector(state => state.login);
+    const user = useSelector(state => state.login.login.user);
     const openDrawer = useSelector(state => state.popus.openDrawer);
 
     return (
         <>
             <div className={classes.root}>
-                {dataRes.login.user !== undefined &&
+                {user !== undefined &&
                     <>
                         <CssBaseline />
                         <Header

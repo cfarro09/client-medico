@@ -3,8 +3,8 @@ import React, { FC, useEffect, useState } from 'react'; // we need this to make 
 import { useSelector } from 'hooks';
 import { useDispatch } from 'react-redux';
 import Button from '@material-ui/core/Button';
-import { DialogZyx, TemplateIcons, TemplateBreadcrumbs, TitleDetail, FieldEdit, FieldSelect, FieldMultiSelect, TemplateSwitch } from 'components';
-import { getOrgUserSel, getUserSel, getValuesFromDomain, insUser, insOrgUser, randomText, getRoles } from 'common/helpers';
+import { TemplateIcons, TemplateBreadcrumbs, TitleDetail, FieldEdit, FieldSelect, TemplateSwitch } from 'components';
+import {  getUserSel, insUser } from 'common/helpers';
 import { Dictionary, MultiData } from "@types";
 import TableZyx from '../components/fields/table-simple';
 import { makeStyles } from '@material-ui/core/styles';
@@ -19,10 +19,6 @@ import {
 import { showSnackbar, showBackdrop, manageConfirmation } from 'store/popus/actions';
 import LockOpenIcon from '@material-ui/icons/LockOpen';
 import ClearIcon from '@material-ui/icons/Clear';
-import { IconButton } from '@material-ui/core';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import Visibility from '@material-ui/icons/Visibility';
-import VisibilityOff from '@material-ui/icons/VisibilityOff';
 
 interface RowSelected {
     row: Dictionary | null,
@@ -72,113 +68,6 @@ const useStyles = makeStyles((theme) => ({
         textTransform: 'initial'
     }
 }));
-interface ModalPasswordProps {
-    openModal: boolean;
-    setOpenModal: (value: boolean) => any;
-    data: any;
-    parentSetValue: (...param: any) => any;
-}
-
-const ModalPassword: React.FC<ModalPasswordProps> = ({ openModal, setOpenModal, data, parentSetValue }) => {
-    const { t } = useTranslation();
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-    const { register, handleSubmit, setValue, getValues, formState: { errors }, trigger, clearErrors } = useForm({
-        defaultValues: {
-            password: '',
-            confirmpassword: '',
-        }
-    });
-
-    useEffect(() => {
-        setValue('password', data?.password);
-        setValue('confirmpassword', data?.password);
-        
-    }, [data]);
-
-    const validateSamePassword = (value: string): any => {
-        return getValues('password') === value;
-    }
-
-    useEffect(() => {
-        register('password', { validate: (value: any) => (value && value.length) || t(langKeys.field_required) });
-        register('confirmpassword', {
-            validate: {
-                validate: (value: any) => (value && value.length) || t(langKeys.field_required),
-                same: (value: any) => validateSamePassword(value) || "Contraseñas no coinciden"
-            }
-        });
-    }, [])
-
-    const handleCancelModal = () => {
-        setOpenModal(false);
-        setValue('password', data?.password);
-        setValue('confirmpassword', data?.password);
-        clearErrors();
-    }
-
-    const onSubmitPassword = handleSubmit((data) => {
-        parentSetValue('password', data.password);
-        setOpenModal(false);
-    });
-
-    return (
-        <DialogZyx
-            open={openModal}
-            title={t(langKeys.setpassword)}
-            buttonText1={t(langKeys.cancel)}
-            buttonText2={t(langKeys.save)}
-            handleClickButton1={handleCancelModal}
-            handleClickButton2={onSubmitPassword}
-        >
-            <div className="row-zyx">
-                <FieldEdit
-                    label={t(langKeys.password)}
-                    className="col-6"
-                    valueDefault={getValues('password')}
-                    type={showPassword ? 'text' : 'password'}
-                    onChange={(value) => setValue('password', value)}
-                    error={errors?.password?.message}
-                    InputProps={{
-                        endAdornment: (
-                            <InputAdornment position="end">
-                                <IconButton
-                                    aria-label="toggle password visibility"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    edge="end"
-                                >
-                                    {showPassword ? <Visibility /> : <VisibilityOff />}
-                                </IconButton>
-                            </InputAdornment>
-                        ),
-                    }}
-                />
-                <FieldEdit
-                    label={t(langKeys.confirmpassword)}
-                    className="col-6"
-                    valueDefault={getValues('confirmpassword')}
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    onChange={(value) => setValue('confirmpassword', value)}
-                    error={errors?.confirmpassword?.message}
-                    InputProps={{
-                        endAdornment: (
-                            <InputAdornment position="end">
-                                <IconButton
-                                    aria-label="toggle password visibility"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    edge="end"
-                                >
-                                    {showConfirmPassword ? <Visibility /> : <VisibilityOff />}
-                                </IconButton>
-                            </InputAdornment>
-                        ),
-                    }}
-                />
-            </div>
-        </DialogZyx>
-    )
-}
 
 const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelected, multiData, fetchData }) => {
     const classes = useStyles();
@@ -257,18 +146,16 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
 
     return (
         <div style={{ width: '100%' }}>
+            <TemplateBreadcrumbs
+                breadcrumbs={arrayBread}
+                handleClick={setViewSelected}
+            />
             <form onSubmit={onSubmit}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <div>
-                        <TemplateBreadcrumbs
-                            breadcrumbs={arrayBread}
-                            handleClick={setViewSelected}
-                        />
-                        <TitleDetail
-                            title={row ? `${row.firstname} ${row.lastname}` : t(langKeys.newuser)}
-                        />
-                    </div>
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <TitleDetail
+                        title={row ? `${row.firstname} ${row.lastname}` : t(langKeys.newuser)}
+                    />
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <Button
                             variant="contained"
                             type="button"
@@ -378,13 +265,6 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
                     </div>
                 </div>
             </form>
-
-            <ModalPassword
-                openModal={openDialogPassword}
-                setOpenModal={setOpenDialogPassword}
-                data={getValues()}
-                parentSetValue={setValue}
-            />
         </div>
     );
 }
@@ -467,7 +347,7 @@ const Users: FC = () => {
         if (applications) {
             console.log('applications', applications['/user'])
         }
-    },[applications])
+    }, [applications])
 
     useEffect(() => {
         mainResult.data && setdataUsers(mainResult.data.map(x => ({ ...x, twofactorauthentication: !!x.twofactorauthentication ? t(langKeys.affirmative) : t(langKeys.negative) })));

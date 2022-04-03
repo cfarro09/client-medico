@@ -30,6 +30,17 @@ export const getAppointmentByPatient = (patientid: number = 0): IRequestBody => 
     }
 })
 
+export const insertAppointment = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_APPOINTMENT_INS",
+    key: "UFN_APPOINTMENT_INS",
+    parameters: {
+        status: 'ACTIVO',
+        type: 'NINGUNO',
+        ...parameters,
+        
+    }
+})
+
 export const getUserLst = (userid: number): IRequestBody => ({
     method: "UFN_USER_LST",
     key: "UFN_USER_LST",

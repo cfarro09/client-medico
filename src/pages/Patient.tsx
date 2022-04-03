@@ -3,9 +3,9 @@ import React, { FC, useEffect, useState } from 'react'; // we need this to make 
 import { useSelector } from 'hooks';
 import { useDispatch } from 'react-redux';
 import Button from '@material-ui/core/Button';
-import { DialogZyx, TemplateIcons, TemplateBreadcrumbs, TitleDetail, FieldEdit, FieldSelect, FieldMultiSelect, AntTab } from 'components';
-import { getOrgUserSel, getUserSel, getValuesFromDomain, insPatient, getAppointmentByPatient, getPatientSel } from 'common/helpers';
-import { Dictionary, MultiData } from "@types";
+import { TemplateIcons, TemplateBreadcrumbs, TitleDetail, FieldEdit, FieldSelect, DialogZyx, AntTab, FieldEditMulti } from 'components';
+import { insPatient, getAppointmentByPatient, getPatientSel, insertAppointment } from 'common/helpers';
+import { Dictionary } from "@types";
 import TableZyx from '../components/fields/table-simple';
 import { makeStyles } from '@material-ui/core/styles';
 import SaveIcon from '@material-ui/icons/Save';
@@ -13,15 +13,17 @@ import { useTranslation } from 'react-i18next';
 import { langKeys } from 'lang/keys';
 import { useForm } from 'react-hook-form';
 import {
-    getCollection, resetAllMain, getMultiCollection,
+    getCollection, resetAllMain, uploadFile, resetUploadFile,
     execute, resetMainAux, getCollectionAux
 } from 'store/main/actions';
 import { showSnackbar, showBackdrop, manageConfirmation, manageLightBox } from 'store/popus/actions';
 import ClearIcon from '@material-ui/icons/Clear';
 import Avatar from '@material-ui/core/Avatar';
-import { Tabs } from '@material-ui/core';
-
+import { Tabs, IconButton } from '@material-ui/core';
+import DeleteIcon from '@material-ui/icons/Delete';
 import AvatarGroup from '@material-ui/lab/AvatarGroup';
+import AddIcon from '@material-ui/icons/Add';
+
 interface DetailProps {
     row: Dictionary | null;
     setViewSelected: (view: string) => void;
@@ -62,8 +64,187 @@ const useStyles = makeStyles((theme) => ({
         fontWeight: 500,
         fontSize: '14px',
         textTransform: 'initial'
+    },
+    boxImage: {
+        width: '100px',
+        height: '100px',
+        position: 'relative',
+        border: '1px solid #e1e1e1',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer'
+    },
+    boxImage2: {
+        width: '100%',
+        height: '100%',
+        padding: 4
     }
 }));
+
+const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointment: Dictionary | null, setDataAppointments: (p: any) => void }> = ({ open, setOpen, appointment, setDataAppointments }) => {
+    const { t } = useTranslation();
+    const classes = useStyles();
+    const dispatch = useDispatch();
+    const [valuefile, setvaluefile] = useState('')
+    const [waitSave, setWaitSave] = useState(false);
+    const uploadResult = useSelector(state => state.main.uploadFile);
+
+    const { register, handleSubmit, reset, setValue, getValues, trigger, formState: { errors } } = useForm<{
+        appointmentid: number,
+        description: string,
+        observation: string,
+        images: string,
+        nextappointmentdate: string
+    }>({
+        defaultValues: {
+            appointmentid: appointment?.appointmentid || 0,
+            description: appointment?.description || '',
+            observation: appointment?.observation || '',
+            images: "",
+        }
+    });
+
+    useEffect(() => {
+        register('appointmentid')
+        register('images')
+        register('description', { validate: (value) => (value && value.length) ? "" : (t(langKeys.field_required) + "") });
+        register('observation', { validate: (value) => (value && value.length) ? "" : (t(langKeys.field_required) + "") });
+    }, [])
+
+    const onSubmit = handleSubmit((data) => {
+        if (data.appointmentid) {
+            setDataAppointments((prev: Dictionary[]) => prev.map(x => x.appointmentid === data.appointmentid ? ({
+                ...x,
+                ...data,
+                operation: 'UPDATE'
+            }) : x))
+        } else {
+            setDataAppointments((prev: Dictionary[]) => [...prev, { ...data, operation: 'INSERT' }])
+        }
+        setOpen(false)
+    });
+
+    useEffect(() => {
+        if (waitSave) {
+            if (!uploadResult.loading && !uploadResult.error) {
+                setValue('images', `${getValues('images')},${uploadResult.url}`)
+                setWaitSave(false);
+                dispatch(resetUploadFile());
+                dispatch(showBackdrop(false))
+            } else if (uploadResult.error) {
+                setWaitSave(false);
+                dispatch(showBackdrop(false))
+            }
+        }
+    }, [waitSave, uploadResult, dispatch])
+
+    useEffect(() => {
+        if (open) {
+            console.log('open!')
+            reset({
+                appointmentid: appointment?.appointmentid || 0,
+                description: appointment?.description || '',
+                observation: appointment?.observation || '',
+                nextappointmentdate: appointment?.nextappointmentdate || '',
+                images: appointment?.images || "",
+            })
+        }
+    }, [open])
+
+    const deleteImage = (e: any, index: number) => {
+        e.stopPropagation()
+        console.log(index)
+        const newimages = getValues('images').split(",").filter((_, i) => index !== i)
+        console.log("newimages", newimages)
+        setValue('images', newimages.join(","))
+        trigger('images')
+    }
+
+    const onSelectImage = (files: any) => {
+        console.log(files)
+        const selectedFile = files[0];
+        var fd = new FormData();
+        fd.append('file', selectedFile, selectedFile.name);
+        setvaluefile('')
+        dispatch(uploadFile(fd));
+        setWaitSave(true)
+        dispatch(showBackdrop(true))
+    }
+
+    return (
+        <DialogZyx
+            open={open}
+            title="Cita"
+            buttonText1={t(langKeys.cancel)}
+            buttonText2={t(langKeys.save)}
+            handleClickButton1={() => setOpen(false)}
+            handleClickButton2={onSubmit}
+        >
+            <div className="row-zyx">
+                <FieldEdit
+                    className="col-12"
+                    label="Sesión"
+                    style={{ marginBottom: 8 }}
+                    valueDefault={getValues('description')}
+                    onChange={(value) => setValue('description', value)}
+                    error={errors?.description?.message}
+                />
+            </div>
+            <div className="row-zyx">
+                <FieldEdit
+                    className="col-12"
+                    label="Fecha próxima"
+                    style={{ marginBottom: 8 }}
+                    type="date"
+                    valueDefault={getValues('nextappointmentdate')}
+                    onChange={(value) => setValue('nextappointmentdate', value)}
+                    error={errors?.nextappointmentdate?.message}
+                />
+            </div>
+            <div className="row-zyx">
+                <FieldEditMulti
+                    className="col-12"
+                    label={t(langKeys.observation)}
+                    style={{ marginBottom: 8 }}
+                    valueDefault={getValues('observation')}
+                    onChange={(value) => setValue('observation', value)}
+                    error={errors?.observation?.message}
+                />
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                <input
+                    name="file"
+                    accept="image/*"
+                    id={`upload_image`}
+                    type="file"
+                    value={valuefile}
+                    style={{ display: 'none' }}
+                    onChange={(e) => onSelectImage(e.target.files)}
+                />
+                <label htmlFor={`upload_image`} className={classes.boxImage} style={{ backgroundColor: '#e3e3e3', cursor: 'pointer' }}>
+                    <AddIcon color="action" />
+                </label>
+                {getValues('images').split(",").map((image: string, index: number) => !image ? null : (
+                    <div
+                        key={index}
+                        className={classes.boxImage}
+                        onClick={() => dispatch(manageLightBox({ visible: true, images: getValues('images').split(","), index }))}
+                    >
+                        <img src={image} className={classes.boxImage2} />
+                        <IconButton
+                            size='small'
+                            style={{ position: 'absolute', top: 0, right: 0 }}
+                            onClick={(e) => deleteImage(e, index)}
+                        >
+                            <DeleteIcon color='action' />
+                        </IconButton>
+                    </div>
+                ))}
+            </div>
+        </DialogZyx>
+    )
+}
 
 const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData }) => {
     const classes = useStyles();
@@ -72,8 +253,13 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
 
     const [waitSave, setWaitSave] = useState(false);
     const executeRes = useSelector(state => state.main.execute);
-    const dataAppoiintments = useSelector(state => state.main.mainAux);
+    const resMainAux = useSelector(state => state.main.mainAux);
+    const [dataAppointments, setDataAppointments] = useState<Dictionary[]>([])
+
     const [pageSelected, setPageSelected] = useState(0);
+
+    const [openDialogAppointment, setOpenDialogAppointment] = useState(false);
+    const [appointmentSelected, setappointmentSelected] = useState<Dictionary | null>(null);
 
     const { register, handleSubmit, setValue, getValues, formState: { errors } } = useForm({
         defaultValues: {
@@ -93,6 +279,12 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
             status: row?.status || "ACTIVO",
         }
     });
+
+    useEffect(() => {
+        if (!resMainAux.loading && !resMainAux.error) {
+            setDataAppointments(resMainAux.data)
+        }
+    }, [resMainAux])
 
     useEffect(() => {
         if (waitSave) {
@@ -128,7 +320,6 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
         dispatch(resetMainAux())
 
         if (row) {
-            console.log("row", row)
             dispatch(getCollectionAux(getAppointmentByPatient(row.patientid)));
         }
     }, [register]);
@@ -145,9 +336,8 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                     const row = props.cell.row.original;
                     return (
                         <TemplateIcons
-                            viewFunction={() => null}
-                            deleteFunction={() => null}
-                            editFunction={() => null}
+                            deleteFunction={() => editAppointment(row)}
+                            editFunction={() => editAppointment(row)}
                         />
                     )
                 }
@@ -199,10 +389,23 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
         []
     );
 
+    const editAppointment = (row: Dictionary) => {
+        setappointmentSelected(row);
+        setOpenDialogAppointment(true);
+    }
+
     const onSubmit = handleSubmit((data) => {
         const callback = () => {
             dispatch(showBackdrop(true));
-            dispatch(execute(insPatient(data)));
+            
+            // dispatch(execute(insPatient(data)));
+
+            dispatch(execute({
+                header: insPatient(data),
+                detail: dataAppointments.filter(x => !!x.operation).map(x => insertAppointment(x))
+            }, true));
+
+
             setWaitSave(true)
         }
 
@@ -216,16 +419,14 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
 
     return (
         <div style={{ width: '100%' }}>
+            <TemplateBreadcrumbs
+                breadcrumbs={arrayBread}
+                handleClick={setViewSelected}
+            />
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <div>
-                    <TemplateBreadcrumbs
-                        breadcrumbs={arrayBread}
-                        handleClick={setViewSelected}
-                    />
-                    <TitleDetail
-                        title={row ? `${row.firstname} ${row.lastname}` : "Nuevo paciente"}
-                    />
-                </div>
+                <TitleDetail
+                    title={row ? `${row.firstname} ${row.lastname}` : "Nuevo paciente"}
+                />
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <Button
                         variant="contained"
@@ -366,15 +567,25 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                 <div className={classes.containerDetail}>
                     <TableZyx
                         columns={columns}
-                        data={dataAppoiintments.data}
+                        data={dataAppointments}
                         download={true}
                         filterGeneral={false}
-                        loading={dataAppoiintments.loading}
+                        loading={resMainAux.loading}
                         register={true}
                         hoverShadow={true}
+                        handleRegister={() => {
+                            setappointmentSelected(null);
+                            setOpenDialogAppointment(true);
+                        }}
                     />
                 </div>
             }
+            <DialogAppointment
+                open={openDialogAppointment}
+                setDataAppointments={setDataAppointments}
+                setOpen={setOpenDialogAppointment}
+                appointment={appointmentSelected}
+            />
         </div>
     );
 }
@@ -383,7 +594,6 @@ const Users: FC = () => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainResult = useSelector(state => state.main.mainData);
-    const mainMultiResult = useSelector(state => state.main.multiData);
     const executeResult = useSelector(state => state.main.execute);
     const [dataUsers, setdataUsers] = useState<Dictionary[]>([]);
 
