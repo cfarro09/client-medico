@@ -11,7 +11,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import SaveIcon from '@material-ui/icons/Save';
 import { useTranslation } from 'react-i18next';
 import { langKeys } from 'lang/keys';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import {
     getCollection, resetAllMain, uploadFile, resetUploadFile,
     execute, resetMainAux, getCollectionAux
@@ -66,19 +66,23 @@ const useStyles = makeStyles((theme) => ({
         textTransform: 'initial'
     },
     boxImage: {
-        width: '100px',
-        height: '100px',
+        width: '100%',
+        height: '105px',
+        paddingRight: 10,
         position: 'relative',
         border: '1px solid #e1e1e1',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer'
+        gap: 8,
     },
     boxImage2: {
-        width: '100%',
-        height: '100%',
-        padding: 4
+        width: '100px',
+        height: '100px',
+        padding: 4,
+        cursor: 'pointer'
+    },
+    editText: {
+        width: '100%'
     }
 }));
 
@@ -117,10 +121,16 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
             setDataAppointments((prev: Dictionary[]) => prev.map(x => x.appointmentid === data.appointmentid ? ({
                 ...x,
                 ...data,
-                operation: 'UPDATE'
+                nextappointmentdate: data.nextappointmentdate || null,
+                operation: data.appointmentid < 0 ? x.operation : 'UPDATE'
             }) : x))
         } else {
-            setDataAppointments((prev: Dictionary[]) => [...prev, { ...data, operation: 'INSERT' }])
+            setDataAppointments((prev: Dictionary[]) => [...prev, {
+                ...data,
+                operation: 'INSERT',
+                appointmentid: (prev.length + 1) * -1,
+                nextappointmentdate: data.nextappointmentdate || null,
+            }])
         }
         setOpen(false)
     });
@@ -128,7 +138,7 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
     useEffect(() => {
         if (waitSave) {
             if (!uploadResult.loading && !uploadResult.error) {
-                setValue('images', `${getValues('images')},${uploadResult.url}`)
+                setValue('images', `${getValues('images')}${getValues('images') ? "," : ""}${uploadResult.url}`)
                 setWaitSave(false);
                 dispatch(resetUploadFile());
                 dispatch(showBackdrop(false))
@@ -205,33 +215,39 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
             <div className="row-zyx">
                 <FieldEditMulti
                     className="col-12"
-                    label={t(langKeys.observation)}
+                    label="Diagnóstico"
                     style={{ marginBottom: 8 }}
                     valueDefault={getValues('observation')}
                     onChange={(value) => setValue('observation', value)}
                     error={errors?.observation?.message}
                 />
             </div>
+
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                <input
-                    name="file"
-                    accept="image/*"
-                    id={`upload_image`}
-                    type="file"
-                    value={valuefile}
-                    style={{ display: 'none' }}
-                    onChange={(e) => onSelectImage(e.target.files)}
-                />
-                <label htmlFor={`upload_image`} className={classes.boxImage} style={{ backgroundColor: '#e3e3e3', cursor: 'pointer' }}>
-                    <AddIcon color="action" />
-                </label>
+                <div style={{ display: 'flex', width: '100%', justifyContent: 'end' }}>
+                    <input
+                        name="file"
+                        accept="image/*"
+                        id={`upload_image`}
+                        type="file"
+                        value={valuefile}
+                        style={{ display: 'none' }}
+                        onChange={(e) => onSelectImage(e.target.files)}
+                    />
+                    <label htmlFor={`upload_image`} className={classes.boxImage} style={{ backgroundColor: '#e3e3e3', cursor: 'pointer', width: 40, height: 40, borderRadius: 20, justifyContent: 'center', paddingRight: 0 }}>
+                        <AddIcon color="action" />
+                    </label>
+                </div>
                 {getValues('images').split(",").map((image: string, index: number) => !image ? null : (
                     <div
                         key={index}
                         className={classes.boxImage}
-                        onClick={() => dispatch(manageLightBox({ visible: true, images: getValues('images').split(","), index }))}
                     >
-                        <img src={image} className={classes.boxImage2} />
+                        <img
+                            src={image}
+                            className={classes.boxImage2}
+                            onClick={() => dispatch(manageLightBox({ visible: true, images: getValues('images').split(","), index }))}
+                        />
                         <IconButton
                             size='small'
                             style={{ position: 'absolute', top: 0, right: 0 }}
@@ -239,6 +255,14 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
                         >
                             <DeleteIcon color='action' />
                         </IconButton>
+                        <FieldEdit
+                            label="Descripción"
+                            className={classes.editText}
+                            style={{ marginBottom: 8 }}
+                            valueDefault=""
+                            onChange={(value) => setValue('description', value)}
+                            error={errors?.description?.message}
+                        />
                     </div>
                 ))}
             </div>
@@ -261,7 +285,7 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
     const [openDialogAppointment, setOpenDialogAppointment] = useState(false);
     const [appointmentSelected, setappointmentSelected] = useState<Dictionary | null>(null);
 
-    const { register, handleSubmit, setValue, getValues, formState: { errors } } = useForm({
+    const { register, handleSubmit, setValue, getValues, trigger, formState: { errors } } = useForm({
         defaultValues: {
             id: row ? row.patientid : 0,
             operation: row ? "UPDATE" : "INSERT",
@@ -348,7 +372,7 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                 NoFilter: true
             },
             {
-                Header: "Observación",
+                Header: "Diagnóstico",
                 accessor: 'observation',
                 NoFilter: true
             },
@@ -397,7 +421,7 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
     const onSubmit = handleSubmit((data) => {
         const callback = () => {
             dispatch(showBackdrop(true));
-            
+
             // dispatch(execute(insPatient(data)));
 
             dispatch(execute({
@@ -457,24 +481,29 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                 <AntTab label="Información paciente" />
                 <AntTab label="Citas" />
             </Tabs>
-            {pageSelected === 0 &&
-                <form id="form-patient" onSubmit={onSubmit}>
+            <form id="form-patient" onSubmit={onSubmit}>
+                {pageSelected === 0 &&
                     <div className={classes.containerDetail}>
                         <div className="row-zyx">
-
                             <FieldEdit
                                 className="col-6"
                                 label={t(langKeys.firstname)}
                                 style={{ marginBottom: 8 }}
-                                valueDefault={row?.firstname || ""}
+                                valueDefault={getValues('firstname')}
                                 onChange={(value) => setValue('firstname', value)}
+                                fregister={{
+                                    onBlur: () => trigger('firstname')
+                                }}
                                 error={errors?.firstname?.message}
                             />
                             <FieldEdit
                                 className="col-6"
                                 label={t(langKeys.lastname)}
-                                valueDefault={row?.lastname || ""}
+                                valueDefault={getValues('lastname')}
                                 onChange={(value) => setValue('lastname', value)}
+                                fregister={{
+                                    onBlur: () => trigger('lastname')
+                                }}
                                 error={errors?.lastname?.message}
                             />
 
@@ -483,15 +512,21 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                             <FieldEdit
                                 label={t(langKeys.email)}
                                 className="col-6"
-                                valueDefault={row?.email || ""}
+                                valueDefault={getValues('email')}
                                 onChange={(value) => setValue('email', value)}
+                                fregister={{
+                                    onBlur: () => trigger('email')
+                                }}
                                 error={errors?.email?.message}
                             />
                             <FieldEdit
                                 label={t(langKeys.phone)}
                                 className="col-6"
-                                valueDefault={row?.phone || ""}
+                                valueDefault={getValues('phone')}
                                 onChange={(value) => setValue('phone', value)}
+                                fregister={{
+                                    onBlur: () => trigger('phone')
+                                }}
                                 error={errors?.phone?.message}
                             />
                         </div>
@@ -500,7 +535,10 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                                 label={t(langKeys.docType)}
                                 className="col-6"
                                 valueDefault={getValues('doctype')}
-                                onChange={(value) => setValue('doctype', value ? value.domainvalue : '')}
+                                onChange={(value) => {
+                                    setValue('doctype', value ? value.domainvalue : '');
+                                    trigger('doctype');
+                                }}
                                 error={errors?.doctype?.message}
                                 data={data_type_document}
                                 optionDesc="domaindesc"
@@ -511,21 +549,12 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                                 className="col-6"
                                 valueDefault={getValues('docnum')}
                                 onChange={(value) => setValue('docnum', value)}
+                                onBlur={() => trigger('docnum')}
                                 error={errors?.docnum?.message}
                             />
                         </div>
 
                         <div className="row-zyx">
-                            <FieldSelect
-                                label={t(langKeys.status)}
-                                className="col-6"
-                                valueDefault={row?.status || "ACTIVO"}
-                                onChange={(value) => setValue('status', value ? value.domainvalue : '')}
-                                error={errors?.status?.message}
-                                data={data_status}
-                                optionDesc="domaindesc"
-                                optionValue="domainvalue"
-                            />
                             <FieldEdit
                                 label={"Fecha de nacimiento"}
                                 className="col-6"
@@ -534,11 +563,9 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                                 onChange={(value) => setValue('birthdate', value)}
                                 error={errors?.birthdate?.message}
                             />
-                        </div>
-                        <div className="row-zyx">
                             <FieldEdit
                                 label={t(langKeys.address)}
-                                className="col-12"
+                                className="col-6"
                                 valueDefault={getValues('address')}
                                 onChange={(value) => setValue('address', value)}
                                 error={errors?.address?.message}
@@ -548,38 +575,39 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                             <FieldEdit
                                 label="Nombre del contacto"
                                 className="col-6"
-                                valueDefault={row?.contactname || ""}
+                                valueDefault={getValues('contactname')}
                                 onChange={(value) => setValue('contactname', value)}
                                 error={errors?.contactname?.message}
                             />
                             <FieldEdit
                                 label="Teléfono del contacto"
                                 className="col-6"
-                                valueDefault={row?.contactphone || ""}
+                                valueDefault={getValues('contactphone')}
                                 onChange={(value) => setValue('contactphone', value)}
                                 error={errors?.contactphone?.message}
                             />
                         </div>
                     </div>
-                </form>
-            }
-            {pageSelected === 1 &&
-                <div className={classes.containerDetail}>
-                    <TableZyx
-                        columns={columns}
-                        data={dataAppointments}
-                        download={true}
-                        filterGeneral={false}
-                        loading={resMainAux.loading}
-                        register={true}
-                        hoverShadow={true}
-                        handleRegister={() => {
-                            setappointmentSelected(null);
-                            setOpenDialogAppointment(true);
-                        }}
-                    />
-                </div>
-            }
+                }
+                {pageSelected === 1 &&
+                    <div className={classes.containerDetail}>
+                        <TableZyx
+                            columns={columns}
+                            data={dataAppointments}
+                            download={true}
+                            filterGeneral={false}
+                            loading={resMainAux.loading}
+                            register={true}
+                            hoverShadow={true}
+                            handleRegister={() => {
+                                setappointmentSelected(null);
+                                setOpenDialogAppointment(true);
+                            }}
+                        />
+                    </div>
+                }
+            </form>
+
             <DialogAppointment
                 open={openDialogAppointment}
                 setDataAppointments={setDataAppointments}
