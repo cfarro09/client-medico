@@ -1,15 +1,12 @@
-import React, { FC, useEffect, useState } from 'react'; // we need this to make JSX compile
+import React, { useEffect, useState } from 'react'; // we need this to make JSX compile
 import { useSelector } from 'hooks';
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import { langKeys } from 'lang/keys';
-import { useDispatch } from 'react-redux';
 import { Dictionary } from '@types';
-import { getMultiCollectionAux } from 'store/main/actions';
 import { DialogZyx } from 'components';
 import { Checkbox, CircularProgress, FormControlLabel, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from '@material-ui/core';
-import { getRoleApplicationSel } from 'common/helpers';
-import { useFieldArray, useForm, useFormState } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 
 interface EditRoleModalProps {
     setOpenEditRoleModal: (param: any) => void;
@@ -67,26 +64,19 @@ const useStyles = makeStyles((theme) => ({
 
 const EditRoleModal: React.FC<EditRoleModalProps> = ({ setOpenEditRoleModal, openEditRoleModal, roleSelected }) => {
     const { t } = useTranslation();
-    const dispatch = useDispatch();
     const classes = useStyles();
     const multiResultAux = useSelector(state => state.main.multiDataAux);
     const [dataRoleApplication, setDataRoleApplication] = useState<Dictionary[]>([]);
     
     const initFormFields = { myFieldValues: dataRoleApplication };
-    const { register, control, handleSubmit, reset, setValue, getValues, formState } = useForm({
+    const { register, control, handleSubmit, reset, setValue, formState } = useForm({
         defaultValues: initFormFields
     })
     
-    const { fields, append, prepend, remove, swap, move, insert } = useFieldArray({
+    const { fields } = useFieldArray({
         control,
         name: "myFieldValues"
     })
-
-    useEffect(() => {
-        if (openEditRoleModal) {
-            dispatch(getMultiCollectionAux([getRoleApplicationSel(roleSelected?.roleid)]));
-        }
-    }, [openEditRoleModal])
 
     useEffect(() => {
         if (!multiResultAux.loading && !multiResultAux.error) {

@@ -8,6 +8,7 @@ import { IconButton, makeStyles } from '@material-ui/core';
 import { Menu } from '@material-ui/icons';
 import { useDispatch } from 'react-redux';
 import { setOpenDrawer } from 'store/popus/actions';
+import NotificationMenu from 'components/session/NotificationMenu';
 
 type IProps = {
     classes: any;
@@ -50,6 +51,8 @@ const Header = ({ classes }: IProps) => {
                 <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                         <AccountMenu />
+                        <NotificationMenu />
+
                     </div>
                 </div>
             </Toolbar>

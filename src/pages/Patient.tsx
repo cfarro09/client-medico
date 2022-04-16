@@ -3,7 +3,7 @@ import React, { FC, useEffect, useState } from 'react'; // we need this to make 
 import { useSelector } from 'hooks';
 import { useDispatch } from 'react-redux';
 import Button from '@material-ui/core/Button';
-import { TemplateIcons, TemplateBreadcrumbs, TitleDetail, FieldEdit, FieldSelect, DialogZyx, AntTab, FieldEditMulti } from 'components';
+import { TemplateIcons, TemplateBreadcrumbs, TitleDetail, FieldEdit, FieldSelect, DialogZyx, AntTab, FieldEditMulti, FieldEditArray } from 'components';
 import { insPatient, getAppointmentByPatient, getPatientSel, insertAppointment } from 'common/helpers';
 import { Dictionary } from "@types";
 import TableZyx from '../components/fields/table-simple';
@@ -38,11 +38,6 @@ const data_type_document = [
     { domainvalue: 'DNI', domaindesc: 'DNI' },
     { domainvalue: 'PASAPORTE', domaindesc: 'PASAPORTE' },
     { domainvalue: 'RUC', domaindesc: 'RUC' }
-]
-
-const data_status = [
-    { domainvalue: 'ACTIVO', domaindesc: 'ACTIVO' },
-    { domainvalue: 'ELIMINADO', domaindesc: 'ELIMINADO' }
 ]
 
 const useStyles = makeStyles((theme) => ({
@@ -94,23 +89,24 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
     const [waitSave, setWaitSave] = useState(false);
     const uploadResult = useSelector(state => state.main.uploadFile);
 
-    const { register, handleSubmit, reset, setValue, getValues, trigger, formState: { errors } } = useForm<{
-        appointmentid: number,
-        description: string,
-        observation: string,
-        images: string,
-        nextappointmentdate: string
-    }>({
+    const { register, handleSubmit, reset, setValue, control, getValues, trigger, formState: { errors } } = useForm<any>({
         defaultValues: {
             appointmentid: appointment?.appointmentid || 0,
             description: appointment?.description || '',
             observation: appointment?.observation || '',
-            images: "",
+            nextappointmentdate: '',
+            images: [],
         }
+    });
+
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: 'images',
     });
 
     useEffect(() => {
         register('appointmentid')
+        register('nextappointmentdate')
         register('images')
         register('description', { validate: (value) => (value && value.length) ? "" : (t(langKeys.field_required) + "") });
         register('observation', { validate: (value) => (value && value.length) ? "" : (t(langKeys.field_required) + "") });
@@ -121,6 +117,7 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
             setDataAppointments((prev: Dictionary[]) => prev.map(x => x.appointmentid === data.appointmentid ? ({
                 ...x,
                 ...data,
+                images: JSON.stringify(data.images),
                 nextappointmentdate: data.nextappointmentdate || null,
                 operation: data.appointmentid < 0 ? x.operation : 'UPDATE'
             }) : x))
@@ -138,7 +135,10 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
     useEffect(() => {
         if (waitSave) {
             if (!uploadResult.loading && !uploadResult.error) {
-                setValue('images', `${getValues('images')}${getValues('images') ? "," : ""}${uploadResult.url}`)
+                append({
+                    url: uploadResult.url,
+                    description: ''
+                })
                 setWaitSave(false);
                 dispatch(resetUploadFile());
                 dispatch(showBackdrop(false))
@@ -151,25 +151,15 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
 
     useEffect(() => {
         if (open) {
-            console.log('open!')
             reset({
                 appointmentid: appointment?.appointmentid || 0,
                 description: appointment?.description || '',
                 observation: appointment?.observation || '',
                 nextappointmentdate: appointment?.nextappointmentdate || '',
-                images: appointment?.images || "",
+                images: JSON.parse(appointment?.images || "[]"),
             })
         }
     }, [open])
-
-    const deleteImage = (e: any, index: number) => {
-        e.stopPropagation()
-        console.log(index)
-        const newimages = getValues('images').split(",").filter((_, i) => index !== i)
-        console.log("newimages", newimages)
-        setValue('images', newimages.join(","))
-        trigger('images')
-    }
 
     const onSelectImage = (files: any) => {
         console.log(files)
@@ -238,30 +228,35 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
                         <AddIcon color="action" />
                     </label>
                 </div>
-                {getValues('images').split(",").map((image: string, index: number) => !image ? null : (
+                {fields.map((item: Dictionary, index) => (
                     <div
-                        key={index}
+                        key={item.id}
                         className={classes.boxImage}
                     >
                         <img
-                            src={image}
+                            alt={"mg" + index}
+                            src={item.url}
                             className={classes.boxImage2}
-                            onClick={() => dispatch(manageLightBox({ visible: true, images: getValues('images').split(","), index }))}
+                            onClick={() => dispatch(manageLightBox({ visible: true, descriptions: fields.map((x: Dictionary) => x.description), images: fields.map((x: Dictionary) => x.url), index }))}
                         />
                         <IconButton
                             size='small'
                             style={{ position: 'absolute', top: 0, right: 0 }}
-                            onClick={(e) => deleteImage(e, index)}
+                            onClick={(e) => remove(index)}
                         >
                             <DeleteIcon color='action' />
                         </IconButton>
-                        <FieldEdit
+                        <FieldEditArray
                             label="Descripción"
                             className={classes.editText}
-                            style={{ marginBottom: 8 }}
-                            valueDefault=""
-                            onChange={(value) => setValue('description', value)}
-                            error={errors?.description?.message}
+                            fregister={{
+                                ...register(`images.${index}.description`, {
+                                    validate: (value: any) => (value && value.length) || t(langKeys.field_required)
+                                })
+                            }}
+                            valueDefault={item.description}
+                            error={errors?.images?.[index]?.description?.message}
+                            onChange={(value) => setValue(`images.${index}.description`, "" + value)}
                         />
                     </div>
                 ))}
@@ -394,16 +389,17 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                     const { images } = props.cell.row.original;
                     if (!images)
                         return null
+                    let ii = JSON.parse(images);
                     return (
                         <AvatarGroup
                             max={3}
                             style={{ cursor: 'pointer' }}
                             onClick={() => {
-                                dispatch(manageLightBox({ visible: true, images: images.split(","), index: 0 }))
+                                dispatch(manageLightBox({ visible: true, images: ii.map((x: Dictionary) => x.url), index: 0, descriptions: ii.map((x: Dictionary) => x.description) }))
                             }}
                         >
-                            {images.split(",").map((image: string, index: number) => (
-                                <Avatar key={index} src={image} />
+                            {ii.map((image: Dictionary, index: number) => (
+                                <Avatar key={index} src={image.url} />
                             ))}
                         </AvatarGroup>
                     )
@@ -644,6 +640,7 @@ const Users: FC = () => {
                             viewFunction={() => handleView(row)}
                             deleteFunction={() => handleDelete(row)}
                             editFunction={() => handleEdit(row)}
+                            extraOption="Exportar PDF"
                         />
                     )
                 }
@@ -678,14 +675,9 @@ const Users: FC = () => {
                 accessor: 'phone',
                 NoFilter: true
             },
-            // {
-            //     Header: t(langKeys.role),
-            //     accessor: 'role_name',
-            //     NoFilter: true
-            // },
             {
-                Header: t(langKeys.status),
-                accessor: 'status',
+                Header: "Siguiente cita",
+                accessor: 'nextappointmentdate',
                 NoFilter: true,
             },
 
@@ -735,8 +727,7 @@ const Users: FC = () => {
     }
 
     const handleView = (row: Dictionary) => {
-        setViewSelected("view-2");
-        setRowSelected(row);
+        console.log("holaaaaaaaaaaaaaaaaaa")
     }
 
     const handleEdit = (row: Dictionary) => {

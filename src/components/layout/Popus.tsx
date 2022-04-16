@@ -99,6 +99,7 @@ const Popus: React.FC = () => {
             {lightbox.visible && (
                 <Lightbox
                     reactModalStyle={{ overlay: { zIndex: 2000 } }}
+                    imageTitle={lightbox.descriptions?.[lightbox.index] || null}
                     mainSrc={lightbox.images[lightbox.index]}
                     nextSrc={lightbox.images[(lightbox.index + 1) % lightbox.images.length]}
                     prevSrc={lightbox.images[(lightbox.index + lightbox.images.length - 1) % lightbox.images.length]}

@@ -17,7 +17,8 @@ export interface IQuestion {
 export interface ILightBox {
     visible: boolean;
     index: number;
-    images: string[]
+    images: string[],
+    descriptions?: string[];
 }
 
 export interface IState {
