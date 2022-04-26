@@ -23,7 +23,66 @@ import { Tabs, IconButton } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import AvatarGroup from '@material-ui/lab/AvatarGroup';
 import AddIcon from '@material-ui/icons/Add';
+import IOSSwitch from "components/fields/IOSSwitch";
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormControl from '@material-ui/core/FormControl';
+import FormLabel from '@material-ui/core/FormLabel';
 
+const recordPatient = [
+    "Diabetes",
+    "Hematocrito",
+    "Hipertensión arteria",
+    "Glicemia",
+    "Cancer",
+    "Hemoglobina",
+    "Inmunodepresión",
+    "VHS",
+    "Tabaquismo",
+    "Albuminemia",
+    "Insuficiencia venos",
+    "Creatinina",
+    "Insuficiencia arteria",
+    "HB Glicosilad",
+    "Hipoglicemiantes",
+    "Cultivos",
+    "Antibióticos",
+    "Corticosteroides",
+    "Tratamiento anticoagulante",
+]
+
+const recordAppointment = [
+    "Aspecto",
+    "Diámetro",
+    "Profundidad",
+    "Cantidad exudado",
+    "Calidad exudado",
+    "Tejido esf/necrótico",
+    "Tejido granulatorio",
+    "Edema",
+    "Dolor",
+    "Piel circundante"
+]
+
+const initialRecordAppointment = {
+    "Aspecto": "",
+    "Diámetro": "",
+    "Profundidad": "",
+    "Cantidad exudado": "",
+    "Calidad exudado": "",
+    "Tejido esf/necrótico": "",
+    "Tejido granulatorio": "",
+    "Edema": "",
+    "Dolor": "",
+    "Piel circundante": "",
+    "Puntaje": "",
+    "Grado de la úlcera": "",
+    "Agente utilizado": "",
+    "Apósito o cobertura": "",
+    "Tipo de fijación": "",
+    "Nombre evaluador": "",
+}
 interface DetailProps {
     row: Dictionary | null;
     setViewSelected: (view: string) => void;
@@ -88,8 +147,9 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
     const [valuefile, setvaluefile] = useState('')
     const [waitSave, setWaitSave] = useState(false);
     const uploadResult = useSelector(state => state.main.uploadFile);
+    const [record, setRecord] = useState<Dictionary>(initialRecordAppointment)
 
-    const { register, handleSubmit, reset, setValue, control, getValues, trigger, formState: { errors } } = useForm<any>({
+    const { register, handleSubmit, reset, setValue, control, getValues, formState: { errors } } = useForm<any>({
         defaultValues: {
             appointmentid: appointment?.appointmentid || 0,
             description: appointment?.description || '',
@@ -119,7 +179,8 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
                 ...data,
                 images: JSON.stringify(data.images),
                 nextappointmentdate: data.nextappointmentdate || null,
-                operation: data.appointmentid < 0 ? x.operation : 'UPDATE'
+                operation: data.appointmentid < 0 ? x.operation : 'UPDATE',
+                medicalrecord: JSON.stringify(record)
             }) : x))
         } else {
             setDataAppointments((prev: Dictionary[]) => [...prev, {
@@ -127,6 +188,7 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
                 operation: 'INSERT',
                 appointmentid: (prev.length + 1) * -1,
                 nextappointmentdate: data.nextappointmentdate || null,
+                medicalrecord: JSON.stringify(record)
             }])
         }
         setOpen(false)
@@ -151,6 +213,7 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
 
     useEffect(() => {
         if (open) {
+            setRecord((appointment?.medicalrecord && appointment?.medicalrecord?.length > 20) ? JSON.parse(appointment?.medicalrecord) : initialRecordAppointment)
             reset({
                 appointmentid: appointment?.appointmentid || 0,
                 description: appointment?.description || '',
@@ -261,6 +324,21 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
                     </div>
                 ))}
             </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
+                {recordAppointment.map((item, index) => (
+                    <FormControl component="fieldset" key={index}>
+                        <div>{item}</div>
+                        <RadioGroup row aria-label="gender" name="gender1" value={record[item] || ""} onChange={(e) => setRecord((prev: Dictionary) => ({ ...prev, [item]: e.target.value }))}>
+                            <FormControlLabel style={{ marginRight: 8 }} value="1" control={<Radio style={{ fontSize: 10 }} size='small' color="primary" />} label="1" />
+                            <FormControlLabel style={{ marginRight: 8 }} value="2" control={<Radio style={{ fontSize: 10 }} size='small' color="primary" />} label="2" />
+                            <FormControlLabel style={{ marginRight: 8 }} value="3" control={<Radio style={{ fontSize: 10 }} size='small' color="primary" />} label="3" />
+                            <FormControlLabel style={{ marginRight: 8 }} value="4" control={<Radio style={{ fontSize: 10 }} size='small' color="primary" />} label="4" />
+                            <FormControlLabel style={{ marginRight: 8 }} value="5" control={<Radio style={{ fontSize: 10 }} size='small' color="primary" />} label="5" />
+                        </RadioGroup>
+                    </FormControl>
+                ))}
+            </div>
         </DialogZyx>
     )
 }
@@ -279,6 +357,28 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
 
     const [openDialogAppointment, setOpenDialogAppointment] = useState(false);
     const [appointmentSelected, setappointmentSelected] = useState<Dictionary | null>(null);
+    const [record, setRecord] = useState((row?.medicalrecord && row?.medicalrecord?.length > 20) ? JSON.parse(row.medicalrecord) : {
+        "peso": "",
+        "Diabetes": false,
+        "Hematocrito": false,
+        "Hipertensión arteria": false,
+        "Glicemia": false,
+        "Cancer": false,
+        "Hemoglobina": false,
+        "Inmunodepresión": false,
+        "VHS": false,
+        "Tabaquismo": false,
+        "Albuminemia": false,
+        "Insuficiencia venos": false,
+        "Creatinina": false,
+        "Insuficiencia arteria": false,
+        "HB Glicosilad": false,
+        "Hipoglicemiantes": false,
+        "Cultivos": false,
+        "Antibióticos": false,
+        "Corticosteroides": false,
+        "Tratamiento anticoagulante": false,
+    })
 
     const { register, handleSubmit, setValue, getValues, trigger, formState: { errors } } = useForm({
         defaultValues: {
@@ -417,11 +517,9 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
     const onSubmit = handleSubmit((data) => {
         const callback = () => {
             dispatch(showBackdrop(true));
-
             // dispatch(execute(insPatient(data)));
-
             dispatch(execute({
-                header: insPatient(data),
+                header: insPatient({ ...data, medicalrecord: JSON.stringify(record) }),
                 detail: dataAppointments.filter(x => !!x.operation).map(x => insertAppointment(x))
             }, true));
 
@@ -436,14 +534,13 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
         }))
     });
 
-
     return (
         <div style={{ width: '100%' }}>
             <TemplateBreadcrumbs
                 breadcrumbs={arrayBread}
                 handleClick={setViewSelected}
             />
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                 <TitleDetail
                     title={row ? `${row.firstname} ${row.lastname}` : "Nuevo paciente"}
                 />
@@ -475,6 +572,7 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                 onChange={(_, value) => setPageSelected(value)}
             >
                 <AntTab label="Información paciente" />
+                <AntTab label="Ficha médica" />
                 <AntTab label="Citas" />
             </Tabs>
             <form id="form-patient" onSubmit={onSubmit}>
@@ -587,6 +685,29 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                 }
                 {pageSelected === 1 &&
                     <div className={classes.containerDetail}>
+                        <FormControl component="fieldset">
+                            <FormLabel component="legend">Masa corporal</FormLabel>
+                            <RadioGroup row aria-label="gender" name="gender1" value={record.peso || ""} onChange={(e) => setRecord((prev: Dictionary) => ({ ...prev, peso: e.target.value }))}>
+                                <FormControlLabel value="Enflaquecido" control={<Radio color="primary" />} label="Enflaquecido" />
+                                <FormControlLabel value="Normal" control={<Radio color="primary" />} label="Normal" />
+                                <FormControlLabel value="Sobrepeso" control={<Radio color="primary" />} label="Sobrepeso" />
+                                <FormControlLabel value="Obeso" control={<Radio color="primary" />} label="Obeso" />
+                            </RadioGroup>
+                        </FormControl>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+                            <div style={{ color: "#B6B4BA", fontWeight: 400, fontSize: "1rem", fontFamily: "dm-sans" }}>Antecedentes mórbidos</div>
+                            <div style={{ color: "#B6B4BA", fontWeight: 400, fontSize: "1rem", fontFamily: "dm-sans" }}>Exámenes</div>
+                            {recordPatient.map((item, index) => (
+                                <div key={index} style={{ display: 'flex', gap: 16 }}>
+                                    <IOSSwitch checked={record[item] || false} onChange={(e) => setRecord((prev: Dictionary) => ({ ...prev, [item]: e.target.checked }))} name="checkedB" />
+                                    <label >{item}</label>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                }
+                {pageSelected === 2 &&
+                    <div className={classes.containerDetail}>
                         <TableZyx
                             columns={columns}
                             data={dataAppointments}
@@ -603,7 +724,6 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                     </div>
                 }
             </form>
-
             <DialogAppointment
                 open={openDialogAppointment}
                 setDataAppointments={setDataAppointments}
@@ -695,11 +815,6 @@ const Users: FC = () => {
 
     useEffect(() => {
         fetchData();
-        // dispatch(getMultiCollection([
-        //     getValuesFromDomain("TIPODOCUMENTO"), //0
-        //     getValuesFromDomain("ESTADOUSUARIO"), //1
-        //     getRoles(), //formulario orguser 4
-        // ]));
         return () => {
             dispatch(resetAllMain());
         };
@@ -727,7 +842,28 @@ const Users: FC = () => {
     }
 
     const handleView = (row: Dictionary) => {
-        console.log("holaaaaaaaaaaaaaaaaaa")
+        fetch('http://54.209.220.118:6066/api/export/generarpdfpaciente', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            },
+            body: JSON.stringify({
+                "key": "UFN_PATIENT_APPOINTMENT_SEL",
+                "method": "UFN_PATIENT_APPOINTMENT_SEL",
+                "parameters": {
+                    "all": true,
+                    "id": row.patientid
+                }
+            })
+        })
+            .then(res => res.json())
+            .catch(err => console.log(err))
+            .then(res => {
+                window.open(res.url, '_blank');
+            })
+
+
     }
 
     const handleEdit = (row: Dictionary) => {
@@ -737,7 +873,7 @@ const Users: FC = () => {
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(execute(insPatient({ ...row, operation: 'DELETE', status: 'ELIMINADO', id: row.patientid })));
+            dispatch(execute(insPatient({ ...row, medicalrecord: '', operation: 'DELETE', status: 'ELIMINADO', id: row.patientid })));
             dispatch(showBackdrop(true));
             setWaitSave(true);
         }

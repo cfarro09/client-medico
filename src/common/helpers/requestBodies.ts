@@ -36,6 +36,7 @@ export const insertAppointment = (parameters: Dictionary): IRequestBody => ({
     parameters: {
         status: 'ACTIVO',
         type: 'NINGUNO',
+        medicalrecord: parameters.medicalrecord || '',
         ...parameters,
         
     }
@@ -381,6 +382,7 @@ export const insPatient = (parameters: Dictionary): IRequestBody => ({
     parameters: {
         ...parameters,
         patientid: parameters.id,
+        medicalrecord: parameters.medicalrecord || '',
         description: '',
         type: 'NINGUNO',
         
