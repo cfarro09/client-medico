@@ -186,6 +186,7 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
             setDataAppointments((prev: Dictionary[]) => [...prev, {
                 ...data,
                 operation: 'INSERT',
+                images: JSON.stringify(data.images),
                 appointmentid: (prev.length + 1) * -1,
                 nextappointmentdate: data.nextappointmentdate || null,
                 medicalrecord: JSON.stringify(record)
@@ -486,6 +487,7 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                 accessor: 'images',
                 NoFilter: true,
                 Cell: (props: any) => {
+                    console.log("props.cell.row.original", props.cell.row.original)
                     const { images } = props.cell.row.original;
                     if (!images)
                         return null
