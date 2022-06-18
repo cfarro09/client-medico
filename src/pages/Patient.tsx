@@ -31,38 +31,37 @@ import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
 
 const recordPatient = [
-    "Diabetes",
-    "Hematocrito",
-    "Hipertensión arteria",
-    "Glicemia",
-    "Cancer",
-    "Hemoglobina",
-    "Inmunodepresión",
-    "VHS",
-    "Tabaquismo",
-    "Albuminemia",
-    "Insuficiencia venos",
-    "Creatinina",
-    "Insuficiencia arteria",
-    "HB Glicosilad",
-    "Hipoglicemiantes",
-    "Cultivos",
-    "Antibióticos",
-    "Corticosteroides",
-    "Tratamiento anticoagulante",
-]
-
-const recordAppointment = [
-    "Aspecto",
-    "Diámetro",
-    "Profundidad",
-    "Cantidad exudado",
-    "Calidad exudado",
-    "Tejido esf/necrótico",
-    "Tejido granulatorio",
-    "Edema",
-    "Dolor",
-    "Piel circundante"
+    "X-Diabetes",
+    "Y-Hematocrito",
+    "X-Hipertensión arteria",
+    "Y-Glicemia",
+    "X-Cancer",
+    "Y-Hemoglobina",
+    "X-Inmunodepresión",
+    "X-Tabaquismo",
+    "X-Insuficiencia venos",
+    "Y-Creatinina",
+    "X-Insuficiencia arteria",
+    "Y-HB Glicosilad",
+    "Y-Hemograma completo",
+    "Y-Orina",
+    "Y-Perfil lipídico",
+    "X-Hipoglicemiantes",
+    "X-Antibióticos",
+    "X-Tratamiento anticoagulante",
+    "Z-otros",
+    "F-Radiografia",
+    "F-Tomografía",
+    "F-Ecodoppler",
+    "F-Ecografia de partes blandas",
+    "F-Otra imagen",
+    "H-Sintomas principales",
+    "H-Tiempo de enfermedad",
+    "H-Exámen clínico",
+    "H-Diagnóstico",
+    "H-Plan de tratamiento",
+    "HI-Firma digital",
+    "HI-Anexos"
 ]
 
 const initialRecordAppointment = {
@@ -83,6 +82,16 @@ const initialRecordAppointment = {
     "Tipo de fijación": "",
     "Nombre evaluador": "",
 }
+
+function calculateAge(birthday: string) { // birthday is a date
+    const ageDifMs = Date.now() - new Date(birthday).getTime();
+    if (isNaN(ageDifMs)) {
+        return ""
+    }
+    const ageDate = new Date(ageDifMs); // miliseconds from epoch
+    return Math.abs(ageDate.getUTCFullYear() - 1970) + "";
+}
+
 interface DetailProps {
     row: Dictionary | null;
     setViewSelected: (view: string) => void;
@@ -133,6 +142,7 @@ const useStyles = makeStyles((theme) => ({
         width: '100px',
         height: '100px',
         padding: 4,
+        objectFit: "cover",
         cursor: 'pointer'
     },
     editText: {
@@ -169,7 +179,6 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
         register('nextappointmentdate')
         register('images')
         register('description', { validate: (value) => (value && value.length) ? "" : (t(langKeys.field_required) + "") });
-        register('observation', { validate: (value) => (value && value.length) ? "" : (t(langKeys.field_required) + "") });
     }, [])
 
     const onSubmit = handleSubmit((data) => {
@@ -255,25 +264,14 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
                     error={errors?.description?.message}
                 />
             </div>
-            <div className="row-zyx">
+            <div className="row-zyx" style={{ marginBottom: 0 }}>
                 <FieldEdit
                     className="col-12"
                     label="Fecha próxima"
-                    style={{ marginBottom: 8 }}
                     type="date"
                     valueDefault={getValues('nextappointmentdate')}
                     onChange={(value) => setValue('nextappointmentdate', value)}
                     error={errors?.nextappointmentdate?.message}
-                />
-            </div>
-            <div className="row-zyx">
-                <FieldEditMulti
-                    className="col-12"
-                    label="Diagnóstico"
-                    style={{ marginBottom: 8 }}
-                    valueDefault={getValues('observation')}
-                    onChange={(value) => setValue('observation', value)}
-                    error={errors?.observation?.message}
                 />
             </div>
 
@@ -325,26 +323,11 @@ const DialogAppointment: FC<{ open: boolean, setOpen: (p: any) => void, appointm
                     </div>
                 ))}
             </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
-                {recordAppointment.map((item, index) => (
-                    <FormControl component="fieldset" key={index}>
-                        <div>{item}</div>
-                        <RadioGroup row aria-label="gender" name="gender1" value={record[item] || ""} onChange={(e) => setRecord((prev: Dictionary) => ({ ...prev, [item]: e.target.value }))}>
-                            <FormControlLabel style={{ marginRight: 8 }} value="1" control={<Radio style={{ fontSize: 10 }} size='small' color="primary" />} label="1" />
-                            <FormControlLabel style={{ marginRight: 8 }} value="2" control={<Radio style={{ fontSize: 10 }} size='small' color="primary" />} label="2" />
-                            <FormControlLabel style={{ marginRight: 8 }} value="3" control={<Radio style={{ fontSize: 10 }} size='small' color="primary" />} label="3" />
-                            <FormControlLabel style={{ marginRight: 8 }} value="4" control={<Radio style={{ fontSize: 10 }} size='small' color="primary" />} label="4" />
-                            <FormControlLabel style={{ marginRight: 8 }} value="5" control={<Radio style={{ fontSize: 10 }} size='small' color="primary" />} label="5" />
-                        </RadioGroup>
-                    </FormControl>
-                ))}
-            </div>
         </DialogZyx>
     )
 }
 
-const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData }) => {
+const DetailPatient: React.FC<DetailProps> = ({ row, setViewSelected, fetchData }) => {
     const classes = useStyles();
     const dispatch = useDispatch();
     const { t } = useTranslation();
@@ -353,11 +336,24 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
     const executeRes = useSelector(state => state.main.execute);
     const resMainAux = useSelector(state => state.main.mainAux);
     const [dataAppointments, setDataAppointments] = useState<Dictionary[]>([])
-
+    const [waitUpload, setWaitUpload] = useState(false);
+    const [uploadType, setUploadType] = useState("");
+    const uploadResult = useSelector(state => state.main.uploadFile);
     const [pageSelected, setPageSelected] = useState(0);
-
     const [openDialogAppointment, setOpenDialogAppointment] = useState(false);
     const [appointmentSelected, setappointmentSelected] = useState<Dictionary | null>(null);
+    const [dataexport, setdataexport] = useState<Dictionary>({
+        "attention_date": "",
+        "reason_consultation": "",
+        "clinical_examination": "",
+        "diagnostic_printing": "",
+        "treatment": "",
+        "patients_relatives": "",
+        "patient_accept": "",
+        "medical_leave_date": "",
+        "export_date": "",
+    });
+
     const [record, setRecord] = useState((row?.medicalrecord && row?.medicalrecord?.length > 20) ? JSON.parse(row.medicalrecord) : {
         "peso": "",
         "Diabetes": false,
@@ -367,25 +363,36 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
         "Cancer": false,
         "Hemoglobina": false,
         "Inmunodepresión": false,
-        "VHS": false,
         "Tabaquismo": false,
-        "Albuminemia": false,
         "Insuficiencia venos": false,
         "Creatinina": false,
         "Insuficiencia arteria": false,
         "HB Glicosilad": false,
         "Hipoglicemiantes": false,
-        "Cultivos": false,
         "Antibióticos": false,
-        "Corticosteroides": false,
         "Tratamiento anticoagulante": false,
-    })
+        "Hemograma completo": false,
+        "Orina": false,
+        "Perfil lipídico": false,
+        "otros": "",
+        "Radiografia": "",
+        "Tomografía": "",
+        "Ecodoppler": "",
+        "Ecografia de partes blandas": "",
+        "Otra imagen": "",
 
+        "Sintomas principales": "",
+        "Tiempo de enfermedad": "",
+        "Exámen clínico": "",
+        "Diagnóstico": "",
+        "Plan de tratamiento": "",
+        "Firma digital": "",
+        "Anexos": "",
+    })
     const { register, handleSubmit, setValue, getValues, trigger, formState: { errors } } = useForm({
         defaultValues: {
             id: row ? row.patientid : 0,
             operation: row ? "UPDATE" : "INSERT",
-
             doctype: row?.doctype || "DNI",
             docnum: row?.docnum || "",
             firstname: row?.firstname || "",
@@ -397,6 +404,8 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
             contactphone: row?.contactphone || "",
             contactname: row?.contactname || "",
             status: row?.status || "ACTIVO",
+            otros: record.otros,
+            origin: row?.origin,
         }
     });
 
@@ -405,6 +414,38 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
             setDataAppointments(resMainAux.data)
         }
     }, [resMainAux])
+
+    const onSelectImage = (files: any) => {
+        const selectedFile = files[0];
+        if (!selectedFile) {
+            return;
+        }
+        var fd = new FormData();
+        fd.append('file', selectedFile, selectedFile.name);
+        // setvaluefile('')
+        dispatch(uploadFile(fd));
+        setWaitUpload(true)
+        dispatch(showBackdrop(true))
+    }
+
+    useEffect(() => {
+        if (waitUpload) {
+            if (!uploadResult.loading && !uploadResult.error) {
+                setRecord({ ...record, [uploadType]: uploadResult.url })
+                // append({
+                //     url: uploadResult.url,
+                //     description: ''
+                // })
+                setWaitUpload(false);
+                dispatch(resetUploadFile());
+                dispatch(showBackdrop(false))
+            } else if (uploadResult.error) {
+                setWaitUpload(false);
+                dispatch(showBackdrop(false))
+            }
+        }
+    }, [waitUpload, uploadResult, dispatch])
+
 
     useEffect(() => {
         if (waitSave) {
@@ -468,11 +509,6 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                 NoFilter: true
             },
             {
-                Header: "Diagnóstico",
-                accessor: 'observation',
-                NoFilter: true
-            },
-            {
                 Header: "Fecha proxima",
                 accessor: 'nextappointmentdate',
                 NoFilter: true
@@ -521,11 +557,9 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
             dispatch(showBackdrop(true));
             // dispatch(execute(insPatient(data)));
             dispatch(execute({
-                header: insPatient({ ...data, medicalrecord: JSON.stringify(record) }),
+                header: insPatient({ ...data, medicalrecord: JSON.stringify({ ...record, otros: data.otros }) }),
                 detail: dataAppointments.filter(x => !!x.operation).map(x => insertAppointment(x))
             }, true));
-
-
             setWaitSave(true)
         }
 
@@ -535,6 +569,10 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
             callback
         }))
     });
+
+    const exportData = () => {
+        console.log(dataexport)
+    }
 
     return (
         <div style={{ width: '100%' }}>
@@ -575,7 +613,9 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
             >
                 <AntTab label="Información paciente" />
                 <AntTab label="Ficha médica" />
+                <AntTab label="Historia clínica" />
                 <AntTab label="Citas" />
+                <AntTab label="Informe médico" />
             </Tabs>
             <form id="form-patient" onSubmit={onSubmit}>
                 {pageSelected === 0 &&
@@ -602,7 +642,6 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                                 }}
                                 error={errors?.lastname?.message}
                             />
-
                         </div>
                         <div className="row-zyx">
                             <FieldEdit
@@ -649,22 +688,39 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                                 error={errors?.docnum?.message}
                             />
                         </div>
-
                         <div className="row-zyx">
-                            <FieldEdit
-                                label={"Fecha de nacimiento"}
-                                className="col-6"
-                                type="date"
-                                valueDefault={getValues('birthdate')}
-                                onChange={(value) => setValue('birthdate', value)}
-                                error={errors?.birthdate?.message}
-                            />
+                            <div className="col-6" style={{ display: 'flex' }}>
+                                <div style={{ width: "75%" }}>
+                                    <FieldEdit
+                                        label={"Fecha de nacimiento"}
+                                        type="date"
+                                        valueDefault={getValues('birthdate')}
+                                        onChange={(value) => {
+                                            setValue('birthdate', value);
+                                            trigger("birthdate")
+                                        }}
+                                        error={errors?.birthdate?.message}
+                                    />
+                                </div>
+                                <div style={{ width: "25%", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    {calculateAge(getValues('birthdate'))} años
+                                </div>
+                            </div>
                             <FieldEdit
                                 label={t(langKeys.address)}
                                 className="col-6"
                                 valueDefault={getValues('address')}
                                 onChange={(value) => setValue('address', value)}
                                 error={errors?.address?.message}
+                            />
+                        </div>
+                        <div className="row-zyx">
+                            <FieldEdit
+                                label={"Procedencia"}
+                                className="col-6"
+                                valueDefault={getValues('origin')}
+                                onChange={(value) => setValue('origin', value)}
+                                error={errors?.origin?.message}
                             />
                         </div>
                         <div className="row-zyx">
@@ -696,19 +752,127 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                                 <FormControlLabel value="Obeso" control={<Radio color="primary" />} label="Obeso" />
                             </RadioGroup>
                         </FormControl>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>
                             <div style={{ color: "#B6B4BA", fontWeight: 400, fontSize: "1rem", fontFamily: "dm-sans" }}>Antecedentes mórbidos</div>
-                            <div style={{ color: "#B6B4BA", fontWeight: 400, fontSize: "1rem", fontFamily: "dm-sans" }}>Exámenes</div>
-                            {recordPatient.map((item, index) => (
-                                <div key={index} style={{ display: 'flex', gap: 16 }}>
-                                    <IOSSwitch checked={record[item] || false} onChange={(e) => setRecord((prev: Dictionary) => ({ ...prev, [item]: e.target.checked }))} name="checkedB" />
-                                    <label >{item}</label>
-                                </div>
-                            ))}
+                            <div style={{ color: "#B6B4BA", fontWeight: 400, fontSize: "1rem", fontFamily: "dm-sans" }}>Exámenes de laboratorio</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                {recordPatient.filter(x => x.includes("X-")).map((item, index) => (
+                                    <div key={index} style={{ display: 'flex', gap: 16 }}>
+                                        <IOSSwitch checked={record[item.replace("X-", "")] || false} onChange={(e) => setRecord((prev: Dictionary) => ({ ...prev, [item.replace("X-", "")]: e.target.checked }))} name="checkedB" />
+                                        <label >{item.replace("X-", "")}</label>
+                                    </div>
+                                ))}
+                                <FieldEdit
+                                    label="Otros"
+                                    // className="col-6"
+                                    valueDefault={getValues('otros')}
+                                    onChange={(value) => setValue('otros', value)}
+                                    error={errors?.otros?.message}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                {recordPatient.filter(x => x.includes("Y-")).map((item, index) => (
+                                    <div key={index} style={{ display: 'flex', gap: 16 }}>
+                                        <IOSSwitch checked={record[item.replace("Y-", "")] || false} onChange={(e) => setRecord((prev: Dictionary) => ({ ...prev, [item.replace("Y-", "")]: e.target.checked }))} name="checkedB" />
+                                        <label >{item.replace("Y-", "")}</label>
+                                    </div>
+                                ))}
+                            </div>
+                            <div style={{ color: "#B6B4BA", fontWeight: 400, fontSize: "1rem", fontFamily: "dm-sans", marginTop: 16 }}>Imagenología</div>
+                            <div></div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                {recordPatient.filter(x => x.includes("F-")).map((item, index) => (
+                                    <div key={index} style={{ display: 'flex', gap: 6, justifyContent: "space-between", alignItems: "center", border: "1px solid #e1e1e1", padding: 8, paddingRight: 4 }}>
+                                        <div>
+                                            <div>{item.replace("F-", "")}</div>
+                                            <input
+                                                name="file"
+                                                accept="image/*"
+                                                id={`upload_image${index}`}
+                                                type="file"
+                                                // value={record[item.replace("F-", "")]}
+                                                style={{ display: 'none' }}
+                                                onChange={(e) => {
+                                                    setUploadType(item.replace("F-", ""));
+                                                    onSelectImage(e.target.files)
+                                                }}
+                                            />
+                                            <label htmlFor={`upload_image${index}`}>
+                                                <Button variant="contained" component="span" color="primary">
+                                                    Subir imagen
+                                                </Button>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            {record[item.replace("F-", "")] && (
+                                                <img
+                                                    alt={"mg"}
+                                                    src={record[item.replace("F-", "")]}
+                                                    className={classes.boxImage2}
+                                                    onClick={() => dispatch(manageLightBox({ visible: true, images: [record[item.replace("F-", "")]], index: 0 }))}
+                                                />
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 }
                 {pageSelected === 2 &&
+                    <div className={classes.containerDetail}>
+                        <div className='row-zyx'>
+                            {recordPatient.filter(x => x.includes("H-")).map((item, index) => (
+                                <div key={index} className="col-6">
+                                    <FieldEdit
+                                        label={item.replace("H-", "")}
+                                        className="col-6"
+                                        valueDefault={record[item.replace("H-", "")]}
+                                        onChange={(value) => setRecord((prev: Dictionary) => ({ ...prev, [item.replace("H-", "")]: value }))}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                            {recordPatient.filter(x => x.includes("HI-")).map((item, index) => (
+                                <div key={index} style={{ display: 'flex', gap: 6, justifyContent: "space-between", alignItems: "center", border: "1px solid #e1e1e1", padding: 8, paddingRight: 4 }}>
+                                    <div>
+                                        <div>{item.replace("HI-", "")}</div>
+                                        <input
+                                            name="file"
+                                            accept="image/*"
+                                            id={`upload_image${index}`}
+                                            type="file"
+                                            // value={record[item.replace("HI-", "")]}
+                                            style={{ display: 'none' }}
+                                            onChange={(e) => {
+                                                setUploadType(item.replace("HI-", ""));
+                                                onSelectImage(e.target.files)
+                                            }}
+                                        />
+                                        <label htmlFor={`upload_image${index}`}>
+                                            <Button variant="contained" component="span" color="primary">
+                                                Subir imagen
+                                            </Button>
+                                        </label>
+                                    </div>
+                                    <div>
+                                        {record[item.replace("HI-", "")] && (
+                                            <img
+                                                alt={"mg"}
+                                                src={record[item.replace("HI-", "")]}
+                                                className={classes.boxImage2}
+                                                onClick={() => dispatch(manageLightBox({ visible: true, images: [record[item.replace("HI-", "")]], index: 0 }))}
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                }
+                {pageSelected === 3 &&
                     <div className={classes.containerDetail}>
                         <TableZyx
                             columns={columns}
@@ -723,6 +887,79 @@ const DetailUsers: React.FC<DetailProps> = ({ row, setViewSelected, fetchData })
                                 setOpenDialogAppointment(true);
                             }}
                         />
+                    </div>
+                }
+                {pageSelected === 4 &&
+                    <div className={classes.containerDetail}>
+                        <div style={{ textAlign: 'right' }}>
+                            <Button
+                                variant='contained'
+                                onClick={exportData}
+                                color='primary'
+                            >Exportar</Button>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+
+                            <FieldEdit
+                                label={"Fecha de atención"}
+                                className="col-6"
+                                type="date"
+                                valueDefault={dataexport["attention_date"]}
+                                onChange={(value) => setdataexport({ ...dataexport, ["attention_date"]: value })}
+                            />
+                            <FieldEdit
+                                label={"Fecha de exportación"}
+                                className="col-6"
+                                type="date"
+                                valueDefault={dataexport["export_date"]}
+                                onChange={(value) => setdataexport({ ...dataexport, ["export_date"]: value })}
+                            />
+                            <FieldEditMulti
+                                label={"Motivo de consulta"}
+                                className="col-6"
+                                valueDefault={dataexport["reason_consultation"]}
+                                onChange={(value) => setdataexport({ ...dataexport, ["reason_consultation"]: value })}
+                            />
+                            <FieldEditMulti
+                                label={"Examen médico clínico"}
+                                className="col-6"
+                                valueDefault={dataexport["clinical_examination"]}
+                                onChange={(value) => setdataexport({ ...dataexport, ["clinical_examination"]: value })}
+                            />
+                            <FieldEditMulti
+                                label={"Impresión diagnóstica"}
+                                className="col-6"
+                                valueDefault={dataexport["diagnostic_printing"]}
+                                onChange={(value) => setdataexport({ ...dataexport, ["diagnostic_printing"]: value })}
+                            />
+                            <FieldEditMulti
+                                label={"Tratamiento"}
+                                className="col-6"
+                                valueDefault={dataexport["treatment"]}
+                                onChange={(value) => setdataexport({ ...dataexport, ["treatment"]: value })}
+                            />
+                            <FieldEdit
+                                label={"Pacientes y familiares"}
+                                className="col-6"
+                                valueDefault={dataexport["patients_relatives"]}
+                                onChange={(value) => setdataexport({ ...dataexport, ["patients_relatives"]: value })}
+                            />
+                            <FieldEdit
+                                label={"Paciente toleró el proc"}
+                                className="col-6"
+                                valueDefault={dataexport["patient_accept"]}
+                                onChange={(value) => setdataexport({ ...dataexport, ["patient_accept"]: value })}
+                            />
+                            <FieldEdit
+                                label={"Fecha descanso médico"}
+                                className="col-6"
+                                type="date"
+                                valueDefault={dataexport["medical_leave_date"]}
+                                onChange={(value) => setdataexport({ ...dataexport, ["medical_leave_date"]: value })}
+                            />
+
+                        </div>
+
                     </div>
                 }
             </form>
@@ -908,7 +1145,7 @@ const Users: FC = () => {
     }
     else
         return (
-            <DetailUsers
+            <DetailPatient
                 row={rowSelected}
                 setViewSelected={setViewSelected}
                 fetchData={fetchData}

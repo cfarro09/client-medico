@@ -31,7 +31,7 @@ import { Divider, Grid, ListItem, ListItemText, styled } from '@material-ui/core
 import { Skeleton } from '@material-ui/lab';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
 import { EmojiICon, GifIcon } from 'icons';
-import { Picker } from 'emoji-mart'
+// import { Picker } from 'emoji-mart'
 import { SearchField } from 'components';
 import CameraAltIcon from '@material-ui/icons/CameraAlt';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -53,7 +53,7 @@ import {
     TelegramIcon
 } from 'icons';
 import { FixedSizeList, ListChildComponentProps } from 'react-window';
-import MuiPhoneNumber, { MaterialUiPhoneNumberProps } from 'material-ui-phone-number';
+// import MuiPhoneNumber, { MaterialUiPhoneNumberProps } from 'material-ui-phone-number';
 
 interface TemplateIconsProps {
     viewFunction?: (param: any) => void;
@@ -791,12 +791,12 @@ export const ListItemSkeleton: React.FC = () => (
     </ListItem>
 )
 
-interface EmojiPickerZyxProps {
-    emojisNoShow?: string[];
-    onSelect: (e: any) => void;
-    style?: React.CSSProperties;
-    icon?: (onClick: () => void) => React.ReactNode;
-}
+// interface EmojiPickerZyxProps {
+//     emojisNoShow?: string[];
+//     onSelect: (e: any) => void;
+//     style?: React.CSSProperties;
+//     icon?: (onClick: () => void) => React.ReactNode;
+// }
 
 const emojiPickerStyle = makeStyles({
     root: {
@@ -810,35 +810,35 @@ const emojiPickerStyle = makeStyles({
 });
 
 
-export const EmojiPickerZyx: React.FC<EmojiPickerZyxProps> = ({ emojisNoShow, onSelect, style, icon }) => {
-    const [open, setOpen] = React.useState(false);
-    const classes = emojiPickerStyle();
-    const handleClick = () => setOpen((prev) => !prev);
-    const { t } = useTranslation();
-    const handleClickAway = () => setOpen(false);
+// export const EmojiPickerZyx: React.FC<EmojiPickerZyxProps> = ({ emojisNoShow, onSelect, style, icon }) => {
+//     const [open, setOpen] = React.useState(false);
+//     const classes = emojiPickerStyle();
+//     const handleClick = () => setOpen((prev) => !prev);
+//     const { t } = useTranslation();
+//     const handleClickAway = () => setOpen(false);
 
-    return (
-        <ClickAwayListener onClickAway={handleClickAway}>
-            <span style={style}>
-                {icon?.(handleClick) || <Tooltip title={t(langKeys.send_emoji) + ""} arrow placement="top">
-                    <EmojiICon className={classes.root} onClick={handleClick} />
-                </Tooltip>}
-                {open && (
-                    <div style={{
-                        position: 'absolute',
-                        bottom: 50
-                    }}>
-                        <Picker
-                            onSelect={onSelect}
-                            sheetSize={32}
-                            emojisToShowFilter={emojisNoShow && emojisNoShow.length > 0 ? (emoji: any) => emojisNoShow.indexOf(emoji.unified) === -1 : undefined}
-                        />
-                    </div>
-                )}
-            </span>
-        </ClickAwayListener>
-    )
-}
+//     return (
+//         <ClickAwayListener onClickAway={handleClickAway}>
+//             <span style={style}>
+//                 {icon?.(handleClick) || <Tooltip title={t(langKeys.send_emoji) + ""} arrow placement="top">
+//                     <EmojiICon className={classes.root} onClick={handleClick} />
+//                 </Tooltip>}
+//                 {open && (
+//                     <div style={{
+//                         position: 'absolute',
+//                         bottom: 50
+//                     }}>
+//                         <Picker
+//                             onSelect={onSelect}
+//                             sheetSize={32}
+//                             emojisToShowFilter={emojisNoShow && emojisNoShow.length > 0 ? (emoji: any) => emojisNoShow.indexOf(emoji.unified) === -1 : undefined}
+//                         />
+//                     </div>
+//                 )}
+//             </span>
+//         </ClickAwayListener>
+//     )
+// }
 
 export const GifPickerZyx: React.FC<{ onSelect?: (e: any) => void, style?: any }> = ({ onSelect, style }) => {
     const [open, setOpen] = React.useState(false);
@@ -1148,34 +1148,34 @@ export const FieldUploadImage: React.FC<InputProps> = ({ className, onChange, va
     )
 }
 
-const CssPhonemui = styled(MuiPhoneNumber)({
-    minHeight: 'unset',
-    '& .MuiInput-underline:after': {
-        borderBottomColor: '#7721ad',
-    },
-});
+// const CssPhonemui = styled(MuiPhoneNumber)({
+//     minHeight: 'unset',
+//     '& .MuiInput-underline:after': {
+//         borderBottomColor: '#7721ad',
+//     },
+// });
 
-interface PhoneFieldEditProps extends Omit<MaterialUiPhoneNumberProps, 'error'> {
-    error?: string;
-}
+// interface PhoneFieldEditProps extends Omit<MaterialUiPhoneNumberProps, 'error'> {
+//     error?: string;
+// }
 
-export const PhoneFieldEdit: FC<PhoneFieldEditProps> = ({ label, error, className, ...props }) => {
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }} className={className}>
-            <Box fontWeight={500} lineHeight="18px" fontSize={14} mb={1} color="textPrimary">
-                {label}
-            </Box>
-            <CssPhonemui
-                variant="standard"
-                margin="none"
-                disableAreaCodes
-                error={!!error}
-                helperText={error || null}
-                {...props}
-            />
-        </div>
-    );
-}
+// export const PhoneFieldEdit: FC<PhoneFieldEditProps> = ({ label, error, className, ...props }) => {
+//     return (
+//         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }} className={className}>
+//             <Box fontWeight={500} lineHeight="18px" fontSize={14} mb={1} color="textPrimary">
+//                 {label}
+//             </Box>
+//             <CssPhonemui
+//                 variant="standard"
+//                 margin="none"
+//                 disableAreaCodes
+//                 error={!!error}
+//                 helperText={error || null}
+//                 {...props}
+//             />
+//         </div>
+//     );
+// }
 
 interface RadioGroudFieldEditProps<T = object> extends Omit<RadioGroupProps, 'onChange'> {
     label: React.ReactNode;
