@@ -343,7 +343,7 @@ const DetailPatient: React.FC<DetailProps> = ({ row, setViewSelected, fetchData 
     const [pageSelected, setPageSelected] = useState(0);
     const [openDialogAppointment, setOpenDialogAppointment] = useState(false);
     const [appointmentSelected, setappointmentSelected] = useState<Dictionary | null>(null);
-    const [dataexport, setdataexport] = useState<Dictionary>({
+    const [dataexport, setdataexport] = useState<Dictionary>(row?.dataexport ? JSON.parse(row.dataexport) : {
         "attention_date": "",
         "reason_consultation": "",
         "clinical_examination": "",
