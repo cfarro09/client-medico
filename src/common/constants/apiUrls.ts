@@ -27,7 +27,7 @@ const APIS_URL = {
         CULQIKEY: 'pk_test_wXgBHymgNU4CZknl'
     },
     LOCAL: {
-        API: 'http://localhost:6065/api',
+        API: 'http://localhost:6066/api',
         // WS: 'http://localhost:7070',
         WS: 'https://socket.laraigo.com',
         CHATFLOW: 'https://localhost:4200',
@@ -65,6 +65,9 @@ export const apiUrls = {
     INTEGRATION: `${BASE_URL}/integration`,
     UPLOAD_FILE: `${BASE_URL}/upload`,
     UPLOAD_DATA: `${BASE_URL}/load/insert`,
+    
+    EXPORT_PATIENT: `${BASE_URL}/export/generarpdfpaciente`,
+    EXPORT_PATIENT_HISTORY: `${BASE_URL}/export/GenerarInformePdfPaciente`,
     
     PROCESS_DATA: `${BASE_URL}/load/process`,
     EXPORT_DATA: `${BASE_URL}/main/export`,

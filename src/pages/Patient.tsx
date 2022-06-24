@@ -29,6 +29,7 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
+import { apiUrls } from 'common/constants';
 
 const recordPatient = [
     "X-Diabetes",
@@ -571,7 +572,27 @@ const DetailPatient: React.FC<DetailProps> = ({ row, setViewSelected, fetchData 
     });
 
     const exportData = () => {
-        console.log(dataexport)
+        fetch(apiUrls.EXPORT_PATIENT_HISTORY, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            },
+            body: JSON.stringify({
+                "key": "UFN_PATIENT_EXPORT_PDF",
+                "method": "UFN_PATIENT_EXPORT_PDF",
+                "parameters": {
+                    "id": row?.patientid,
+                    ...dataexport,
+                    images: null
+                }
+            })
+        })
+            .then(res => res.json())
+            .catch(err => console.log(err))
+            .then(res => {
+                window.open(res.url, '_blank');
+            })
     }
 
     return (
@@ -1081,7 +1102,7 @@ const Users: FC = () => {
     }
 
     const handleView = (row: Dictionary) => {
-        fetch('http://54.209.220.118:6066/api/export/generarpdfpaciente', {
+        fetch(apiUrls.EXPORT_PATIENT, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1101,8 +1122,6 @@ const Users: FC = () => {
             .then(res => {
                 window.open(res.url, '_blank');
             })
-
-
     }
 
     const handleEdit = (row: Dictionary) => {
