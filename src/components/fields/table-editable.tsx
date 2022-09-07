@@ -49,6 +49,7 @@ import { TextField } from '@material-ui/core';
 import { BooleanOptionsMenuComponent, DateOptionsMenuComponent, OptionsMenuComponent, TimeOptionsMenuComponent } from './table-simple';
 
 
+
 const useStyles = makeStyles((theme) => ({
     footerTable: {
         display: 'block',

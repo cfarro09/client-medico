@@ -1,5 +1,5 @@
 import { Dictionary } from "@types";
-const ENV = process.env.REACT_APP_ENV ?? 'PRODUCTION';
+const ENV = process.env.REACT_APP_ENV ?? 'LOCAL';
 
 const APIS_URL = {
     DEVELOP: {

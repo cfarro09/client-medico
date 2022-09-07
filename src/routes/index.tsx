@@ -61,10 +61,8 @@ const ProtectRoute: FC<PrivateRouteProps> = ({ children, component: Component, .
 	}, [resValidateToken])
 	
 	if (!existToken) {
-		console.log('11', location.pathname)
 		return <Redirect to={{ pathname: paths.SIGNIN }} />;
 	} else if (resValidateToken.loading && !applications) {
-		console.log('22', location.pathname)
 		return (
 			<Route {...rest}>
 				<Backdrop style={{ zIndex: 999999999, color: '#fff', }} open={true}>
@@ -73,13 +71,10 @@ const ProtectRoute: FC<PrivateRouteProps> = ({ children, component: Component, .
 			</Route>
 		);
 	} else if (resValidateToken.error) {
-		console.log('333', location.pathname)
 		return <Redirect to={{ pathname: paths.SIGNIN }} />;
 	} else if (Component) {
-		console.log('4444', location.pathname)
 		return <Route {...rest} render={props => <Component {...props} />} />;
 	} else if (location.pathname === "/") {
-		console.log('entro')
 		return <Redirect to={{ pathname: resValidateToken.user?.redirect }} />
 	}
 	return <Route {...rest}>{children}</Route>;
