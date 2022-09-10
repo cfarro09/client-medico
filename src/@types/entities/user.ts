@@ -25,8 +25,7 @@ interface Properties {
 
 export interface IUser {
     email: string;
-    firstname: string;
-    lastname: string;
+    full_name: string;
     status: string;
     token: string;
     usr: string;

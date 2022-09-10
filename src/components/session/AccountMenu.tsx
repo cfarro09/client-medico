@@ -111,7 +111,7 @@ const AccountMenu: FC = () => {
                 endIcon={<ArrowDropDownIcon />}
             >
                 <div className={classes.infoContainer}>
-                    <label className={classes.infoUserName}>{user?.firstname} {user?.lastname}</label>
+                    <label className={classes.infoUserName}>{user?.full_name}</label>
                     <label className={classes.infoUserRol}>{user?.roledesc}</label>
                 </div>
             </Button>
@@ -132,7 +132,7 @@ const AccountMenu: FC = () => {
                 <div className={classes.containerPopover}>
                     <Avatar style={{ width: 120, height: 120 }} src={user?.image + "" || undefined} />
                     <div className={classes.nameTextNotPass} style={{ fontWeight: 500, }}>
-                        {user?.firstname} {user?.lastname}
+                        {user?.full_name}
                     </div>
                     <div className={classes.textNotPass}>
                         {user?.email}
