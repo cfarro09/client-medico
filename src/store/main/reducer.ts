@@ -10,6 +10,12 @@ export interface itemMulti {
     key?: string;
 }
 
+export interface IFilter {
+    value: string;
+    operator: string;
+    type: string;
+}
+
 export interface IUpload extends ITemplate {
     url?: string;
 }
@@ -21,6 +27,13 @@ export interface IBaseState2 {
     error: boolean;
     /** Error message */
     message?: string;
+}
+
+export interface IMemoryTable {
+    page: number;
+    pageSize: number;
+    id: string;
+    filters: { [key: string]: IFilter }
 }
 
 export interface IState {
@@ -37,6 +50,7 @@ export interface IState {
     uploadFile: IUpload;
     exportData: IUpload;
     exportDynamicData: IUpload;
+    memoryTable: IMemoryTable;
 }
 
 export const initialState: IState = {
@@ -53,6 +67,12 @@ export const initialState: IState = {
     uploadFile: { ...initialCommon },
     exportData: { ...initialCommon },
     exportDynamicData: { ...initialCommon },
+    memoryTable: {
+        id: "",
+        page: -1,
+        pageSize: -1,
+        filters: {}
+    }
 };
 
 export default createReducer<IState>(initialState, {
@@ -119,4 +139,6 @@ export default createReducer<IState>(initialState, {
     [actionTypes.DATA_EXPORT_DYNAMIC_FAILURE]: caseFunctions.exportDataDynamicFailure,
     [actionTypes.DATA_EXPORT_DYNAMIC_RESET]: caseFunctions.exportDataDynamicReset,
     [actionTypes.RESET_ALL]: caseFunctions.resetAll,
+    [actionTypes.SET_MEMORY_TABLE]: caseFunctions.setMemoryTable,
+    [actionTypes.CLEAN_MEMORY_TABLE]: caseFunctions.cleanMemoryTable,
 });

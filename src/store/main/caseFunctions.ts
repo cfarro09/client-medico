@@ -407,7 +407,23 @@ export const processDataReset = (state: IState): IState => ({
 
 
 
+export const setMemoryTable = (state: IState, action: IAction): IState => ({
+    ...state,
+    memoryTable: {
+        page: (action.payload.page === undefined || action.payload.page === null) ? state.memoryTable.page : action.payload.page,
+        id: (action.payload.id === undefined || action.payload.id === null) ? state.memoryTable.id : action.payload.id,
+        pageSize: (action.payload.pageSize === undefined || action.payload.pageSize === null) ? state.memoryTable.pageSize : action.payload.pageSize,
+        filters: {
+            ...state.memoryTable.filters,
+            ...(action.payload.filter || {})
+        }
+    },
+});
 
+export const cleanMemoryTable = (state: IState): IState => ({
+    ...state,
+    memoryTable: initialState.memoryTable,
+});
 
 
 

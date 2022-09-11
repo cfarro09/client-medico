@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
 import { getCorpSel, getValuesFromDomain, insCorp } from "common/helpers";
 import { TemplateIcons } from "components";
@@ -9,12 +10,7 @@ import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { execute, getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
-import DetailCorporation from "./DetailCorporation";
-
-interface RowSelected {
-    row: Dictionary | null;
-    edit: boolean;
-}
+import DetailCorporation from "./Detail";
 
 const Corporation: FC = () => {
     const dispatch = useDispatch();
@@ -22,7 +18,7 @@ const Corporation: FC = () => {
     const mainResult = useSelector((state) => state.main.mainData);
     const mainMultiResult = useSelector((state) => state.main.multiData);
     const [viewSelected, setViewSelected] = useState("view-1");
-    const [rowSelected, setRowSelected] = useState<RowSelected>({ row: null, edit: false });
+    const [rowSelected, setRowSelected] = useState<Dictionary | null>(null);
     const [waitSave, setWaitSave] = useState(false);
     const [dataView, setDataView] = useState<Dictionary[]>([]);
     const applications = useSelector((state) => state.login?.validateToken?.user?.menu);
@@ -31,13 +27,12 @@ const Corporation: FC = () => {
 
     useEffect(() => {
         if (applications) {
-            console.log(applications);
             setPagePermissions({
-                ["view"]: applications["/corporations"][0],
-                ["modify"]: applications["/corporations"][1],
-                ["insert"]: applications["/corporations"][2],
-                ["delete"]: applications["/corporations"][3],
-                ["download"]: applications["/corporations"][4],
+                "view": applications["/corporations"][0],
+                "modify": applications["/corporations"][1],
+                "insert": applications["/corporations"][2],
+                "delete": applications["/corporations"][3],
+                "download": applications["/corporations"][4],
             });
         }
     }, [applications]);
@@ -88,9 +83,7 @@ const Corporation: FC = () => {
                     const row = props.cell.row.original;
                     return (
                         <TemplateIcons
-                            viewFunction={() => handleView(row)}
                             deleteFunction={() => handleDelete(row)}
-                            editFunction={() => handleEdit(row)}
                         />
                     );
                 },
@@ -130,17 +123,12 @@ const Corporation: FC = () => {
 
     const handleRegister = () => {
         setViewSelected("view-2");
-        setRowSelected({ row: null, edit: true });
-    };
-
-    const handleView = (row: Dictionary) => {
-        setViewSelected("view-2");
-        setRowSelected({ row, edit: false });
+        setRowSelected(null);
     };
 
     const handleEdit = (row: Dictionary) => {
         setViewSelected("view-2");
-        setRowSelected({ row, edit: true });
+        setRowSelected(row);
     };
 
     const handleDelete = (row: Dictionary) => {
@@ -158,6 +146,7 @@ const Corporation: FC = () => {
             })
         );
     };
+
     if (viewSelected === "view-1") {
         return (
             <TableZyx
@@ -165,6 +154,7 @@ const Corporation: FC = () => {
                 data={dataView}
                 titlemodule={t(langKeys.corporation_plural, { count: 2 })}
                 download={!!pagePermissions.download}
+                onClickRow={handleEdit}
                 loading={mainResult.loading}
                 register={!!pagePermissions.insert}
                 handleRegister={handleRegister}
@@ -173,7 +163,7 @@ const Corporation: FC = () => {
     } else {
         return (
             <DetailCorporation
-                data={rowSelected}
+                row={rowSelected}
                 setViewSelected={setViewSelected}
                 multiData={mainMultiResult.data}
                 fetchData={fetchData}

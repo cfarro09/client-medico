@@ -69,7 +69,7 @@ const AccountMenu: FC = () => {
     const history = useHistory();
 
     const user = useSelector(state => state.login.validateToken.user);
-    const userConnected = useSelector(state => state.inbox.userConnected);
+    // const userConnected = useSelector(state => state.inbox.userConnected);
     
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
@@ -98,7 +98,7 @@ const AccountMenu: FC = () => {
 
                     <BadgeGo
                         overlap="circular"
-                        colortmp={userConnected ? "#44b700" : "#b41a1a"}
+                        colortmp={true ? "#44b700" : "#b41a1a"}
                         anchorOrigin={{
                             vertical: 'top',
                             horizontal: 'right',

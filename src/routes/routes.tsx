@@ -1,4 +1,4 @@
-import { AccountCircle, AssignmentInd, Event, GroupWork, HomeWork, People, Store, ShoppingCart, CompareArrows, AssignmentTurnedIn } from "@material-ui/icons";
+import { AccountCircle } from "@material-ui/icons";
 import { RouteConfig } from "@types";
 import paths from "common/constants/paths";
 import {

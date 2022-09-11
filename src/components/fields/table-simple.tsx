@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import Table from '@material-ui/core/Table';
 import Button from '@material-ui/core/Button';
@@ -8,6 +9,8 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Menu from '@material-ui/core/Menu';
 import { exportExcel, getLocaleDateString } from 'common/helpers';
+import { setMemoryTable } from 'store/main/actions';
+import { useDispatch } from 'react-redux';
 import {
     FirstPage,
     LastPage,
@@ -24,12 +27,11 @@ import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 import Box from '@material-ui/core/Box';
 import Input from '@material-ui/core/Input';
 import Tooltip from '@material-ui/core/Tooltip';
-import Zoom from '@material-ui/core/Zoom';
 import { makeStyles } from '@material-ui/core/styles';
 import Fab from '@material-ui/core/Fab';
 import IconButton from '@material-ui/core/IconButton';
 import BackupIcon from '@material-ui/icons/Backup';
-import { TableConfig } from '@types'
+import { Dictionary, TableConfig } from '@types'
 import { SearchField } from 'components';
 import { DownloadIcon } from 'icons';
 import ListAltIcon from '@material-ui/icons/ListAlt';
@@ -48,11 +50,13 @@ import { Skeleton } from '@material-ui/lab';
 import { FixedSizeList } from 'react-window';
 import DateFnsUtils from '@date-io/date-fns';
 import * as locale from "date-fns/locale";
+import InfoRoundedIcon from '@material-ui/icons/InfoRounded';
 import {
     MuiPickersUtilsProvider,
     KeyboardTimePicker,
     KeyboardDatePicker,
 } from '@material-ui/pickers';
+import { TableFooter } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
     footerTable: {
@@ -88,7 +92,7 @@ const useStyles = makeStyles((theme) => ({
         display: 'flex',
         justifyContent: 'space-between',
         backgroundColor: '#FFF',
-        padding: `${theme.spacing(2)}px`,
+        padding: `${theme.spacing(1)}px`,
     },
     containerfloat: {
         borderBottom: 'none',
@@ -126,9 +130,27 @@ const useStyles = makeStyles((theme) => ({
         gap: 8,
         [theme.breakpoints.up('sm')]: {
             display: 'flex',
-        },
+        }
+    },
+    containerHeaderColumn: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+    },
+    iconHelpText: {
+        width: 15,
+        height: 15,
+        cursor: 'pointer',
     }
 }));
+
+declare module "react-table" {
+    // eslint-disable-next-line
+    interface UseTableColumnProps<D extends object> {
+        listSelectFilter: Dictionary;
+        helpText?: string;
+    }
+}
 
 export const stringOptionsMenu = [
     { key: 'equals', value: 'equals' },
@@ -137,8 +159,8 @@ export const stringOptionsMenu = [
     { key: 'notcontains', value: 'notcontains' },
     { key: 'isempty', value: 'isempty' },
     { key: 'isnotempty', value: 'isnotempty' },
-    { key: 'isnull', value: 'isnull' },
-    { key: 'isnotnull', value: 'isnotnull' },
+    // { key: 'isnull', value: 'isnull' },
+    // { key: 'isnotnull', value: 'isnotnull' },
 ];
 
 export const numberOptionsMenu = [
@@ -148,8 +170,10 @@ export const numberOptionsMenu = [
     { key: 'greaterorequals', value: 'greaterorequals' },
     { key: 'less', value: 'less' },
     { key: 'lessorequals', value: 'lessorequals' },
-    { key: 'isnull', value: 'isnull' },
-    { key: 'isnotnull', value: 'isnotnull' },
+    { key: 'isempty', value: 'isempty' },
+    { key: 'isnotempty', value: 'isnotempty' },
+    // { key: 'isnull', value: 'isnull' },
+    // { key: 'isnotnull', value: 'isnotnull' },
 ];
 
 export const dateOptionsMenu = [
@@ -159,8 +183,8 @@ export const dateOptionsMenu = [
     { key: 'afterequals', value: 'afterequals' },
     { key: 'before', value: 'before' },
     { key: 'beforeequals', value: 'beforeequals' },
-    { key: 'isnull', value: 'isnull' },
-    { key: 'isnotnull', value: 'isnotnull' },
+    // { key: 'isnull', value: 'isnull' },
+    // { key: 'isnotnull', value: 'isnotnull' },
 ];
 
 export const booleanOptionsMenu = [
@@ -208,12 +232,25 @@ export const SelectFilterTmp: React.FC<{ value: any; data: any[]; handleClickIte
 }
 
 export const DateOptionsMenuComponent = (value: any, handleClickItemMenu: (key: any) => void) => {
+    const { t } = useTranslation();
+    const [value2, setvalue2] = useState(null)
+
+    useEffect(() => {
+        if (value === 'isnull' || value === 'isnotnull') {
+            setvalue2(null)
+        }
+    }, [value])
+
     return (
         <MuiPickersUtilsProvider utils={DateFnsUtils} locale={(locale as any)[navigator.language.split('-')[0]]}>
             <KeyboardDatePicker
+                invalidDateMessage={"t(langKeys.invalid_date_format)"}
                 format={getLocaleDateString()}
-                value={value === '' ? null : value}
-                onChange={(e: any) => handleClickItemMenu(e)}
+                value={value2}
+                onChange={(e: any) => {
+                    handleClickItemMenu(e);
+                    setvalue2(e)
+                }}
                 style={{ minWidth: '150px' }}
             />
         </MuiPickersUtilsProvider>
@@ -227,6 +264,8 @@ export const TimeOptionsMenuComponent = (value: any, handleClickItemMenu: (key: 
                 ampm={false}
                 views={['hours', 'minutes', 'seconds']}
                 format="HH:mm:ss"
+                error={false}
+                helperText={''}
                 value={value === '' ? null : value}
                 onChange={(e: any) => handleClickItemMenu(e)}
                 style={{ minWidth: '150px' }}
@@ -239,7 +278,7 @@ export const TimeOptionsMenuComponent = (value: any, handleClickItemMenu: (key: 
 export const OptionsMenuComponent = (type: string, operator: string, handleClickItemMenu: (key: any) => void) => {
     const { t } = useTranslation();
     switch (type) {
-        case "number":
+        case "number": case "number-centered":
             return (
                 numberOptionsMenu.map((option) => (
                     <MenuItem key={option.key} selected={option.key === operator} onClick={() => handleClickItemMenu(option.key)}>
@@ -289,18 +328,40 @@ const TableZyx = React.memo(({
     allRowsSelected,
     setAllRowsSelected,
     onClickRow,
-    toolsFooter = true
+    toolsFooter = true,
+    initialPageIndex = 0,
+    helperText = "",
+    initialStateFilter,
+    registertext,
+    setDataFiltered,
+    useFooter = false
 }: TableConfig) => {
     const classes = useStyles();
+    const dispatch = useDispatch();
+    const [initial, setInitial] = useState(true);
 
     const DefaultColumnFilter = ({
-        column: { setFilter, listSelectFilter = [], type = "string" },
+        column: { id: header, setFilter: $setFilter, listSelectFilter = [], type = "string" },
     }: any) => {
-
-        const [value, setValue] = useState('');
+        const iSF = initialStateFilter?.filter(x => x.id === header)[0];
+        const [value, setValue] = useState(iSF?.value.value || '');
         const [anchorEl, setAnchorEl] = useState(null);
         const open = Boolean(anchorEl);
-        const [operator, setoperator] = useState("contains");
+        const [operator, setoperator] = useState(iSF?.value.operator || "contains");
+
+        const setFilter = (filter: any) => {
+            $setFilter(filter);
+
+            dispatch(setMemoryTable({
+                filter: {
+                    [header]: {
+                        value: filter.value,
+                        operator: filter.operator,
+                        type: filter.type
+                    }
+                }
+            }));
+        }
 
         const handleCloseMenu = () => {
             setAnchorEl(null);
@@ -309,14 +370,16 @@ const TableZyx = React.memo(({
             setAnchorEl(null);
             if (type === 'boolean') {
                 setoperator(op)
-                setValue(operator);
-                setFilter({ value, operator, type });
+                setValue(op);
+                setFilter({ value: op, operator: op, type });
             } else if (type === "select") {
                 setValue(op);
-                setFilter({ value: op, operator, type });
+                setFilter({ value: op, operator: op, type });
             } else {
+                if (['isempty', 'isnotempty', 'isnull', 'isnotnull'].includes(op) || !!value) {
+                    setFilter({ value, operator: op, type });
+                }
                 setoperator(op)
-                setFilter({ value, operator, type });
             }
         };
         const handleClickMenu = (event: any) => {
@@ -327,7 +390,7 @@ const TableZyx = React.memo(({
                 setFilter({ value, operator, type });
             }
             // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [value])
+        }, [value, operator])
         const handleDate = (date: Date) => {
             if (date === null || (date instanceof Date && !isNaN(date.valueOf()))) {
                 setValue(date?.toISOString() || '');
@@ -350,21 +413,23 @@ const TableZyx = React.memo(({
         }
 
         useEffect(() => {
-            switch (type) {
-                case "number": 
-                case "date": 
-                case "datetime-local": 
-                case "time":
-                case "select":
-                    setoperator("equals");
-                    break;
-                case "boolean":
-                    setoperator("all");
-                    break;
-                case "string": case "color":
-                default:
-                    setoperator("contains");
-                    break;
+            if (!initialStateFilter?.filter(x => x.id === header)[0]) {
+                switch (type) {
+                    case "number": case "number-centered":
+                    case "date":
+                    case "datetime-local":
+                    case "time":
+                    case "select":
+                        setoperator("equals");
+                        break;
+                    case "boolean":
+                        setoperator("all");
+                        break;
+                    case "string": case "color":
+                    default:
+                        setoperator("contains");
+                        break;
+                }
             }
         }, [type]);
 
@@ -434,16 +499,19 @@ const TableZyx = React.memo(({
 
     const filterCellValue = React.useCallback((rows, id, filterValue) => {
         const { value, operator, type } = filterValue;
-
         return rows.filter((row: any) => {
-            const cellvalue = row.values[id];
-            if (cellvalue === null || cellvalue === undefined)
-                return false;
-            if (!(['isempty', 'isnotempty', 'isnull', 'isnotnull'].includes(operator) || type === 'boolean')
-                && (value || '') === '')
+            const cellvalue = row.values[id] === null || row.values[id] === undefined ? "" : row.values[id];
+            // if (cellvalue === undefined)
+            //     return false;
+
+            // if (!(['isempty', 'isnotempty', 'isnull', 'isnotnull'].includes(operator) || type === 'boolean') && (value || '') === '')
+            //     return true;
+
+            if (value === '' && !['isempty', 'isnotempty', 'isnull', 'isnotnull'].includes(operator))
                 return true;
+
             switch (type) {
-                case "number":
+                case "number": case "number-centered":
                     switch (operator) {
                         case 'greater':
                             return cellvalue > Number(value);
@@ -454,9 +522,9 @@ const TableZyx = React.memo(({
                         case 'lessorequals':
                             return cellvalue <= Number(value);
                         case 'isnull':
-                            return cellvalue == null;
+                            return cellvalue === "";
                         case 'isnotnull':
-                            return cellvalue != null;
+                            return cellvalue !== "";
                         case 'notequals':
                             return cellvalue !== Number(value);
                         case 'equals':
@@ -474,9 +542,9 @@ const TableZyx = React.memo(({
                         case 'beforeequals':
                             return cellvalue <= value;
                         case 'isnull':
-                            return cellvalue == null;
+                            return cellvalue === "";
                         case 'isnotnull':
-                            return cellvalue != null;
+                            return cellvalue !== "";
                         case 'notequals':
                             return cellvalue !== value;
                         case 'equals':
@@ -490,9 +558,9 @@ const TableZyx = React.memo(({
                         case 'isfalse':
                             return typeof (cellvalue) === 'string' ? cellvalue === 'false' : cellvalue === false;
                         case 'isnull':
-                            return cellvalue == null;
+                            return cellvalue === "";
                         case 'isnotnull':
-                            return cellvalue != null;
+                            return cellvalue !== "";
                         case 'all':
                         default:
                             return true;
@@ -518,7 +586,7 @@ const TableZyx = React.memo(({
                         case 'isnotnull':
                             return cellvalue != null;
                         case 'notcontains':
-                            return !cellvalue.toLowerCase().includes(value.toLowerCase());
+                            return !(cellvalue + "").toLowerCase().includes(value.toLowerCase());
                         case 'contains':
                         default:
                             return (cellvalue + "").toLowerCase().includes(value.toLowerCase());
@@ -541,6 +609,7 @@ const TableZyx = React.memo(({
         getTableProps,
         getTableBodyProps,
         headerGroups,
+        footerGroups,
         prepareRow,
         page, // Instead of using 'rows', we'll use page,
         canPreviousPage,
@@ -551,14 +620,14 @@ const TableZyx = React.memo(({
         nextPage,
         previousPage,
         setPageSize,
-        preGlobalFilteredRows,
+        globalFilteredRows,
         setGlobalFilter,
         state: { pageIndex, pageSize, selectedRowIds },
         toggleAllRowsSelected
     } = useTable({
         columns,
         data,
-        initialState: { pageIndex: 0, pageSize: pageSizeDefault, selectedRowIds: initialSelectedRows || {} },
+        initialState: { pageSize: pageSizeDefault, selectedRowIds: initialSelectedRows || {}, filters: initialStateFilter || [] },
         defaultColumn,
         getRowId: (row, relativeIndex: any, parent: any) => selectionKey
             ? (parent ? [row[selectionKey], parent].join('.') : row[selectionKey])
@@ -577,6 +646,7 @@ const TableZyx = React.memo(({
                     Header: ({ getToggleAllPageRowsSelectedProps }: any) => (
                         <div>
                             <Checkbox
+                                color="primary"
                                 style={{ padding: '0 24px 0 16px' }}
                                 {...getToggleAllPageRowsSelectedProps()}
                             />
@@ -585,6 +655,7 @@ const TableZyx = React.memo(({
                     Cell: ({ row }: any) => (
                         <div>
                             <Checkbox
+                                color="primary"
                                 style={{ padding: '0 24px 0 16px' }}
                                 checked={row.isSelected}
                                 onChange={(e) => row.toggleRowSelected()}
@@ -597,6 +668,24 @@ const TableZyx = React.memo(({
             ])
         }
     )
+
+    useEffect(() => {
+        setDataFiltered && setDataFiltered(globalFilteredRows.map(x => x.original));
+    }, [globalFilteredRows])
+
+
+    useEffect(() => {
+        if (initialStateFilter) {
+            if (initial) {
+                gotoPage(initialPageIndex);
+                setInitial(false)
+            } else {
+                dispatch(setMemoryTable({
+                    page: 0
+                }));
+            }
+        }
+    }, [data])
 
     useEffect(() => {
         let next = true;
@@ -620,42 +709,34 @@ const TableZyx = React.memo(({
 
     const RenderRow = React.useCallback(
         ({ index, style }) => {
-            style = { ...style, display: 'flex', alignItems: 'flex-end' }
+            style = { ...style, display: 'flex', alignItems: 'flex-end', cursor: onClickRow ? 'pointer' : 'default' }
             const row = page[index]
             prepareRow(row);
             return (
                 <TableRow
-                    component="div"
                     {...row.getRowProps({ style })}
                     hover
                 >
-                    {row.cells.map((cell, i) =>
+                    {row.cells.map((cell, _) =>
                         <TableCell
-                            component="div"
                             {...cell.getCellProps({
                                 style: {
-                                    minWidth: cell.column.minWidth,
-                                    width: cell.column.width,
-                                    maxWidth: cell.column.maxWidth,
+                                    ...(cell.column.width === 'auto' ? {
+                                        flex: 1,
+                                    } : {
+                                        minWidth: cell.column.minWidth,
+                                        width: cell.column.width,
+                                        maxWidth: cell.column.maxWidth,
+                                    }),
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
                                     whiteSpace: 'nowrap',
+                                    textAlign: cell.column.type === "number" ? "right" : (cell.column.type?.includes('centered') ? "center" : "left"),
                                 },
                             })}
+                            onClick={() => cell.column.id !== "selection" ? onClickRow && onClickRow(row.original, cell?.column?.id) : null}
                         >
-                            {headerGroups[0].headers[i].isComponent ?
-                                cell.render('Cell')
-                                :
-                                (cell.value?.length > 50 ?
-                                    <Tooltip TransitionComponent={Zoom} title={cell.value}>
-                                        <div style={{ width: 'inherit', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                            {cell.render('Cell')}
-                                        </div>
-                                    </Tooltip>
-                                    :
-                                    cell.render('Cell')
-                                )
-                            }
+                            {cell.render('Cell')}
                         </TableCell>
                     )}
                 </TableRow>
@@ -663,11 +744,17 @@ const TableZyx = React.memo(({
         },
         [headerGroups, prepareRow, page]
     )
+    console.log("onClickRow", onClickRow)
 
     return (
         <Box width={1} >
             <Box className={classes.containerHeader} justifyContent="space-between" alignItems="center" mb={1}>
-                {titlemodule ? <span className={classes.title}>{titlemodule}</span> : (<div>
+                {titlemodule ? <span className={classes.title}>
+                    {titlemodule}
+                    {helperText !== "" ? <Tooltip title={<div style={{ fontSize: 12 }}>{helperText}</div>} arrow placement="top" >
+                        <InfoRoundedIcon color="action" className={classes.iconHelpText} />
+                    </Tooltip> : ""}
+                </span> : (<div style={{ flexGrow: 1 }}>
                     {ButtonsElement && <ButtonsElement />}
                 </div>)}
                 <span className={classes.containerButtons}>
@@ -733,7 +820,7 @@ const TableZyx = React.memo(({
                             startIcon={<AddIcon color="secondary" />}
                             onClick={handleRegister}
                             style={{ backgroundColor: "#55BD84" }}
-                        ><Trans i18nKey={langKeys.register} />
+                        ><Trans i18nKey={registertext || langKeys.register} />
                         </Button>
                     )}
                     {download && (
@@ -742,7 +829,7 @@ const TableZyx = React.memo(({
                             variant="contained"
                             color="primary"
                             disabled={loading}
-                            onClick={() => exportExcel(String(titlemodule) + "Report", data, columns.filter((x: any) => (!x.isComponent && !x.activeOnHover)))}
+                            onClick={() => exportExcel(String(titlemodule || '') + "Report", globalFilteredRows.map(x => x.original), columns.filter((x: any) => (!x.isComponent && !x.activeOnHover)))}
                             startIcon={<DownloadIcon />}
                         ><Trans i18nKey={langKeys.download} />
                         </Button>
@@ -765,41 +852,52 @@ const TableZyx = React.memo(({
 
             {HeadComponent && <HeadComponent />}
 
-            <TableContainer component="div" style={{ position: "relative" }}>
+            <TableContainer style={{ position: "relative" }}>
                 <Box overflow="auto" >
-                    <Table component="div" size="small" {...getTableProps()} aria-label="enhanced table" aria-labelledby="tableTitle">
-                        <TableHead component="div" style={{ display: useSelection ? 'flex' : 'table-header-group' }}>
+                    <Table size="small" {...getTableProps()} aria-label="enhanced table" aria-labelledby="tableTitle">
+                        <TableHead style={{ display: 'table-header-group' }}>
                             {headerGroups.map((headerGroup) => (
-                                <TableRow component="div" {...headerGroup.getHeaderGroupProps()}>
+                                <TableRow  {...headerGroup.getHeaderGroupProps()} style={useSelection ? { display: 'flex' } : {}}>
                                     {headerGroup.headers.map((column, ii) => (
                                         column.activeOnHover ?
                                             <th style={{ width: "0px" }} key="header-floating"></th> :
-                                            <TableCell component="div" key={ii} style={useSelection ? { minWidth: `${column.width}px`, maxWidth: `${column.width}px` } : {}}>
+                                            <TableCell key={ii} style={useSelection ? {
+                                                ...(column.width == 'auto' ? {
+                                                    flex: 1,
+                                                } : {
+                                                    minWidth: column.minWidth,
+                                                    width: column.width,
+                                                    maxWidth: column.maxWidth,
+                                                })} : {}}>
                                                 {column.isComponent ?
                                                     column.render('Header') :
                                                     (<>
-                                                        <Box
-                                                            component="div"
-                                                            {...column.getHeaderProps(column.getSortByToggleProps({ title: 'ordenar' }))}
-                                                            style={{
-                                                                whiteSpace: 'nowrap',
-                                                                wordWrap: 'break-word',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                cursor: 'pointer'
-                                                            }}
-                                                        >
-                                                            {column.render('Header')}
-                                                            {column.isSorted ? (
-                                                                column.isSortedDesc ?
-                                                                    <ArrowDownwardIcon className={classes.iconOrder} color="action" />
-                                                                    :
-                                                                    <ArrowUpwardIcon className={classes.iconOrder} color="action" />
-                                                            )
-                                                                :
-                                                                null
-                                                            }
-                                                        </Box>
+                                                        <div className={classes.containerHeaderColumn}>
+                                                            <Box
+
+                                                                {...column.getHeaderProps(column.getSortByToggleProps({ title: 'ordenar' }))}
+                                                                style={{
+                                                                    whiteSpace: 'nowrap',
+                                                                    wordWrap: 'break-word',
+                                                                    display: 'flex',
+                                                                    cursor: 'pointer',
+                                                                    alignItems: 'center',
+                                                                }}
+                                                            >
+                                                                {column.render('Header')}
+                                                                {column.isSorted && (
+                                                                    column.isSortedDesc ?
+                                                                        <ArrowDownwardIcon className={classes.iconOrder} color="action" />
+                                                                        :
+                                                                        <ArrowUpwardIcon className={classes.iconOrder} color="action" />
+                                                                )}
+                                                            </Box>
+                                                            {!!column.helpText && (
+                                                                <Tooltip title={<div style={{ fontSize: 12 }}>{column.helpText}</div>} arrow placement="top" >
+                                                                    <InfoRoundedIcon color="action" className={classes.iconHelpText} />
+                                                                </Tooltip>
+                                                            )}
+                                                        </div>
                                                         <div>{!column.NoFilter && column.render('Filter')}</div>
                                                     </>)
                                                 }
@@ -809,7 +907,6 @@ const TableZyx = React.memo(({
                             ))}
                         </TableHead>
                         <TableBody
-                            component="div"
                             {...getTableBodyProps()}
                             style={{ backgroundColor: 'white' }}
                         >
@@ -831,14 +928,12 @@ const TableZyx = React.memo(({
                                         prepareRow(row);
                                         return (
                                             <TableRow
-                                                component="div"
                                                 {...row.getRowProps()}
                                                 hover
                                                 style={{ cursor: onClickRow ? 'pointer' : 'default' }}
                                             >
                                                 {row.cells.map((cell, i) =>
                                                     <TableCell
-                                                        component="div"
                                                         {...cell.getCellProps({
                                                             style: {
                                                                 minWidth: cell.column.minWidth,
@@ -848,9 +943,10 @@ const TableZyx = React.memo(({
                                                                 textOverflow: 'ellipsis',
                                                                 whiteSpace: 'nowrap',
                                                                 ...(toolsFooter ? {} : { padding: '0px' }),
+                                                                textAlign: cell.column.type === "number" ? "right" : (cell.column.type?.includes('centered') ? "center" : "left"),
                                                             },
                                                         })}
-                                                        onClick={() => cell.column.id !== "selection" ? onClickRow && onClickRow(row.original) : null}
+                                                        onClick={() => cell.column.id !== "selection" ? onClickRow && onClickRow(row.original, cell?.column?.id) : null}
                                                     >
                                                         {cell.render('Cell')}
                                                     </TableCell>
@@ -860,31 +956,68 @@ const TableZyx = React.memo(({
                                     })
                             }
                         </TableBody>
+                        {useFooter && <TableFooter>
+                            {footerGroups.map(group => (
+                                <TableRow {...group.getFooterGroupProps()}>
+                                    {group.headers.map(column => (
+                                        <TableCell {...column.getFooterProps({
+                                            style: {
+                                                fontWeight: "bold",
+                                                color: "black",
+                                                textAlign: column.type === "number" ? "right" : (column.type?.includes('centered') ? "center" : "left"),
+                                            }
+                                        })}>
+                                            {column.render('Footer')}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))}
+                        </TableFooter>}
                     </Table>
                 </Box>
                 {toolsFooter && (
                     <Box className={classes.footerTable}>
                         <Box>
                             <IconButton
-                                onClick={() => gotoPage(0)}
+                                onClick={() => {
+                                    gotoPage(0);
+                                    dispatch(setMemoryTable({
+                                        page: 0
+                                    }));
+                                }}
                                 disabled={!canPreviousPage || loading}
                             >
                                 <FirstPage />
                             </IconButton>
                             <IconButton
-                                onClick={() => previousPage()}
+                                onClick={() => {
+                                    previousPage();
+                                    dispatch(setMemoryTable({
+                                        page: pageIndex - 1
+                                    }));
+                                }}
                                 disabled={!canPreviousPage || loading}
                             >
                                 <NavigateBefore />
                             </IconButton>
                             <IconButton
-                                onClick={() => nextPage()}
+                                onClick={() => {
+                                    nextPage();
+                                    dispatch(setMemoryTable({
+                                        page: pageIndex + 1
+                                    }));
+                                }}
                                 disabled={!canNextPage || loading}
                             >
                                 <NavigateNext />
                             </IconButton>
                             <IconButton
-                                onClick={() => gotoPage(pageCount - 1)}
+                                onClick={() => {
+                                    gotoPage(pageCount - 1);
+                                    dispatch(setMemoryTable({
+                                        page: pageCount - 1
+                                    }));
+                                }}
                                 disabled={!canNextPage || loading}
                             >
                                 <LastPage />
@@ -892,7 +1025,7 @@ const TableZyx = React.memo(({
                             <Box component="span" fontSize={14}>
                                 <Trans
                                     i18nKey={langKeys.tablePageOf}
-                                    values={{ currentPage: pageIndex + 1, totalPages: pageOptions.length }}
+                                    values={{ currentPage: (pageOptions.length === 0 ? 0 : pageIndex + 1), totalPages: pageOptions.length }}
                                     components={[<Box fontWeight="700" component="span"></Box>, <Box fontWeight="700" component="span"></Box>]}
                                 />
                             </Box>
@@ -900,7 +1033,7 @@ const TableZyx = React.memo(({
                         <Box>
                             <Trans
                                 i18nKey={langKeys.tableShowingRecordOf}
-                                values={{ itemCount: page.length, totalItems: preGlobalFilteredRows.length }}
+                                values={{ itemCount: page.length, totalItems: globalFilteredRows.length }}
                             />
                         </Box>
                         <Box>
@@ -910,7 +1043,10 @@ const TableZyx = React.memo(({
                                 value={pageSize}
                                 disabled={loading}
                                 onChange={e => {
-                                    setPageSize(Number(e.target.value))
+                                    setPageSize(Number(e.target.value));
+                                    dispatch(setMemoryTable({
+                                        pageSize: Number(e.target.value)
+                                    }));
                                 }}
                             >
                                 {[10, 20, 50, 100].map(pageSize => (
@@ -935,14 +1071,14 @@ export default TableZyx;
 const LoadingSkeleton: React.FC<{ columns: number }> = ({ columns }) => {
     const items: React.ReactNode[] = [];
     for (let i = 0; i < columns; i++) {
-        items.push(<TableCell component="div" key={`table-simple-skeleton-${i}`}><Skeleton /></TableCell>);
+        items.push(<TableCell key={`table-simple-skeleton-${i}`}><Skeleton /></TableCell>);
     }
     return (
         <>
-            <TableRow component="div" key="1aux1">
+            <TableRow key="1aux1">
                 {items}
             </TableRow>
-            <TableRow component="div" key="2aux2">
+            <TableRow key="2aux2">
                 {items}
             </TableRow>
         </>

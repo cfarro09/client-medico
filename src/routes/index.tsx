@@ -4,7 +4,7 @@ import Layout from 'components/layout/Layout';
 import Popus from 'components/layout/Popus';
 import {
 	Users, SignIn, NotFound, Forbidden, InternalServererror, Domains,
-	Corporations, Shops, Customers, Purachases, Sales, Stock, Supplier, Corporation
+	Shops, Customers, Purachases, Sales, Stock, Supplier, Corporation
 } from 'pages';
 
 import { BrowserRouter as Router, Switch, Route, RouteProps, useLocation } from 'react-router-dom';
@@ -13,7 +13,6 @@ import { makeStyles } from "@material-ui/core";
 import { useSelector } from 'hooks';
 import Backdrop from '@material-ui/core/Backdrop';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { wsConnect } from "store/inbox/actions";
 import { getAccessToken } from 'common/helpers';
 import { Redirect } from 'react-router-dom';
 import { validateToken } from 'store/login/actions';
@@ -55,7 +54,7 @@ const ProtectRoute: FC<PrivateRouteProps> = ({ children, component: Component, .
 		if (!resValidateToken.error && !resValidateToken.loading) {
 			const automaticConnection = resLogin.user?.automaticConnection || false;
 			const { userid, orgid } = resValidateToken.user!!
-			dispatch(wsConnect({ userid, orgid, usertype: 'PLATFORM', automaticConnection }));
+			// dispatch(wsConnect({ userid, orgid, usertype: 'PLATFORM', automaticConnection }));
 		}
 	}, [resValidateToken])
 

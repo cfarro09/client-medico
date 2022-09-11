@@ -45,6 +45,7 @@ export const getCollectionDynamic = (requestBody: IRequestBodyDynamic): IActionC
 
 export const resetMainDynamic = (): IActionCall => ({ type: actionTypes.DATA_DYNAMIC_RESET });
 
+export const setMemoryTable = (payload: any): IActionCall => ({ type: actionTypes.SET_MEMORY_TABLE, payload });
 
 export const exportDynamic = (requestBody: IRequestBodyDynamic, reportName: string = "", formatToExport: "excel" | "csv" = "excel"): IActionCall => ({
     callAPI: () => CommonService.mainDynamicExport({

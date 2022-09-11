@@ -20,7 +20,6 @@ import { getAccessToken } from 'common/helpers';
 import { useHistory } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 import { langKeys } from 'lang/keys';
-import { connectAgentUI } from 'store/inbox/actions';
 import { showSnackbar } from 'store/popus/actions';
 import { useLocation } from "react-router-dom";
 
@@ -127,7 +126,7 @@ const SignIn = () => {
 
     useEffect(() => {
         if (!resLogin.error && resLogin.user && getAccessToken()) {
-            dispatch(connectAgentUI(resLogin.user.automaticConnection!!))
+            // dispatch(connectAgentUI(resLogin.user.automaticConnection!!))
             history.push(resLogin.user.redirect ? resLogin.user.redirect : "/user");
         }
     }, [resLogin]);

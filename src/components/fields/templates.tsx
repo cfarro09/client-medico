@@ -36,6 +36,7 @@ import { SearchField } from 'components';
 import CameraAltIcon from '@material-ui/icons/CameraAlt';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Tooltip from '@material-ui/core/Tooltip';
+import { ListItemIcon } from '@material-ui/core';
 import {
     WebMessengerIcon,
     ZyxmeMessengerIcon,
@@ -60,15 +61,20 @@ interface TemplateIconsProps {
     deleteFunction?: (param: any) => void;
     editFunction?: (param: any) => void;
     extraOption?: string;
+    ExtraICon?: () => JSX.Element;
+    extraFunction?: (param: any) => void;
 }
 
-export const TemplateIcons: React.FC<TemplateIconsProps> = ({ extraOption, viewFunction, deleteFunction, editFunction }) => {
+export const TemplateIcons: React.FC<TemplateIconsProps> = ({ extraOption, viewFunction, deleteFunction, editFunction, extraFunction, ExtraICon }) => {
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-    const handleClose = () => setAnchorEl(null);
+    const handleClose = (e: any) => {
+        e.stopPropagation();
+        setAnchorEl(null);
+    }
 
     return (
         <div style={{ whiteSpace: 'nowrap', display: 'flex' }}>
-            <IconButton
+            {/* <IconButton
                 aria-label="more"
                 aria-controls="long-menu"
                 aria-haspopup="true"
@@ -76,14 +82,17 @@ export const TemplateIcons: React.FC<TemplateIconsProps> = ({ extraOption, viewF
                 onClick={editFunction}
             >
                 <VisibilityIcon style={{ color: '#B6B4BA' }} />
-            </IconButton>
+            </IconButton> */}
             <IconButton
                 aria-label="more"
                 aria-controls="long-menu"
                 aria-haspopup="true"
                 size="small"
-                onClick={(e) => setAnchorEl(e.currentTarget)}
-                style={{ display: deleteFunction ? 'block' : 'none' }}
+                onClick={(e) => {
+                    setAnchorEl(e.currentTarget);
+                    e.stopPropagation();
+                }}
+                style={{ display: (deleteFunction || extraFunction) ? 'block' : 'none' }}
             >
                 <MoreVertIcon style={{ color: '#B6B4BA' }} />
             </IconButton>
@@ -102,15 +111,31 @@ export const TemplateIcons: React.FC<TemplateIconsProps> = ({ extraOption, viewF
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
             >
-                <MenuItem onClick={(e) => {
-                    setAnchorEl(null)
-                    deleteFunction && deleteFunction(e)
-                }}><Trans i18nKey={langKeys.delete} /></MenuItem>
-                {extraOption && 
+                {deleteFunction &&
                     <MenuItem onClick={(e) => {
+                        e.stopPropagation();
+                        setAnchorEl(null);
+                        deleteFunction && deleteFunction(e)
+                    }}>
+                        <ListItemIcon color="inherit">
+                            <DeleteIcon width={18} style={{ fill: '#7721AD' }} />
+                        </ListItemIcon>
+                        <Trans i18nKey={langKeys.delete} />
+                    </MenuItem>
+                }
+                {extraOption &&
+                    <MenuItem onClick={(e) => {
+                        e.stopPropagation();
                         setAnchorEl(null)
-                        viewFunction && viewFunction(e)
-                        }}>{extraOption}</MenuItem>
+                        extraFunction && extraFunction(e)
+                    }}>
+                        {ExtraICon &&
+                            <ListItemIcon color="inherit">
+                                <ExtraICon />
+                            </ListItemIcon>
+                        }
+                        {extraOption}
+                    </MenuItem>
                 }
             </Menu>
         </div>

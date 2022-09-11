@@ -4,8 +4,8 @@ export { default as Domains } from './Domains';
 export { default as NotFound } from './NotFound';
 export { default as Forbidden } from './Forbidden';
 export { default as InternalServererror } from './InternalServerError';
-export { default as Corporations } from './Corporations';
-export { default as Corporation } from './Corporation/Corporation';
+// export { default as Corporations } from './Corporations';
+export { default as Corporation } from './Corporation/Index';
 
 export { default as Customers } from './Customers';
 export { default as Purachases } from './Purchases';

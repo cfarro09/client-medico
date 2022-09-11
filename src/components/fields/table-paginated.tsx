@@ -29,8 +29,6 @@ import {
     ArrowDownward as ArrowDownwardIcon,
     ArrowUpward as ArrowUpwardIcon,
     MoreVert as MoreVertIcon,
-    DeleteForever,
-    Autorenew
 } from '@material-ui/icons';
 import InfoRoundedIcon from '@material-ui/icons/InfoRounded';
 import Menu from '@material-ui/core/Menu';
@@ -391,16 +389,10 @@ const TableZyx = React.memo(({
     totalrow,
     pageCount: controlledPageCount,
     download,
-    deleteReg,
-    handleDelete,
-    delVisible,
     register,
     handleRegister,
-    reassign,
-    handleReassign,
     HeadComponent,
     ButtonsElement,
-    exportPersonalized,
     loading,
     importCSV,
     autotrigger = false,
@@ -417,6 +409,7 @@ const TableZyx = React.memo(({
     initialEndDate = null,
     initialStartDate = null,
     initialFilters = {},
+    exportPersonalized,
     initialPageIndex = 0,
 }: TableConfig) => {
     const classes = useStyles();
@@ -455,7 +448,7 @@ const TableZyx = React.memo(({
                     // eslint-disable-next-line react-hooks/exhaustive-deps
                 }), [state, pagination.pageIndex])
             },
-            autoResetSelectedRows: true,
+            autoResetSelectedRows: false,
             getRowId: (row, relativeIndex: any, parent: any) => selectionKey
                 ? (parent ? [row[selectionKey], parent].join('.') : row[selectionKey])
                 : (parent ? [parent.id, relativeIndex].join('.') : relativeIndex),
@@ -584,7 +577,14 @@ const TableZyx = React.memo(({
             triggertmp()
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pageSize, pagination, triggerSearch])
+    }, [pagination, triggerSearch])
+
+    useEffect(() => {
+        if (triggerSearch) {
+            triggertmp()
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pageSize])
 
     useEffect(() => {
         if (triggerSearch) {
@@ -685,31 +685,6 @@ const TableZyx = React.memo(({
                                     </Button>
                                 </label>
                             </>
-                        )}
-                        {reassign && (
-                            <Button
-                                className={classes.button}
-                                variant="contained"
-                                color="primary"
-                                disabled={loading}
-                                
-                                startIcon={<Autorenew color="secondary" />}
-                                onClick={handleReassign}
-                                style={{ backgroundColor: "#6bc2f1", display: (delVisible) ? 'auto' : 'none' }}
-                            ><Trans i18nKey={langKeys.reassign} />
-                            </Button>
-                        )}
-                        {deleteReg && (
-                            <Button
-                                className={classes.button}
-                                variant="contained"
-                                color="primary"
-                                disabled={loading}
-                                startIcon={<DeleteForever color="secondary" />}
-                                onClick={handleDelete}
-                                style={{ backgroundColor: "#dd0054", display: (delVisible) ? 'auto' : 'none' }}
-                            ><Trans i18nKey={langKeys.delete} />
-                            </Button>
                         )}
                         {register && (
                             <Button

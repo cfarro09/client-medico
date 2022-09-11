@@ -1,9 +1,9 @@
 import { Button, makeStyles } from "@material-ui/core";
-import { Dictionary } from "@types";
+import { DetailModule } from "@types";
 import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
-import React, { FC, useEffect, useState } from "react"; // we need this to make JSX compile
+import React, { useEffect, useState } from "react"; // we need this to make JSX compile
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
@@ -13,27 +13,10 @@ import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/acti
 import { execute } from "store/main/actions";
 import { insCorp } from "common/helpers";
 
-interface RowSelected {
-    row: Dictionary | null;
-    edit: boolean;
-}
-
-interface MultiData {
-    data: Dictionary[];
-    success: boolean;
-}
-
 const arrayBread = [
     { id: "view-1", name: "Corporation" },
     { id: "view-2", name: "Corporation detail" },
 ];
-
-interface DetailCorporationProps {
-    data: RowSelected;
-    setViewSelected: (view: string) => void;
-    multiData: MultiData[];
-    fetchData: () => void;
-}
 
 const useStyles = makeStyles((theme) => ({
     containerDetail: {
@@ -49,8 +32,8 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const DetailCorporation: React.FC<DetailCorporationProps> = ({
-    data: { row, edit },
+const DetailCorporation: React.FC<DetailModule> = ({
+    row,
     setViewSelected,
     multiData,
     fetchData,
@@ -111,44 +94,21 @@ const DetailCorporation: React.FC<DetailCorporationProps> = ({
             question: t(langKeys.confirmation_save),
             callback
         }))
-
-        // const callback = async () => {
-        //     dispatch(showBackdrop(true));
-        //     if (typeof data.logo === 'object') {
-        //         const fd = new FormData();
-        //         fd.append('file', data.logo, data.logo.name);
-        //         data.logo = (await CommonService.uploadFile(fd)).data["url"];
-        //     }
-        //     if (typeof data.logotype === 'object') {
-        //         const fd = new FormData();
-        //         fd.append('file', data.logotype, data.logotype.name);
-        //         data.logotype = (await CommonService.uploadFile(fd)).data["url"];
-        //     }
-        //     setWaitSave(true)
-        //     dispatch(execute(insCorp(data)));
-        // }
-
-        // dispatch(manageConfirmation({
-        //     visible: true,
-        //     question: t(langKeys.confirmation_save),
-        //     callback
-        // }))
     });
 
     React.useEffect(() => {
         register("description", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register("type", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register("status", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-    }, [edit, register]);
+    }, [register]);
 
     return (
         <div style={{ width: "100%" }}>
             <form onSubmit={onSubmit}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <div>
-                        <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
-                        <TitleDetail title={row ? `${row.description}` : t(langKeys.newcorporation)} />
-                    </div>
+                <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
+
+                <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
+                    <TitleDetail title={row ? `${row.description}` : t(langKeys.newcorporation)} />
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                         <Button
                             variant="contained"
@@ -160,18 +120,16 @@ const DetailCorporation: React.FC<DetailCorporationProps> = ({
                         >
                             {t(langKeys.back)}
                         </Button>
-                        {edit && (
-                            <Button
-                                className={classes.button}
-                                variant="contained"
-                                color="primary"
-                                type="submit"
-                                startIcon={<SaveIcon color="secondary" />}
-                                style={{ backgroundColor: "#55BD84" }}
-                            >
-                                {t(langKeys.save)}
-                            </Button>
-                        )}
+                        <Button
+                            className={classes.button}
+                            variant="contained"
+                            color="primary"
+                            type="submit"
+                            startIcon={<SaveIcon color="secondary" />}
+                            style={{ backgroundColor: "#55BD84" }}
+                        >
+                            {t(langKeys.save)}
+                        </Button>
                     </div>
                 </div>
                 <div className={classes.containerDetail}>

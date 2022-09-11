@@ -3,11 +3,17 @@ import { ReactElement } from "react";
 export interface Dictionary {
     [key: string]: any
 }
-
 export interface MultiData {
     data: Dictionary[];
     success: boolean;
     key?: string;
+}
+
+export interface DetailModule {
+    row: Dictionary | null;
+    setViewSelected: (view: string) => void;
+    multiData: MultiData[];
+    fetchData: () => void;
 }
 
 export interface TableConfig {
@@ -20,17 +26,12 @@ export interface TableConfig {
     pageCount?: number;
     titlemodule?: string;
     methodexport?: string;
-    exportPersonalized?(param?: any): void;
     importCSV?: (param?: any) => void
+    exportPersonalized?(param?: any): void;
     handleTemplate?: (param?: any) => void
-    deleteReg?: boolean;
-    handleDelete?(param: any): void;
-    delVisible?: boolean;
     download?: boolean;
     register?: boolean;
-    reassign?: boolean;
     handleRegister?(param: any): void;
-    handleReassign?(param: any): void;
     calculate?: boolean;
     handleCalculate?(param: any): void;
     HeadComponent?: () => JSX.Element | null;
@@ -48,6 +49,7 @@ export interface TableConfig {
     selectionFilter?: { key: string, value: string };
     initialSelectedRows?: any;
     setSelectedRows?: (param?: any) => void;
+    setDataFiltered?: (param?: any) => void;
     allRowsSelected?: boolean;
     setAllRowsSelected?: (value: boolean) => void;
     autotrigger?: boolean;
@@ -55,7 +57,7 @@ export interface TableConfig {
     autoRefresh?: { value: boolean, callback: (value: boolean) => void };
     // onClickRow?: (param?: any) => void
     // autoRefresh?: {value: boolean, callback: (value: boolean) => void};
-    onClickRow?: (param?: any) => void;
+    onClickRow?: (param?: any, columnid?: any) => void;
     /**cualquier filtro */
     onFilterChange?: (filter: ITablePaginatedFilter) => void;
     helperText?:string;
@@ -74,6 +76,7 @@ export interface TableConfig {
         [key: string]: IFilters;
     };
     registertext?: string;
+    useFooter?: boolean;
 }
 
 export interface Pagination {
