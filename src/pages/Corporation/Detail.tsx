@@ -33,47 +33,51 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const DetailCorporation: React.FC<DetailModule> = ({
-    row,
-    setViewSelected,
-    fetchData,
-}) => {
+const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
     const classes = useStyles();
     const [waitSave, setWaitSave] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
     const multiData = useSelector((state) => state.main.multiData);
-    const [dataExtra, setDataExtra] = useState<{ status: Dictionary[], type: Dictionary[] }>({ status: [], type: [] })
+    const [dataExtra, setDataExtra] = useState<{ status: Dictionary[]; type: Dictionary[] }>({ status: [], type: [] });
     const dispatch = useDispatch();
     const { t } = useTranslation();
 
     useEffect(() => {
         if (!multiData.error && !multiData.loading) {
-            const dataStatus = multiData.data.find(x => x.key === "DOMAIN-ESTADOGENERICO")
-            const dataTypes = multiData.data.find(x => x.key === "DOMAIN-TIPOCORP")
+            const dataStatus = multiData.data.find((x) => x.key === "DOMAIN-ESTADOGENERICO");
+            const dataTypes = multiData.data.find((x) => x.key === "DOMAIN-TIPOCORP");
             if (dataStatus && dataTypes) {
                 setDataExtra({
                     status: dataStatus.data,
-                    type: dataTypes.data
-                })
+                    type: dataTypes.data,
+                });
             }
         }
-    }, [multiData])
+    }, [multiData]);
 
     useEffect(() => {
         if (waitSave) {
             if (!executeResult.loading && !executeResult.error) {
-                dispatch(showSnackbar({ show: true, success: true, message: t(row ? langKeys.successful_edit : langKeys.successful_register) }))
+                dispatch(
+                    showSnackbar({
+                        show: true,
+                        success: true,
+                        message: t(row ? langKeys.successful_edit : langKeys.successful_register),
+                    })
+                );
                 fetchData && fetchData();
                 dispatch(showBackdrop(false));
-                setViewSelected("view-1")
+                setViewSelected("view-1");
             } else if (executeResult.error) {
-                const errormessage = t(executeResult.code || "error_unexpected_error", { module: t(langKeys.corporation_plural).toLocaleLowerCase() })
-                dispatch(showSnackbar({ show: true, success: false, message: errormessage }))
+                const errormessage = t(executeResult.code || "error_unexpected_error", {
+                    module: t(langKeys.corporation_plural).toLocaleLowerCase(),
+                });
+                dispatch(showSnackbar({ show: true, success: false, message: errormessage }));
                 dispatch(showBackdrop(false));
                 setWaitSave(false);
             }
         }
-    }, [executeResult, waitSave])
+    }, [executeResult, waitSave]);
 
     const {
         register,
@@ -94,18 +98,19 @@ const DetailCorporation: React.FC<DetailModule> = ({
     });
 
     const onSubmit = handleSubmit((data) => {
-        console.log("submit", data);
         const callback = () => {
             dispatch(showBackdrop(true));
             dispatch(execute(insCorp(data)));
-            setWaitSave(true)
-        }
+            setWaitSave(true);
+        };
 
-        dispatch(manageConfirmation({
-            visible: true,
-            question: t(langKeys.confirmation_save),
-            callback
-        }))
+        dispatch(
+            manageConfirmation({
+                visible: true,
+                question: t(langKeys.confirmation_save),
+                callback,
+            })
+        );
     });
 
     React.useEffect(() => {
