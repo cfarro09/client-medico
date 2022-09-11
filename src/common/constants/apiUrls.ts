@@ -27,7 +27,7 @@ const APIS_URL = {
         CULQIKEY: 'pk_test_wXgBHymgNU4CZknl'
     },
     LOCAL: {
-        API: 'http://localhost:6066/api',
+        API: 'http://38.242.249.178:6067/api',
         // WS: 'http://localhost:7070',
         WS: 'https://socket.laraigo.com',
         CHATFLOW: 'https://localhost:4200',
