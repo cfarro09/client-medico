@@ -43,6 +43,12 @@ export const getWareHouse = (shopid: number | null = null): IRequestBody => ({
     parameters: { shopid }
 })
 
+export const getApplicationByRole = (roleid: number | null = null): IRequestBody => ({
+    method: "UFN_APPLICATIONROLE_SEL",
+    key: "UFN_APPLICATIONROLE_SEL",
+    parameters: { roleid }
+})
+
 export const getShops = (shopid: number | null = null): IRequestBody => ({
     method: "UFN_SHOP_LST",
     key: "UFN_SHOP_LST",

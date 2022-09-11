@@ -1,6 +1,6 @@
 import { Button, IconButton, InputAdornment, makeStyles } from "@material-ui/core";
 import { DetailModule, Dictionary } from "@types";
-import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TitleDetail, DialogZyx, TemplateSwitch } from "components";
+import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TitleDetail, DialogZyx, TemplateSwitch, FieldMultiSelect } from "components";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
 import React, { useEffect, useState } from "react"; // we need this to make JSX compile
@@ -11,7 +11,7 @@ import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import { execute, getCollectionAux, resetMainAux } from "store/main/actions";
-import { getShopsByUserid, insUser } from "common/helpers";
+import { getApplicationByRole, getShopsByUserid, getWareHouse, insUser } from "common/helpers";
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
 import LockOpenIcon from '@material-ui/icons/LockOpen';
@@ -163,24 +163,181 @@ const ModalPassword: React.FC<ModalPasswordProps> = ({ openModal, setOpenModal, 
     )
 }
 
+const DetailShop: React.FC<{
+    i: number,
+    register: any,
+    item: Dictionary,
+    errors: any,
+    getValues: (param: any) => void,
+    trigger: (param: any) => void,
+    setValue: (param: any, param1: any) => void,
+    dataExtra: Dictionary,
+}> = ({ i, item, errors, getValues, setValue, register, dataExtra: data, trigger }) => {
+    const dispatch = useDispatch();
+    const { t } = useTranslation();
+    const mainAux = useSelector((state) => state.main.mainAux);
+    const [dataExtra, setDataExtra] = useState<{
+        warehouse: Dictionary[],
+        application: Dictionary[],
+    }>({
+        application: [],
+        warehouse: [],
+    })
+
+    const onChangeShop = (shop: Dictionary | null, i: number) => {
+        setValue(`shops.${i}.shopid`, shop?.shopid || 0);
+        setValue(`shops.${i}.warehouses`, "")
+        if (shop) {
+            dispatch(getCollectionAux(getWareHouse(shop.shopid)))
+        } else {
+            setDataExtra({
+                ...dataExtra,
+                warehouse: []
+            })
+        }
+    }
+
+    const onChangeRole = (shop: Dictionary | null, i: number) => {
+        setValue(`shops.${i}.roleid`, shop?.roleid || 0);
+        setValue(`shops.${i}.redirect`, "")
+        if (shop) {
+            dispatch(getCollectionAux(getApplicationByRole(shop.roleid)))
+        } else {
+            setDataExtra({
+                ...dataExtra,
+                application: []
+            })
+        }
+    }
+
+    useEffect(() => {
+        if (item) {
+            dispatch(getCollectionAux(getWareHouse(item.shopid)))
+            dispatch(getCollectionAux(getApplicationByRole(item.roleid)))
+        }
+    }, [])
+    
+    useEffect(() => {
+        if (!mainAux.error && !mainAux.loading) {
+            if (mainAux.key === "UFN_WAREHOUSE_LST") {
+                setDataExtra(prev => ({
+                    ...prev,
+                    warehouse: mainAux.data
+                }))
+            } else if (mainAux.key === "UFN_APPLICATIONROLE_SEL") {
+                setDataExtra(prev => ({
+                    ...prev,
+                    application: mainAux.data
+                }))
+            }
+        }
+    }, [mainAux, setValue])
+
+    return (
+        <div style={{ borderBottom: '1px solid #e1e1e1' }}>
+            <div style={{ marginBottom: 16 }}>
+                <TemplateSwitch
+                    label={t(langKeys.bydefault)}
+                    valueDefault={getValues(`shops.${i}.bydefault`)}
+                    mb={0}
+                    onChange={(value) => setValue(`shops.${i}.bydefault`, value)}
+                />
+            </div>
+            <div className="row-zyx">
+                <FieldSelect
+                    label={"Shop"}
+                    className="col-6"
+                    valueDefault={getValues(`shops.${i}.shopid`)}
+                    fregister={{
+                        ...register(`shops.${i}.shopid`, {
+                            validate: {
+                                validate: (value: any) => (value && value > 0) || t(langKeys.field_required),
+                            }
+                        })
+                    }}
+                    onChange={(value) => onChangeShop(value, i)}
+                    error={errors?.shops?.[i]?.shopid?.message}
+                    data={data.shop}
+                    optionDesc="description"
+                    optionValue="shopid"
+                />
+                <FieldMultiSelect
+                    label={"WareHouse"}
+                    className="col-6"
+                    valueDefault={getValues(`shops.${i}.warehouses`)}
+                    fregister={{
+                        ...register(`shops.${i}.warehouses`)
+                    }}
+                    onChange={(value) => setValue(`shops.${i}.warehouses`, (value?.map((o: Dictionary) => o.warehouseid) || []).join())}
+                    error={errors?.shops?.[i]?.warehouses?.message}
+                    data={dataExtra.warehouse}
+                    optionDesc="description"
+                    optionValue="warehouseid"
+                />
+            </div>
+            <div className="row-zyx">
+                <FieldSelect
+                    label={t(langKeys.role)}
+                    className="col-6"
+                    valueDefault={getValues(`shops.${i}.roleid`)}
+                    fregister={{
+                        ...register(`shops.${i}.roleid`, {
+                            validate: {
+                                validate: (value: any) => (value && value > 0) || t(langKeys.field_required),
+                            }
+                        })
+                    }}
+                    onChange={(value) => onChangeRole(value, i)}
+                    error={errors?.shops?.[i]?.roleid?.message}
+                    data={data.role}
+                    optionDesc="description"
+                    optionValue="roleid"
+                />
+                <FieldSelect
+                    label={t(langKeys.default_application)}
+                    className="col-6"
+                    valueDefault={getValues(`shops.${i}.redirect`)}
+                    fregister={{
+                        ...register(`shops.${i}.redirect`, {
+                            validate: {
+                                validate: (value: any) => (value && value.length) || t(langKeys.field_required),
+                            }
+                        })
+                    }}
+                    onChange={(value) => {
+                        setValue(`shops.${i}.redirect`, value?.path || "");
+                        trigger(`shops.${i}.redirect`)
+                    }}
+                    error={errors?.shops?.[i]?.redirect?.message}
+                    data={dataExtra.application}
+                    optionDesc="description"
+                    optionValue="path"
+                />
+            </div>
+        </div>
+    )
+}
+
 const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
     const classes = useStyles();
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const multiData = useSelector((state) => state.main.multiData);
-    const mainShops = useSelector((state) => state.main.mainAux);
+    const mainAux = useSelector((state) => state.main.mainAux);
     const [dataExtra, setDataExtra] = useState<{
         status: Dictionary[],
         docType: Dictionary[],
         role: Dictionary[],
         application: Dictionary[],
         shop: Dictionary[],
+        warehouse: Dictionary[],
     }>({
         status: [],
         docType: [],
         role: [],
         application: [],
-        shop: []
+        shop: [],
+        warehouse: [],
     })
     const [waitSave, setWaitSave] = useState(false);
     const executeRes = useSelector(state => state.main.execute);
@@ -211,26 +368,34 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
             const status = multiData.data.find(x => x.key === "DOMAIN-ESTADOGENERICO")
             const docType = multiData.data.find(x => x.key === "DOMAIN-TIPODOCUMENTO")
             const role = multiData.data.find(x => x.key === "UFN_ROLE_LST")
-            const application = multiData.data.find(x => x.key === "UFN_APPLICATION_LST")
+            // const application = multiData.data.find(x => x.key === "UFN_APPLICATION_LST")
             const shop = multiData.data.find(x => x.key === "UFN_SHOP_LST")
 
-            if (status && docType && role && application && shop) {
-                setDataExtra({
+            if (status && docType && role && shop) {
+                setDataExtra(prev => ({
+                    ...prev,
                     status: status.data,
                     docType: docType.data,
                     role: role.data,
-                    application: application.data,
-                    shop: shop.data
-                })
+                    // application: application.data,
+                    shop: shop.data,
+                }))
             }
         }
     }, [multiData])
 
     useEffect(() => {
-        if (!mainShops.error && !mainShops.loading && mainShops.key === "UFN_SHOPUSER_SEL") {
-            setValue("shops", mainShops.data)
+        if (!mainAux.error && !mainAux.loading) {
+            if (mainAux.key === "UFN_SHOPUSER_SEL") {
+                setValue("shops", mainAux.data)
+            } else if (mainAux.key === "UFN_WAREHOUSE_LST") {
+                setDataExtra(prev => ({
+                    ...prev,
+                    warehouse: mainAux.data
+                }))
+            }
         }
-    }, [mainShops, setValue])
+    }, [mainAux, setValue])
 
     useEffect(() => {
         if (waitSave) {
@@ -259,11 +424,9 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
         register('doc_number', { validate: (value) => (value && !!value.length) || "" + t(langKeys.field_required) });
 
         if (row) {
-            dispatch(getCollectionAux(getShopsByUserid(row.userid)))
+            dispatch(getCollectionAux(getShopsByUserid(row.userid)));
         }
     }, [register, t]);
-
-    console.log("fieldsShop", fieldsShop)
 
     const onSubmit = handleSubmit((data) => {
         if (!row && !data.password) {
@@ -282,7 +445,6 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
             callback
         }))
     });
-
 
     return (
         <div style={{ width: '100%' }}>
@@ -380,81 +542,19 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                         />
                     </div>
                 </div>
-                <div className={classes.containerDetail}>
+                <div className={classes.containerDetail} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     {fieldsShop.map((item: Dictionary, i: number) => (
-                        <div key={item.id}>
-                            {item.shop_name}
-                            <div className="row-zyx">
-                                <FieldSelect
-                                    label={"Shop"}
-                                    className="col-6"
-                                    valueDefault={getValues(`shops.${i}.shopid`)}
-                                    fregister={{
-                                        ...register(`shops.${i}.shopid`, {
-                                            validate: {
-                                                validate: (value: any) => (value && value.length) || t(langKeys.field_required),
-                                            }
-                                        })
-                                    }}
-                                    onChange={(value) => {
-                                        setValue(`shops.${i}.shopid`, value?.shopid || 0);
-                                        trigger(`shops.${i}.shopid`)
-                                    }}
-                                    error={errors?.shops?.[i]?.shopid?.message}
-                                    data={dataExtra.shop}
-                                    optionDesc="description"
-                                    optionValue="shopid"
-                                />
-                                <TemplateSwitch
-                                    label={t(langKeys.bydefault)}
-                                    className="col-6"
-                                    valueDefault={getValues(`shops.${i}.bydefault`)}
-                                    onChange={(value) => setValue(`shops.${i}.bydefault`, value)}
-                                />
-                            </div>
-                            <div className="row-zyx">
-                                <FieldSelect
-                                    label={t(langKeys.role)}
-                                    className="col-6"
-                                    valueDefault={getValues(`shops.${i}.roleid`)}
-                                    fregister={{
-                                        ...register(`shops.${i}.roleid`, {
-                                            validate: {
-                                                validate: (value: any) => (value && value.length) || t(langKeys.field_required),
-                                            }
-                                        })
-                                    }}
-                                    onChange={(value) => {
-                                        setValue(`shops.${i}.roleid`, value?.roleid || 0);
-                                        trigger(`shops.${i}.roleid`)
-                                    }}
-                                    error={errors?.shops?.[i]?.roleid?.message}
-                                    data={dataExtra.role}
-                                    optionDesc="description"
-                                    optionValue="roleid"
-                                />
-                                <FieldSelect
-                                    label={t(langKeys.default_application)}
-                                    className="col-6"
-                                    valueDefault={getValues(`shops.${i}.redirect`)}
-                                    fregister={{
-                                        ...register(`shops.${i}.redirect`, {
-                                            validate: {
-                                                validate: (value: any) => (value && value.length) || t(langKeys.field_required),
-                                            }
-                                        })
-                                    }}
-                                    onChange={(value) => {
-                                        setValue(`shops.${i}.redirect`, value?.path || "");
-                                        trigger(`shops.${i}.redirect`)
-                                    }}
-                                    error={errors?.shops?.[i]?.redirect?.message}
-                                    data={dataExtra.application}
-                                    optionDesc="description"
-                                    optionValue="path"
-                                />
-                            </div>
-                        </div>
+                        <DetailShop
+                            key={item.id}
+                            item={item}
+                            i={i}
+                            register={register}
+                            errors={errors}
+                            getValues={getValues}
+                            trigger={trigger}
+                            setValue={setValue}
+                            dataExtra={dataExtra}
+                        />
                     ))}
                 </div>
             </form>

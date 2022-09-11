@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getApplications, getRoles, getShops, getUserSel, getValuesFromDomain, insCorp } from "common/helpers";
+import { getApplications, getRoles, getShops, getUserSel, getValuesFromDomain, getWareHouse, insCorp } from "common/helpers";
 import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -60,8 +60,8 @@ const User: FC = () => {
             getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
             getValuesFromDomain("TIPODOCUMENTO", "DOMAIN-TIPODOCUMENTO"),
             getRoles(),
-            getApplications(),
-            getShops()
+            getShops(),
+            getWareHouse()
         ]));
         return () => {
             dispatch(resetAllMain());

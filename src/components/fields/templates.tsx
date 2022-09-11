@@ -518,6 +518,7 @@ export const FieldMultiSelect: React.FC<TemplateAutocompleteProps> = ({ error, l
                 multiple
                 filterSelectedOptions
                 style={style}
+                disableCloseOnSelect={true}
                 disabled={disabled}
                 loading={loading}
                 value={optionsSelected}
@@ -638,10 +639,11 @@ export const FieldMultiSelectFreeSolo: React.FC<TemplateAutocompleteProps> = ({ 
 
 interface TemplateSwitchProps extends InputProps {
     className?: any;
+    mb?: number;
     label: string;
 }
 
-export const TemplateSwitch: React.FC<TemplateSwitchProps> = ({ className, onChange, valueDefault, label, style }) => {
+export const TemplateSwitch: React.FC<TemplateSwitchProps> = ({ className, mb = 2, onChange, valueDefault, label, style }) => {
     const [checkedaux, setChecked] = useState(false);
 
     useEffect(() => {
@@ -650,7 +652,7 @@ export const TemplateSwitch: React.FC<TemplateSwitchProps> = ({ className, onCha
 
     return (
         <div className={className} style={{ ...style, paddingBottom: '3px' }}>
-            <Box fontWeight={500} lineHeight="18px" fontSize={14} mb={2} color="textPrimary">{label}</Box>
+            <Box fontWeight={500} lineHeight="18px" fontSize={14} mb={mb} color="textPrimary">{label}</Box>
             <IOSSwitch checked={checkedaux} onChange={(e) => {
                 setChecked(e.target.checked);
                 onChange && onChange(e.target.checked)
