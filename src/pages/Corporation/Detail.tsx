@@ -71,12 +71,12 @@ const DetailCorporation: React.FC<DetailModule> = ({
         formState: { errors },
     } = useForm({
         defaultValues: {
-            id: row ? row.corpid : 0,
-            description: row ? row.description || "" : "",
-            type: row ? row.type : "NINGUNO",
+            id: row?.corpid || 0,
+            description: row?.description || "",
+            type: row?.type || "NINGUNO",
             status: row?.status || "ACTIVO",
-            logo: row ? row.logo : "",
-            logotype: row ? row.logotype : "",
+            logo: row?.logo || "",
+            logotype: row?.logotype || "",
             operation: row ? "UPDATE" : "INSERT",
         },
     });
