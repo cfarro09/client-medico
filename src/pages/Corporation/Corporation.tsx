@@ -16,15 +16,6 @@ interface RowSelected {
     edit: boolean;
 }
 
-interface MultiData {
-    data: Dictionary[];
-    success: boolean;
-}
-const arrayBread = [
-    { id: "view-1", name: "Corporation" },
-    { id: "view-2", name: "Corporation detail" },
-];
-
 const Corporation: FC = () => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
@@ -54,18 +45,20 @@ const Corporation: FC = () => {
     useEffect(() => {
         if (waitSave) {
             if (!executeResult.loading && !executeResult.error) {
-                dispatch(showSnackbar({ show: true, success: true, message: t(langKeys.successful_delete) }))
+                dispatch(showSnackbar({ show: true, success: true, message: t(langKeys.successful_delete) }));
                 fetchData();
                 dispatch(showBackdrop(false));
                 setWaitSave(false);
             } else if (executeResult.error) {
-                const errormessage = t(executeResult.code || "error_unexpected_error", { module: t(langKeys.corporation_plural).toLocaleLowerCase() })
-                dispatch(showSnackbar({ show: true, success: false, message: errormessage }))
+                const errormessage = t(executeResult.code || "error_unexpected_error", {
+                    module: t(langKeys.corporation_plural).toLocaleLowerCase(),
+                });
+                dispatch(showSnackbar({ show: true, success: false, message: errormessage }));
                 dispatch(showBackdrop(false));
                 setWaitSave(false);
             }
         }
-    }, [executeResult, waitSave])
+    }, [executeResult, waitSave]);
 
     useEffect(() => {
         fetchData();
