@@ -12,6 +12,18 @@ export const getUserSel = (userid: number): IRequestBody => ({
     }
 })
 
+export const getShopSel = (userid: number): IRequestBody => ({
+    method: "UFN_SHOP_LST",
+    key: "UFN_SHOP_LST",
+    parameters: {}
+})
+
+export const getWarehouseSel = ({ shopid, id }: Dictionary): IRequestBody => ({
+    method: "UFN_WAREHOUSE_SEL",
+    key: "UFN_WAREHOUSE_SEL",
+    parameters: { shopid, id, all: id === 0}
+})
+
 export const getCorpSel = (id: number): IRequestBody => ({
     method: "UFN_CORPORATION_SEL",
     key: "UFN_CORPORATION_SEL",
@@ -104,6 +116,11 @@ export const insCorp = ({ id, description, type, status, logo, logotype, operati
     parameters: { id, description, type, status, logo, logotype, operation }
 });
 
+export const insShop = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_SHOP_INS",
+    key: "UFN_SHOP_INS",
+    parameters: { ...parameters }
+});
 
 export const insUser = (parameters: Dictionary): IRequestBody => ({
     method: "UFN_USER_INS",
