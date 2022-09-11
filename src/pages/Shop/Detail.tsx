@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, makeStyles } from "@material-ui/core";
+import { Accordion, AccordionDetails, AccordionSummary, Button, makeStyles, Typography } from "@material-ui/core";
 import { DetailModule, Dictionary } from "@types";
-import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
+import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TemplateIcons, TitleDetail } from "components";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
 import React, { useEffect, useState } from "react"; // we need this to make JSX compile
@@ -11,8 +11,10 @@ import { useDispatch } from "react-redux";
 import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
-import { execute } from "store/main/actions";
-import { insShop } from "common/helpers";
+import { execute, getCollectionAux, resetMainAux } from "store/main/actions";
+import { getWarehouseSel, insShop } from "common/helpers";
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+import TableZyx from "components/fields/table-simple";
 
 const arrayBread = [
     { id: "view-1", name: "Shops" },
@@ -24,6 +26,13 @@ const useStyles = makeStyles((theme) => ({
         marginTop: theme.spacing(2),
         padding: theme.spacing(2),
         background: "#fff",
+        width: "100%",
+        boxShadow:
+            "0px 2px 1px -1px rgb(0 0 0 / 20%), 0px 1px 1px 0px rgb(0 0 0 / 14%), 0px 1px 3px 0px rgb(0 0 0 / 12%)",
+    },
+    containerDetail2: {
+        marginTop: theme.spacing(2),
+        width: "100%",
     },
     button: {
         padding: 12,
@@ -34,13 +43,15 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
+    const { t } = useTranslation();
     const classes = useStyles();
+    const dispatch = useDispatch();
     const [waitSave, setWaitSave] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
     const multiData = useSelector((state) => state.main.multiData);
     const [dataExtra, setDataExtra] = useState<{ status: Dictionary[]; type: Dictionary[] }>({ status: [], type: [] });
-    const dispatch = useDispatch();
-    const { t } = useTranslation();
+    const detailRes = useSelector((state) => state.main.mainAux);
+    const [dataWarehouse, setDataWarehouse] = useState<Dictionary[]>([]);
 
     useEffect(() => {
         if (!multiData.error && !multiData.loading) {
@@ -115,14 +126,91 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
         register("description", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register("type", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register("status", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
+
+        dispatch(resetMainAux());
+        row && dispatch(getCollectionAux(getWarehouseSel({ shopid: row?.shopid, id: 0 })));
     }, [register]);
+
+    useEffect(() => {
+        if (!detailRes.loading && !detailRes.error) {
+            setDataWarehouse(detailRes.data);
+        }
+    }, [detailRes]);
+
+    const handleRegister = () => {
+        console.log("aca");
+        // setOpenDialogDomain(true)
+        // setRowSelected({ row, domainname, edit: false });
+    };
+
+    const handleEdit = (row: Dictionary) => {
+        console.log("edit");
+        // setViewSelected("view-2");
+        // setRowSelected(row);
+    };
+
+    const handleDelete = (row: Dictionary) => {
+        console.log("delete");
+        // const callback = () => {
+        //     dispatch(execute(insShop({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.shopid })));
+        //     dispatch(showBackdrop(true));
+        //     setWaitSave(true);
+        // };
+
+        // dispatch(
+        //     manageConfirmation({
+        //         visible: true,
+        //         question: t(langKeys.confirmation_delete),
+        //         callback,
+        //     })
+        // );
+    };
+
+    const columns = React.useMemo(
+        () => [
+            {
+                accessor: "warehouseid",
+                NoFilter: true,
+                isComponent: true,
+                minWidth: 60,
+                width: "1%",
+                Cell: (props: any) => {
+                    const row = props.cell.row.original;
+                    return (
+                        <TemplateIcons
+                            viewFunction={() => handleEdit(row)}
+                            deleteFunction={() => handleDelete(row)}
+                            editFunction={() => handleEdit(row)}
+                        />
+                    );
+                },
+            },
+            {
+                Header: t(langKeys.description),
+                accessor: "description",
+                NoFilter: true,
+            },
+            {
+                Header: t(langKeys.address),
+                accessor: "address",
+                NoFilter: true,
+            },
+            {
+                Header: t(langKeys.status),
+                prefixTranslation: "status_",
+                accessor: "status",
+                NoFilter: true,
+            },
+        ],
+        []
+    );
 
     return (
         <div style={{ width: "100%" }}>
             <form onSubmit={onSubmit}>
                 <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
                 <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-                    <TitleDetail title={row ? `${row.description}` : t(langKeys.newcorporation)} />
+                    <TitleDetail title={row ? `${row.description}` : "Nueva Tienda"} />
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                         <Button
                             variant="contained"
@@ -182,6 +270,32 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                             optionValue="domainvalue"
                         />
                     </div>
+                </div>
+                <div className={classes.containerDetail2}>
+                    <Accordion expanded={!row ? true : undefined} style={{ marginBottom: "8px" }}>
+                        <AccordionSummary
+                            expandIcon={<ExpandMoreIcon />}
+                            aria-controls="panel1a-content"
+                            id="panel1a-header"
+                        >
+                            <Typography>{"Almacenes"}</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            {detailRes.error ? (
+                                <h1>ERROR</h1>
+                            ) : (
+                                <TableZyx
+                                    columns={columns}
+                                    data={dataWarehouse}
+                                    download={false}
+                                    loading={detailRes.loading}
+                                    filterGeneral={false}
+                                    register={true}
+                                    handleRegister={handleRegister}
+                                />
+                            )}
+                        </AccordionDetails>
+                    </Accordion>
                 </div>
             </form>
         </div>
