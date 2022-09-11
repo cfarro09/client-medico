@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getUserSel, getValuesFromDomain, insCorp } from "common/helpers";
+import { getShopSel, getValuesFromDomain, insShop } from "common/helpers";
 import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -12,11 +12,10 @@ import { execute, getCollection, getMultiCollection, resetAllMain } from "store/
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
 
-const User: FC = () => {
+const Shops: FC = () => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainResult = useSelector((state) => state.main.mainData);
-    const mainMultiResult = useSelector((state) => state.main.multiData);
     const [viewSelected, setViewSelected] = useState("view-1");
     const [rowSelected, setRowSelected] = useState<Dictionary | null>(null);
     const [waitSave, setWaitSave] = useState(false);
@@ -28,14 +27,35 @@ const User: FC = () => {
     useEffect(() => {
         if (applications) {
             setPagePermissions({
-                "view": applications["/user"][0],
-                "modify": applications["/user"][1],
-                "insert": applications["/user"][2],
-                "delete": applications["/user"][3],
-                "download": applications["/user"][4],
+                view: applications["/shop"][0],
+                modify: applications["/shop"][1],
+                insert: applications["/shop"][2],
+                delete: applications["/shop"][3],
+                download: applications["/shop"][4],
             });
         }
     }, [applications]);
+
+    const fetchData = () => dispatch(getCollection(getShopSel(0)));
+
+    useEffect(() => {
+        fetchData();
+        dispatch(
+            getMultiCollection([
+                getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
+                getValuesFromDomain("TIPOCORP", "DOMAIN-TIPOCORP")
+            ])
+        );
+        return () => {
+            dispatch(resetAllMain());
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_SHOP_LST") {
+            setDataView(mainResult.data);
+        }
+    }, [mainResult]);
 
     useEffect(() => {
         if (waitSave) {
@@ -55,67 +75,43 @@ const User: FC = () => {
         }
     }, [executeResult, waitSave]);
 
-    useEffect(() => {
-        fetchData();
-        dispatch(getMultiCollection([
-            getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
-            getValuesFromDomain("TIPODOCUMENTO", "DOMAIN-TIPODOCUMENTO")
-        ]));
-        return () => {
-            dispatch(resetAllMain());
-        };
-    }, []);
-
-    useEffect(() => {
-        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_USER_SEL") {
-            setDataView(mainResult.data);
-        }
-    }, [mainResult]);
-
-    const fetchData = () => dispatch(getCollection(getUserSel(0)));
-
     const columns = React.useMemo(
         () => [
             {
-                accessor: 'userid',
+                accessor: "shopid",
                 NoFilter: true,
                 isComponent: true,
                 minWidth: 60,
-                width: '1%',
+                width: "1%",
                 Cell: (props: any) => {
                     const row = props.cell.row.original;
-                    return (
-                        <TemplateIcons
-                            deleteFunction={() => handleDelete(row)}
-                        />
-                    )
-                }
+                    return <TemplateIcons deleteFunction={() => handleDelete(row)} />;
+                },
             },
             {
-                Header: t(langKeys.user),
-                accessor: 'usr',
-            },
-            {
-                Header: t(langKeys.fullname),
-                accessor: 'full_name',
-            },
-            {
-                Header: "N° doc",
-                accessor: 'doc_number',
-            },
-            {
-                Header: t(langKeys.email),
-                accessor: 'email',
-            },
-            {
-                Header: t(langKeys.role),
-                accessor: 'roles',
+                Header: t(langKeys.description),
+                accessor: "description",
             },
             {
                 Header: t(langKeys.status),
-                accessor: 'status',
+                accessor: "status",
             },
-
+            {
+                Header: t(langKeys.type),
+                accessor: "type",
+            },
+            {
+                Header: t(langKeys.createdBy),
+                accessor: "createdby",
+            },
+            {
+                Header: t(langKeys.creationDate),
+                accessor: "createdate",
+                Cell: (props: any) => {
+                    const date = props.cell.row.original.createdate;
+                    return date.split(".")[0].split(" ")[0];
+                },
+            },
         ],
         []
     );
@@ -132,7 +128,7 @@ const User: FC = () => {
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(execute(insCorp({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.corpid })));
+            dispatch(execute(insShop({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.shopid })));
             dispatch(showBackdrop(true));
             setWaitSave(true);
         };
@@ -147,7 +143,6 @@ const User: FC = () => {
     };
 
     if (viewSelected === "view-1") {
-
         if (mainResult.error) {
             return <h1>ERROR</h1>;
         }
@@ -155,7 +150,7 @@ const User: FC = () => {
         return (
             <TableZyx
                 columns={columns}
-                titlemodule={t(langKeys.user, { count: 2 })}
+                titlemodule={'Tiendas'}
                 data={dataView}
                 download={!!pagePermissions.download}
                 loading={mainResult.loading}
@@ -164,16 +159,9 @@ const User: FC = () => {
                 hoverShadow={true}
                 handleRegister={handleRegister}
             />
-        )
-    }
-    else {
-        return (
-            <Detail
-                row={rowSelected}
-                setViewSelected={setViewSelected}
-                fetchData={fetchData}
-            />
-        )
+        );
+    } else {
+        return <Detail row={rowSelected} setViewSelected={setViewSelected} fetchData={fetchData} />;
     }
 };
-export default User;
+export default Shops;
