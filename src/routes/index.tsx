@@ -3,9 +3,8 @@ import React, { FC } from "react";
 import Layout from 'components/layout/Layout';
 import Popus from 'components/layout/Popus';
 import {
-	Users, SignIn, Properties, NotFound, Forbidden, InternalServererror,
-	Reports, Corporations, Organizations, MassiveLoad, Routing, Tracking, Manifest,
-	ReportProvider, ReportSKU, Vehicles, Patient
+	Users, SignIn, NotFound, Forbidden, InternalServererror, Domains,
+	Corporations, Shops, Customers, Purachases, Sales, Stock, Supplier
 } from 'pages';
 
 import { BrowserRouter as Router, Switch, Route, RouteProps, useLocation } from 'react-router-dom';
@@ -19,7 +18,7 @@ import { getAccessToken } from 'common/helpers';
 import { Redirect } from 'react-router-dom';
 import { validateToken } from 'store/login/actions';
 import { useDispatch } from 'react-redux';
-import Roles from "pages/Roles";
+
 const useStyles = makeStyles((theme) => ({
 	main: {
 		padding: theme.spacing(2),
@@ -59,7 +58,7 @@ const ProtectRoute: FC<PrivateRouteProps> = ({ children, component: Component, .
 			dispatch(wsConnect({ userid, orgid, usertype: 'PLATFORM', automaticConnection }));
 		}
 	}, [resValidateToken])
-	
+
 	if (!existToken) {
 		return <Redirect to={{ pathname: paths.SIGNIN }} />;
 	} else if (resValidateToken.loading && !applications) {
@@ -89,22 +88,35 @@ const RouterApp: FC = () => {
 				<ProtectRoute exact path="/" />
 				<Route exact path={paths.SIGNIN} component={SignIn} />
 
-				<ProtectRoute exact path={paths.PROPERTIES}>
-					<Layout mainClasses={classes.main}><Properties /></Layout>
-				</ProtectRoute>
 				<ProtectRoute exact path={paths.USERS}>
 					<Layout mainClasses={classes.main}><Users /></Layout>
 				</ProtectRoute>
 
-
-				<ProtectRoute exact path={paths.PATIENT}>
-					<Layout mainClasses={classes.main}><Patient /></Layout>
+				<ProtectRoute exact path={paths.DOMAINS}>
+					<Layout mainClasses={classes.main}><Domains /></Layout>
+				</ProtectRoute>
+				<ProtectRoute exact path={paths.CORPORATIONS}>
+					<Layout mainClasses={classes.main}><Corporations /></Layout>
+				</ProtectRoute>
+				<ProtectRoute exact path={paths.SHOPS}>
+					<Layout mainClasses={classes.main}><Shops /></Layout>
+				</ProtectRoute>
+				<ProtectRoute exact path={paths.CUSTOMERS}>
+					<Layout mainClasses={classes.main}><Customers /></Layout>
+				</ProtectRoute>
+				<ProtectRoute exact path={paths.PURCHASES}>
+					<Layout mainClasses={classes.main}><Purachases /></Layout>
+				</ProtectRoute>
+				<ProtectRoute exact path={paths.SALES}>
+					<Layout mainClasses={classes.main}><Sales /></Layout>
+				</ProtectRoute>
+				<ProtectRoute exact path={paths.STOCK}>
+					<Layout mainClasses={classes.main}><Stock /></Layout>
+				</ProtectRoute>
+				<ProtectRoute exact path={paths.SUPPLIER}>
+					<Layout mainClasses={classes.main}><Supplier /></Layout>
 				</ProtectRoute>
 
-
-				<ProtectRoute exact path={paths.ROLES_PERMISSIONS}>
-					<Layout mainClasses={classes.main}><Roles /></Layout>
-				</ProtectRoute>
 
 
 				<Route exact path="/403">

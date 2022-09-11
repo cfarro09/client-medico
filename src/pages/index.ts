@@ -1,20 +1,15 @@
 export { default as Users } from './Users';
 export { default as SignIn } from './SignIn';
-export { default as Properties } from './Properties';
 export { default as Domains } from './Domains';
-export { default as Reports } from './Reports';
 export { default as NotFound } from './NotFound';
 export { default as Forbidden } from './Forbidden';
 export { default as InternalServererror } from './InternalServerError';
 export { default as Corporations } from './Corporations';
-export { default as MassiveLoad } from './MassiveLoad';
-export { default as Routing } from './Routing';
-export { default as Tracking } from './Tracking';
-export { default as Manifest } from './Manifest';
 
-export { default as ReportProvider } from './ReportProvider';
-export { default as ReportSKU } from './ReportSKU';
+export { default as Customers } from './Customers';
+export { default as Purachases } from './Purchases';
+export { default as Sales } from './Sales';
+export { default as Stock } from './Stock';
+export { default as Supplier } from './Supplier';
 
-export { default as Organizations } from './Organizations';
-export { default as Vehicles } from './Vehicles';
-export { default as Patient } from './Patient';
+export { default as Shops } from './Shops';

@@ -48,7 +48,7 @@ const data_type_document = [
 
 const data_status = [
     { domainvalue: 'ACTIVO', domaindesc: 'ACTIVO' },
-    { domainvalue: 'ELIMINADO', domaindesc: 'ELIMINADO' }
+    { domainvalue: 'INACTIVO', domaindesc: 'INACTIVO' }
 ]
 
 const useStyles = makeStyles((theme) => ({
@@ -195,13 +195,12 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
         defaultValues: {
             id: row ? row.userid : 0,
             operation: row ? "UPDATE" : "INSERT",
-            firstname: row?.firstname || '',
-            lastname: row?.lastname || '',
+            full_name: row?.full_name || '',
             password: row?.password || '',
             usr: row?.usr || '',
             email: row?.email || '',
-            doctype: row?.doctype || 'DNI',
-            docnum: row?.docnum || '',
+            doc_type: row?.doc_type || 'DNI',
+            doc_number: row?.doc_number || '',
             status: row?.status || 'ACTIVO',
             roleid: row?.roleid || 0,
         }
@@ -227,12 +226,11 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
         register('id');
         register('password');
         register('status', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register('firstname', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register('lastname', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
+        register('full_name', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register('email', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register('usr', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register('doctype', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register('docnum', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
+        register('doc_type', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
+        register('doc_number', { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         // register('roleid', { validate: (value) => (value && value > 0) || t(langKeys.field_required) });
         dispatch(resetMainAux())
     }, [register]);
@@ -266,7 +264,7 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
             <form onSubmit={onSubmit}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <TitleDetail
-                        title={row ? `${row.firstname} ${row.lastname}` : t(langKeys.newuser)}
+                        title={row ? row.full_name : t(langKeys.newuser)}
                     />
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <Button
@@ -299,23 +297,24 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
                 </div>
                 <div className={classes.containerDetail}>
                     <div className="row-zyx">
-
                         <FieldEdit
                             className="col-6"
-                            label={t(langKeys.firstname)}
-                            style={{ marginBottom: 8 }}
-                            valueDefault={row?.firstname || ""}
-                            onChange={(value) => setValue('firstname', value)}
-                            error={errors?.firstname?.message}
+                            label={t(langKeys.fullname)}
+                            valueDefault={row?.full_name || ""}
+                            onChange={(value) => setValue('full_name', value)}
+                            error={errors?.full_name?.message}
                         />
-                        <FieldEdit
+                        <FieldSelect
+                            label={t(langKeys.status)}
                             className="col-6"
-                            label={t(langKeys.lastname)}
-                            valueDefault={row?.lastname || ""}
-                            onChange={(value) => setValue('lastname', value)}
-                            error={errors?.lastname?.message}
+                            valueDefault={row?.status || "ACTIVO"}
+                            onChange={(value) => setValue('status', value ? value.domainvalue : '')}
+                            error={errors?.status?.message}
+                            data={data_status}
+                            prefixTranslation="status_"
+                            optionDesc="domaindesc"
+                            optionValue="domainvalue"
                         />
-
                     </div>
                     <div className="row-zyx">
                         <FieldEdit
@@ -337,9 +336,9 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
                         <FieldSelect
                             label={t(langKeys.docType)}
                             className="col-6"
-                            valueDefault={getValues('doctype')}
-                            onChange={(value) => setValue('doctype', value ? value.domainvalue : '')}
-                            error={errors?.doctype?.message}
+                            valueDefault={getValues('doc_type')}
+                            onChange={(value) => setValue('doc_type', value ? value.domainvalue : '')}
+                            error={errors?.doc_type?.message}
                             data={data_type_document}
                             optionDesc="domaindesc"
                             optionValue="domainvalue"
@@ -347,34 +346,10 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
                         <FieldEdit
                             label={t(langKeys.docNumber)}
                             className="col-6"
-                            valueDefault={getValues('docnum')}
-                            onChange={(value) => setValue('docnum', value)}
-                            error={errors?.docnum?.message}
+                            valueDefault={getValues('doc_number')}
+                            onChange={(value) => setValue('doc_number', value)}
+                            error={errors?.doc_number?.message}
                         />
-                    </div>
-
-                    <div className="row-zyx">
-                        <FieldSelect
-                            label={t(langKeys.status)}
-                            className="col-6"
-                            valueDefault={row?.status || "ACTIVO"}
-                            onChange={(value) => setValue('status', value ? value.domainvalue : '')}
-                            error={errors?.status?.message}
-                            data={data_status}
-                            prefixTranslation="status_"
-                            optionDesc="domaindesc"
-                            optionValue="domainvalue"
-                        />
-                        {/* <FieldSelect
-                            label={t(langKeys.role)}
-                            className="col-6"
-                            valueDefault={row?.roleid || ""}
-                            onChange={(value) => setValue('roleid', value ? value.roleid : '')}
-                            error={errors?.roleid?.message}
-                            data={roleData}
-                            optionDesc="roldesc"
-                            optionValue="roleid"
-                        /> */}
                     </div>
                 </div>
             </form>
@@ -426,18 +401,13 @@ const Users: FC = () => {
                 NoFilter: true
             },
             {
-                Header: t(langKeys.firstname),
-                accessor: 'firstname',
-                NoFilter: true
-            },
-            {
-                Header: t(langKeys.lastname),
-                accessor: 'lastname',
+                Header: t(langKeys.fullname),
+                accessor: 'full_name',
                 NoFilter: true
             },
             {
                 Header: "N° doc",
-                accessor: 'docnum',
+                accessor: 'doc_number',
                 NoFilter: true
             },
             {
@@ -445,11 +415,11 @@ const Users: FC = () => {
                 accessor: 'email',
                 NoFilter: true
             },
-            // {
-            //     Header: t(langKeys.role),
-            //     accessor: 'role_name',
-            //     NoFilter: true
-            // },
+            {
+                Header: t(langKeys.role),
+                accessor: 'roles',
+                NoFilter: true
+            },
             {
                 Header: t(langKeys.status),
                 accessor: 'status',
