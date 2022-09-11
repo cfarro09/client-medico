@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Button, makeStyles } from "@material-ui/core";
-import { DetailModule } from "@types";
+import { DetailModule, Dictionary } from "@types";
 import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
@@ -35,17 +36,28 @@ const useStyles = makeStyles((theme) => ({
 const DetailCorporation: React.FC<DetailModule> = ({
     row,
     setViewSelected,
-    multiData,
     fetchData,
 }) => {
     const classes = useStyles();
     const [waitSave, setWaitSave] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
+    const multiData = useSelector((state) => state.main.multiData);
+    const [dataExtra, setDataExtra] = useState<{ status: Dictionary[], type: Dictionary[] }>({ status: [], type: [] })
     const dispatch = useDispatch();
     const { t } = useTranslation();
 
-    const dataStatus = multiData[0] && multiData[0].success ? multiData[0].data : [];
-    const dataType = multiData[1] && multiData[1].success ? multiData[1].data : [];
+    useEffect(() => {
+        if (!multiData.error && !multiData.loading) {
+            const dataStatus = multiData.data.find(x => x.key === "DOMAIN-ESTADOGENERICO")
+            const dataTypes = multiData.data.find(x => x.key === "DOMAIN-TIPOCORP")
+            if (dataStatus && dataTypes) {
+                setDataExtra({
+                    status: dataStatus.data,
+                    type: dataTypes.data
+                })
+            }
+        }
+    }, [multiData])
 
     useEffect(() => {
         if (waitSave) {
@@ -106,7 +118,6 @@ const DetailCorporation: React.FC<DetailModule> = ({
         <div style={{ width: "100%" }}>
             <form onSubmit={onSubmit}>
                 <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
-
                 <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
                     <TitleDetail title={row ? `${row.description}` : t(langKeys.newcorporation)} />
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
@@ -147,7 +158,7 @@ const DetailCorporation: React.FC<DetailModule> = ({
                             valueDefault={getValues("type")}
                             onChange={(value) => setValue("type", value?.domainvalue)}
                             error={errors?.type?.message}
-                            data={dataType}
+                            data={dataExtra.type}
                             uset={true}
                             prefixTranslation="type_corp_"
                             optionDesc="domainvalue"
@@ -161,7 +172,7 @@ const DetailCorporation: React.FC<DetailModule> = ({
                             valueDefault={getValues("status")}
                             onChange={(value) => setValue("status", value?.domainvalue)}
                             error={errors?.status?.message}
-                            data={dataStatus}
+                            data={dataExtra.status}
                             uset={true}
                             prefixTranslation="status_"
                             optionDesc="domainvalue"

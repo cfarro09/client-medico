@@ -744,7 +744,6 @@ const TableZyx = React.memo(({
         },
         [headerGroups, prepareRow, page]
     )
-    console.log("onClickRow", onClickRow)
 
     return (
         <Box width={1} >

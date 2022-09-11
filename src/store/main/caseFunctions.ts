@@ -197,6 +197,7 @@ export const mainAuxSuccess = (state: IState, action: IAction): IState => {
         mainAux: {
             data: action.payload.data || [],
             count: 0,
+            key: action.payload.key || '',
             loading: false,
             error: false
         }

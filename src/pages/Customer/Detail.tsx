@@ -1,76 +1,38 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import React, { FC, useEffect, useState } from 'react'; // we need this to make JSX compile
-import { useSelector } from 'hooks';
-import { useDispatch } from 'react-redux';
-import Button from '@material-ui/core/Button';
-import { TemplateIcons, TemplateBreadcrumbs, TitleDetail, FieldEdit, FieldSelect, DialogZyx } from 'components';
-import { getUserSel, insUser } from 'common/helpers';
-import { Dictionary, MultiData } from "@types";
-import TableZyx from '../components/fields/table-simple';
-import { makeStyles } from '@material-ui/core/styles';
-import SaveIcon from '@material-ui/icons/Save';
-import { useTranslation } from 'react-i18next';
-import { langKeys } from 'lang/keys';
-import { useForm } from 'react-hook-form';
-import {
-    getCollection, resetAllMain, getMultiCollection,
-    execute, resetMainAux
-} from 'store/main/actions';
-import { showSnackbar, showBackdrop, manageConfirmation } from 'store/popus/actions';
-import LockOpenIcon from '@material-ui/icons/LockOpen';
-import ClearIcon from '@material-ui/icons/Clear';
-import { IconButton } from '@material-ui/core';
-import InputAdornment from '@material-ui/core/InputAdornment';
+import { Button, IconButton, InputAdornment, makeStyles } from "@material-ui/core";
+import { DetailModule, Dictionary } from "@types";
+import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TitleDetail, DialogZyx } from "components";
+import { useSelector } from "hooks";
+import { langKeys } from "lang/keys";
+import React, { useEffect, useState } from "react"; // we need this to make JSX compile
+import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
+import { useDispatch } from "react-redux";
+import ClearIcon from "@material-ui/icons/Clear";
+import SaveIcon from "@material-ui/icons/Save";
+import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
+import { execute, resetMainAux } from "store/main/actions";
+import { insUser } from "common/helpers";
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
+import LockOpenIcon from '@material-ui/icons/LockOpen';
 
-interface RowSelected {
-    row: Dictionary | null,
-    edit: boolean
-}
-
-interface DetailProps {
-    data: RowSelected;
-    setViewSelected: (view: string) => void;
-    multiData: MultiData[];
-    fetchData?: () => void
-}
 const arrayBread = [
-    { id: "view-1", name: "Usuarios" },
-    { id: "view-2", name: "Detalle de usuario" }
+    { id: "view-1", name: "User" },
+    { id: "view-2", name: "User detail" },
 ];
-
-const data_type_document = [
-    { domainvalue: 'DNI', domaindesc: 'DNI' },
-    { domainvalue: 'PASAPORTE', domaindesc: 'PASAPORTE' },
-    { domainvalue: 'RUC', domaindesc: 'RUC' }
-]
-
-const data_status = [
-    { domainvalue: 'ACTIVO', domaindesc: 'ACTIVO' },
-    { domainvalue: 'INACTIVO', domaindesc: 'INACTIVO' }
-]
 
 const useStyles = makeStyles((theme) => ({
     containerDetail: {
         marginTop: theme.spacing(2),
-        // maxWidth: '80%',
         padding: theme.spacing(2),
-        background: '#fff',
-    },
-    mb2: {
-        marginBottom: theme.spacing(4),
-    },
-    title: {
-        fontSize: '22px',
-        color: theme.palette.text.primary,
+        background: "#fff",
     },
     button: {
         padding: 12,
         fontWeight: 500,
-        fontSize: '14px',
-        textTransform: 'initial'
-    }
+        fontSize: "14px",
+        textTransform: "initial",
+    },
 }));
 
 interface ModalPasswordProps {
@@ -95,8 +57,7 @@ const ModalPassword: React.FC<ModalPasswordProps> = ({ openModal, setOpenModal, 
     useEffect(() => {
         setValue('password', data?.password);
         setValue('confirmpassword', data?.password);
-
-    }, [data]);
+    }, [data, setValue]);
 
     const validateSamePassword = (value: string): any => {
         return getValues('password') === value;
@@ -181,12 +142,12 @@ const ModalPassword: React.FC<ModalPasswordProps> = ({ openModal, setOpenModal, 
     )
 }
 
-
-const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelected, multiData, fetchData }) => {
+const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
     const classes = useStyles();
     const dispatch = useDispatch();
     const { t } = useTranslation();
-
+    const multiData = useSelector((state) => state.main.multiData);
+    const [dataExtra, setDataExtra] = useState<{ status: Dictionary[], docType: Dictionary[] }>({ status: [], docType: [] })
     const [waitSave, setWaitSave] = useState(false);
     const executeRes = useSelector(state => state.main.execute);
     const [openDialogPassword, setOpenDialogPassword] = useState(false);
@@ -207,13 +168,26 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
     });
 
     useEffect(() => {
+        if (!multiData.error && !multiData.loading) {
+            const dataStatus = multiData.data.find(x => x.key === "DOMAIN-ESTADOGENERICO")
+            const dataDocTypes = multiData.data.find(x => x.key === "DOMAIN-TIPODOCUMENTO")
+            if (dataStatus && dataDocTypes) {
+                setDataExtra({
+                    status: dataStatus.data,
+                    docType: dataDocTypes.data
+                })
+            }
+        }
+    }, [multiData])
+
+    useEffect(() => {
         if (waitSave) {
             if (!executeRes.loading && !executeRes.error) {
                 dispatch(showSnackbar({ show: true, success: true, message: t(row ? langKeys.successful_edit : langKeys.successful_register) }))
                 fetchData && fetchData();
                 dispatch(showBackdrop(false));
                 setViewSelected("view-1")
-            } else if (executeRes.error) {  
+            } else if (executeRes.error) {
                 const errormessage = t(executeRes.code || "error_unexpected_error", { module: t(langKeys.user).toLocaleLowerCase() })
                 dispatch(showSnackbar({ show: true, success: false, message: executeRes.message || errormessage }))
                 setWaitSave(false);
@@ -275,24 +249,22 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
                             style={{ backgroundColor: "#FB5F5F" }}
                             onClick={() => setViewSelected("view-1")}
                         >{t(langKeys.back)}</Button>
-                        {edit &&
-                            <>
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    type="button"
-                                    startIcon={<LockOpenIcon color="secondary" />}
-                                    onClick={() => setOpenDialogPassword(true)}
-                                >{t(row ? langKeys.changePassword : langKeys.setpassword)}</Button>
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    type="submit"
-                                    startIcon={<SaveIcon color="secondary" />}
-                                    style={{ backgroundColor: "#55BD84" }}
-                                >{t(langKeys.save)}</Button>
-                            </>
-                        }
+                        <>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                type="button"
+                                startIcon={<LockOpenIcon color="secondary" />}
+                                onClick={() => setOpenDialogPassword(true)}
+                            >{t(row ? langKeys.changePassword : langKeys.setpassword)}</Button>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                type="submit"
+                                startIcon={<SaveIcon color="secondary" />}
+                                style={{ backgroundColor: "#55BD84" }}
+                            >{t(langKeys.save)}</Button>
+                        </>
                     </div>
                 </div>
                 <div className={classes.containerDetail}>
@@ -310,9 +282,8 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
                             valueDefault={row?.status || "ACTIVO"}
                             onChange={(value) => setValue('status', value ? value.domainvalue : '')}
                             error={errors?.status?.message}
-                            data={data_status}
-                            prefixTranslation="status_"
-                            optionDesc="domaindesc"
+                            data={dataExtra.status}
+                            optionDesc="domainvalue"
                             optionValue="domainvalue"
                         />
                     </div>
@@ -339,7 +310,7 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
                             valueDefault={getValues('doc_type')}
                             onChange={(value) => setValue('doc_type', value ? value.domainvalue : '')}
                             error={errors?.doc_type?.message}
-                            data={data_type_document}
+                            data={dataExtra.docType}
                             optionDesc="domaindesc"
                             optionValue="domainvalue"
                         />
@@ -363,171 +334,4 @@ const DetailUsers: React.FC<DetailProps> = ({ data: { row, edit }, setViewSelect
     );
 }
 
-const Users: FC = () => {
-    const dispatch = useDispatch();
-    const { t } = useTranslation();
-    const mainResult = useSelector(state => state.main.mainData);
-    const mainMultiResult = useSelector(state => state.main.multiData);
-    const executeResult = useSelector(state => state.main.execute);
-    const [dataUsers, setdataUsers] = useState<Dictionary[]>([]);
-
-    const [viewSelected, setViewSelected] = useState("view-1");
-    const [rowSelected, setRowSelected] = useState<RowSelected>({ row: null, edit: false });
-    const [waitSave, setWaitSave] = useState(false);
-    const applications = useSelector(state => state.login?.validateToken?.user?.menu);
-
-    const columns = React.useMemo(
-        () => [
-            {
-                accessor: 'userid',
-                NoFilter: true,
-                isComponent: true,
-                minWidth: 60,
-                width: '1%',
-                Cell: (props: any) => {
-                    const row = props.cell.row.original;
-                    return (
-                        <TemplateIcons
-                            viewFunction={() => handleView(row)}
-                            deleteFunction={() => handleDelete(row)}
-                            editFunction={() => handleEdit(row)}
-                        />
-                    )
-                }
-            },
-            {
-                Header: t(langKeys.user),
-                accessor: 'usr',
-                NoFilter: true
-            },
-            {
-                Header: t(langKeys.fullname),
-                accessor: 'full_name',
-                NoFilter: true
-            },
-            {
-                Header: "N° doc",
-                accessor: 'doc_number',
-                NoFilter: true
-            },
-            {
-                Header: t(langKeys.email),
-                accessor: 'email',
-                NoFilter: true
-            },
-            {
-                Header: t(langKeys.role),
-                accessor: 'roles',
-                NoFilter: true
-            },
-            {
-                Header: t(langKeys.status),
-                accessor: 'status',
-                NoFilter: true,
-            },
-
-        ],
-        []
-    );
-
-    const fetchData = () => dispatch(getCollection(getUserSel(0)));
-
-    useEffect(() => {
-        if (applications) {
-            console.log('applications', applications['/user'])
-        }
-    }, [applications])
-
-    useEffect(() => {
-        mainResult.data && setdataUsers(mainResult.data.map(x => ({ ...x, twofactorauthentication: !!x.twofactorauthentication ? t(langKeys.affirmative) : t(langKeys.negative) })));
-    }, [mainResult]);
-
-    useEffect(() => {
-        fetchData();
-        // dispatch(getMultiCollection([
-        //     getValuesFromDomain("TIPODOCUMENTO"), //0
-        //     getValuesFromDomain("ESTADOUSUARIO"), //1
-        //     getRoles(), //formulario orguser 4
-        // ]));
-        return () => {
-            dispatch(resetAllMain());
-        };
-    }, []);
-
-    useEffect(() => {
-        if (waitSave) {
-            if (!executeResult.loading && !executeResult.error) {
-                dispatch(showSnackbar({ show: true, success: true, message: t(langKeys.successful_delete) }))
-                fetchData();
-                dispatch(showBackdrop(false));
-                setWaitSave(false);
-            } else if (executeResult.error) {
-                console.log(executeResult.code, executeResult.message)
-                const errormessage = t(executeResult.code || "error_unexpected_error", { module: t(langKeys.user).toLocaleLowerCase() })
-                dispatch(showSnackbar({ show: true, success: false, message: errormessage }))
-                dispatch(showBackdrop(false));
-                setWaitSave(false);
-            }
-        }
-    }, [executeResult, waitSave])
-
-    const handleRegister = () => {
-        setViewSelected("view-2");
-        setRowSelected({ row: null, edit: true });
-    }
-
-    const handleView = (row: Dictionary) => {
-        setViewSelected("view-2");
-        setRowSelected({ row, edit: false });
-    }
-
-    const handleEdit = (row: Dictionary) => {
-        setViewSelected("view-2");
-        setRowSelected({ row, edit: true });
-    }
-
-    const handleDelete = (row: Dictionary) => {
-        const callback = () => {
-            dispatch(execute(insUser({ ...row, operation: 'UPDATE', status: 'ELIMINADO', id: row.userid })));
-            dispatch(showBackdrop(true));
-            setWaitSave(true);
-        }
-
-        dispatch(manageConfirmation({
-            visible: true,
-            question: t(langKeys.confirmation_delete),
-            callback
-        }))
-    }
-
-    if (viewSelected === "view-1") {
-
-        if (mainResult.error) {
-            return <h1>ERROR</h1>;
-        }
-
-        return (
-            <TableZyx
-                columns={columns}
-                titlemodule={t(langKeys.user, { count: 2 })}
-                data={dataUsers}
-                download={true}
-                loading={mainResult.loading}
-                register={true}
-                hoverShadow={true}
-                handleRegister={handleRegister}
-            />
-        )
-    }
-    else
-        return (
-            <DetailUsers
-                data={rowSelected}
-                setViewSelected={setViewSelected}
-                multiData={mainMultiResult.data}
-                fetchData={fetchData}
-            />
-        )
-}
-
-export default Users;
+export default Detail;

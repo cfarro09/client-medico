@@ -44,7 +44,7 @@ export interface IState {
     execute: IListStatePaginated<Dictionary> & { success: boolean | undefined | null };
     uploadData: IBaseState2;
     processData: IBaseState2;
-    mainAux: IListStatePaginated<Dictionary>;
+    mainAux: IListStatePaginated<Dictionary> & { key?: string; };
     mainAux2: IListStatePaginated<Dictionary>;
     mainPaginated: IListStatePaginated<Dictionary>;
     uploadFile: IUpload;

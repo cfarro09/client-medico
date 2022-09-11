@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getCorpSel, getValuesFromDomain, insCorp } from "common/helpers";
+import { getApplications, getRoles, getShops, getUserSel, getValuesFromDomain, insCorp } from "common/helpers";
 import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -12,7 +12,7 @@ import { execute, getCollection, getMultiCollection, resetAllMain } from "store/
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
 
-const Corporation: FC = () => {
+const User: FC = () => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainResult = useSelector((state) => state.main.mainData);
@@ -23,15 +23,15 @@ const Corporation: FC = () => {
     const applications = useSelector((state) => state.login?.validateToken?.user?.menu);
     const [pagePermissions, setPagePermissions] = useState<Dictionary>({});
     const executeResult = useSelector((state) => state.main.execute);
-
+    
     useEffect(() => {
         if (applications) {
             setPagePermissions({
-                "view": applications["/corporations"][0],
-                "modify": applications["/corporations"][1],
-                "insert": applications["/corporations"][2],
-                "delete": applications["/corporations"][3],
-                "download": applications["/corporations"][4],
+                "view": applications["/user"][0],
+                "modify": applications["/user"][1],
+                "insert": applications["/user"][2],
+                "delete": applications["/user"][3],
+                "download": applications["/user"][4],
             });
         }
     }, [applications]);
@@ -58,7 +58,10 @@ const Corporation: FC = () => {
         fetchData();
         dispatch(getMultiCollection([
             getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
-            getValuesFromDomain("TIPOCORP", "DOMAIN-TIPOCORP")
+            getValuesFromDomain("TIPODOCUMENTO", "DOMAIN-TIPODOCUMENTO"),
+            getRoles(),
+            getApplications(),
+            getShops()
         ]));
         return () => {
             dispatch(resetAllMain());
@@ -66,54 +69,55 @@ const Corporation: FC = () => {
     }, []);
 
     useEffect(() => {
-        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_CORPORATION_SEL") {
+        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_USER_SEL") {
             setDataView(mainResult.data);
         }
     }, [mainResult]);
 
-    const fetchData = () => dispatch(getCollection(getCorpSel(0)));
+    const fetchData = () => dispatch(getCollection(getUserSel(0)));
 
     const columns = React.useMemo(
         () => [
             {
-                accessor: "corpid",
+                accessor: 'userid',
+                NoFilter: true,
                 isComponent: true,
                 minWidth: 60,
-                width: "1%",
+                width: '1%',
                 Cell: (props: any) => {
                     const row = props.cell.row.original;
                     return (
                         <TemplateIcons
                             deleteFunction={() => handleDelete(row)}
                         />
-                    );
-                },
+                    )
+                }
             },
             {
-                Header: t(langKeys.description),
-                accessor: "description",
+                Header: t(langKeys.user),
+                accessor: 'usr',
+            },
+            {
+                Header: t(langKeys.fullname),
+                accessor: 'full_name',
+            },
+            {
+                Header: "N° doc",
+                accessor: 'doc_number',
+            },
+            {
+                Header: t(langKeys.email),
+                accessor: 'email',
+            },
+            {
+                Header: t(langKeys.role),
+                accessor: 'roles',
             },
             {
                 Header: t(langKeys.status),
-                accessor: "status",
-                prefixTranslation: "status_",
-                Cell: (props: any) => {
-                    const { status } = props.cell.row.original;
-                    return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
-                },
+                accessor: 'status',
             },
-            {
-                Header: t(langKeys.createdBy),
-                accessor: "createdby",
-            },
-            {
-                Header: t(langKeys.creationDate),
-                accessor: "createdate",
-                Cell: (props: any) => {
-                    const date = props.cell.row.original.createdate;
-                    return date.split(".")[0].split(" ")[0];
-                },
-            },
+
         ],
         []
     );
@@ -145,26 +149,33 @@ const Corporation: FC = () => {
     };
 
     if (viewSelected === "view-1") {
+
+        if (mainResult.error) {
+            return <h1>ERROR</h1>;
+        }
+
         return (
             <TableZyx
                 columns={columns}
+                titlemodule={t(langKeys.user, { count: 2 })}
                 data={dataView}
-                titlemodule={t(langKeys.corporation_plural, { count: 2 })}
                 download={!!pagePermissions.download}
-                onClickRow={handleEdit}
                 loading={mainResult.loading}
+                onClickRow={handleEdit}
                 register={!!pagePermissions.insert}
+                hoverShadow={true}
                 handleRegister={handleRegister}
             />
-        );
-    } else {
+        )
+    }
+    else {
         return (
             <Detail
                 row={rowSelected}
                 setViewSelected={setViewSelected}
                 fetchData={fetchData}
             />
-        );
+        )
     }
 };
-export default Corporation;
+export default User;

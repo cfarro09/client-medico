@@ -12,7 +12,6 @@ export interface MultiData {
 export interface DetailModule {
     row: Dictionary | null;
     setViewSelected: (view: string) => void;
-    multiData: MultiData[];
     fetchData: () => void;
 }
 
