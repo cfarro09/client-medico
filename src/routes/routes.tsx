@@ -16,6 +16,13 @@ export const routes: RouteConfig[] = [
         icon: (className) => <DashboardIcon style={{ width: 22, height: 22 }} className={className} />,
     },
     {
+        key: paths.CORPORATIONS,
+        description: <Trans i18nKey={langKeys.corporation_plural} count={2} />,
+        tooltip: <Trans i18nKey={langKeys.corporation_plural} />,
+        path: paths.CORPORATIONS,
+        icon: (color) => <ExtrasIcon stroke={color} fill={color} />,
+    },
+    {
         key: paths.REPORTS,
         description: <Trans i18nKey={langKeys.report} count={2} />, // prop:count for plural purposes
         tooltip: <Trans i18nKey={langKeys.report} count={2} />,
@@ -34,14 +41,6 @@ export const routes: RouteConfig[] = [
         description: <Trans i18nKey={langKeys.domain_plural} count={2} />,
         tooltip: <Trans i18nKey={langKeys.domain_plural} />,
         path: paths.DOMAINS,
-        icon: (color) => <ExtrasIcon stroke={color} fill={color} />,
-    },
-
-    {
-        key: paths.CORPORATIONS,
-        description: <Trans i18nKey={langKeys.domain_plural} count={2} />,
-        tooltip: <Trans i18nKey={langKeys.domain_plural} />,
-        path: paths.CORPORATIONS,
         icon: (color) => <ExtrasIcon stroke={color} fill={color} />,
     },
     {
