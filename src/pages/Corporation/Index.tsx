@@ -75,7 +75,6 @@ const Corporation: FC = () => {
         () => [
             {
                 accessor: "corpid",
-                NoFilter: true,
                 isComponent: true,
                 minWidth: 60,
                 width: "1%",
@@ -91,12 +90,10 @@ const Corporation: FC = () => {
             {
                 Header: t(langKeys.description),
                 accessor: "description",
-                NoFilter: true,
             },
             {
                 Header: t(langKeys.status),
                 accessor: "status",
-                NoFilter: true,
                 prefixTranslation: "status_",
                 Cell: (props: any) => {
                     const { status } = props.cell.row.original;
@@ -106,12 +103,10 @@ const Corporation: FC = () => {
             {
                 Header: t(langKeys.createdBy),
                 accessor: "createdby",
-                NoFilter: true,
             },
             {
                 Header: t(langKeys.creationDate),
                 accessor: "createdate",
-                NoFilter: true,
                 Cell: (props: any) => {
                     const date = props.cell.row.original.createdate;
                     return date.split(".")[0].split(" ")[0];
