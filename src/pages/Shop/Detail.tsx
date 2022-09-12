@@ -12,9 +12,10 @@ import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import { execute, getCollectionAux, resetMainAux } from "store/main/actions";
-import { getWarehouseSel, insShop } from "common/helpers";
+import { getWarehouseSel, insShop, insWarehouse } from "common/helpers";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import TableZyx from "components/fields/table-simple";
+import WarehouseModal from "./Modals/WarehouseModal";
 
 const arrayBread = [
     { id: "view-1", name: "Shops" },
@@ -42,6 +43,11 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+interface RowSelected {
+    row: Dictionary | null;
+    edit: boolean;
+}
+
 const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
     const { t } = useTranslation();
     const classes = useStyles();
@@ -52,6 +58,9 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
     const [dataExtra, setDataExtra] = useState<{ status: Dictionary[]; type: Dictionary[] }>({ status: [], type: [] });
     const detailRes = useSelector((state) => state.main.mainAux);
     const [dataWarehouse, setDataWarehouse] = useState<Dictionary[]>([]);
+    const [openModal, setOpenModal] = useState(false);
+    const [rowSelected, setRowSelected] = useState<RowSelected>({ row: null, edit: false });
+    const [warehouseToDelete, setWarehouseToDelete] = useState<Dictionary[]>([]);
 
     useEffect(() => {
         if (!multiData.error && !multiData.loading) {
@@ -109,17 +118,21 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
     const onSubmit = handleSubmit((data) => {
         const callback = () => {
             dispatch(showBackdrop(true));
-            dispatch(execute(insShop(data)));
-            setWaitSave(true);
-        };
+            dispatch(execute({
+                header: insShop({ ...data}),
+                detail: [
+                    ...dataWarehouse.filter(x => !!x.operation).map(x => insWarehouse({ ...data, ...x, id: x.warehouseid ? x.warehouseid : 0 })),
+                    ...warehouseToDelete.map(x => insWarehouse({ ...x, id: x.warehouseid }))
+                ]
+            }, true));
+            setWaitSave(true)
+        }
 
-        dispatch(
-            manageConfirmation({
-                visible: true,
-                question: t(langKeys.confirmation_save),
-                callback,
-            })
-        );
+        dispatch(manageConfirmation({
+            visible: true,
+            question: t(langKeys.confirmation_save),
+            callback
+        }))
     });
 
     React.useEffect(() => {
@@ -138,32 +151,23 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
     }, [detailRes]);
 
     const handleRegister = () => {
-        console.log("aca");
-        // setOpenDialogDomain(true)
-        // setRowSelected({ row, domainname, edit: false });
+        setRowSelected({ row: null, edit: false });
+        setOpenModal(true)
     };
 
     const handleEdit = (row: Dictionary) => {
         console.log("edit");
-        // setViewSelected("view-2");
-        // setRowSelected(row);
+        setRowSelected({ row, edit: true })
+        setOpenModal(true)
     };
 
     const handleDelete = (row: Dictionary) => {
-        console.log("delete");
-        // const callback = () => {
-        //     dispatch(execute(insShop({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.shopid })));
-        //     dispatch(showBackdrop(true));
-        //     setWaitSave(true);
-        // };
-
-        // dispatch(
-        //     manageConfirmation({
-        //         visible: true,
-        //         question: t(langKeys.confirmation_delete),
-        //         callback,
-        //     })
-        // );
+        if (row && row.operation !== "INSERT") {
+            setWarehouseToDelete(p => [...p, { ...row, operation: "DELETE", status: 'ELIMINADO' }]);
+        } else {
+            row.operation = 'DELETE';
+        }
+        setDataWarehouse(p => p.filter(x => (row.operation === "DELETE" ? x.operation !== "DELETE" : row.warehouseid !== x.warehouseid)));
     };
 
     const columns = React.useMemo(
@@ -292,12 +296,21 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                                     filterGeneral={false}
                                     register={true}
                                     handleRegister={handleRegister}
+                                    onClickRow={handleEdit}
                                 />
                             )}
                         </AccordionDetails>
                     </Accordion>
                 </div>
             </form>
+            <WarehouseModal
+                data={rowSelected}
+                openModal={openModal}
+                setOpenModal={setOpenModal}
+                updateRecords={setDataWarehouse}
+                dataDomain={dataWarehouse}
+                dataToDelete={warehouseToDelete}
+            />
         </div>
     );
 };

@@ -122,6 +122,12 @@ export const insShop = (parameters: Dictionary): IRequestBody => ({
     parameters: { ...parameters }
 });
 
+export const insWarehouse = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_WAREHOUSE_INS",
+    key: "UFN_WAREHOUSE_INS",
+    parameters: { ...parameters }
+});
+
 export const insUser = ({ userid = 0, usr, password = "", doc_type, doc_number, full_name, email, address, status, operation }: Dictionary): IRequestBody => ({
     method: "UFN_USER_INS",
     key: "UFN_USER_INS",
