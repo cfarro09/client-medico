@@ -156,7 +156,6 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
     };
 
     const handleEdit = (row: Dictionary) => {
-        console.log("edit");
         setRowSelected({ row, edit: true })
         setOpenModal(true)
     };

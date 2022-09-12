@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getCorpSel, getValuesFromDomain, insCorp } from "common/helpers";
+import { getProductSel, getValuesFromDomain, insProduct } from "common/helpers";
 import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -10,9 +10,9 @@ import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { execute, getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
-import Detail from "./Detail";
+import Detail from './Detail'
 
-const Corporation: FC = () => {
+const Product: FC = () => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainResult = useSelector((state) => state.main.mainData);
@@ -27,22 +27,23 @@ const Corporation: FC = () => {
     useEffect(() => {
         if (applications) {
             setPagePermissions({
-                "view": applications["/corporations"][0],
-                "modify": applications["/corporations"][1],
-                "insert": applications["/corporations"][2],
-                "delete": applications["/corporations"][3],
-                "download": applications["/corporations"][4],
+                "view": applications["/products"][0],
+                "modify": applications["/products"][1],
+                "insert": applications["/products"][2],
+                "delete": applications["/products"][3],
+                "download": applications["/products"][4],
             });
         }
     }, [applications]);
 
-    const fetchData = () => dispatch(getCollection(getCorpSel(0)));
+    const fetchData = () => dispatch(getCollection(getProductSel(0)));
 
     useEffect(() => {
         fetchData();
         dispatch(getMultiCollection([
             getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
-            getValuesFromDomain("TIPOCORP", "DOMAIN-TIPOCORP")
+            getValuesFromDomain("CATEGORIAPRODUCTO", "DOMAIN-CATEGORIAPRODUCTO"),
+            getValuesFromDomain("TIPOEMPAQUE", "DOMAIN-TIPOEMPAQUE")
         ]));
         return () => {
             dispatch(resetAllMain());
@@ -50,7 +51,7 @@ const Corporation: FC = () => {
     }, []);
 
     useEffect(() => {
-        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_CORPORATION_SEL") {
+        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_PRODUCT_SEL") {
             setDataView(mainResult.data);
         }
     }, [mainResult]);
@@ -76,7 +77,7 @@ const Corporation: FC = () => {
     const columns = React.useMemo(
         () => [
             {
-                accessor: "corpid",
+                accessor: "productid",
                 isComponent: true,
                 minWidth: 60,
                 width: "1%",
@@ -90,8 +91,48 @@ const Corporation: FC = () => {
                 },
             },
             {
-                Header: t(langKeys.description),
-                accessor: "description",
+                Header: 'Nombre',
+                accessor: 'product_name',
+            },
+            {
+                Header: 'Codigo',
+                accessor: 'product_code',
+            },
+            {
+                Header: 'Descripcion',
+                accessor: 'product_description',
+            },
+            {
+                Header: 'Unidad',
+                accessor: 'unit',
+            },
+            {
+                Header: 'Precio 1',
+                accessor: 'price_1',
+            },
+            {
+                Header: 'Precio 2',
+                accessor: 'price_2',
+            },
+            {
+                Header: 'Marca',
+                accessor: 'product_brand',
+            },
+            {
+                Header: 'Categoria',
+                accessor: 'category',
+            },
+            {
+                Header: 'Tipo Empaque',
+                accessor: 'types_packaging',
+            },
+            {
+                Header: 'Color',
+                accessor: 'color',
+            },
+            {
+                Header: 'n_bottles',
+                accessor: 'n_bottles',
             },
             {
                 Header: t(langKeys.status),
@@ -101,19 +142,7 @@ const Corporation: FC = () => {
                     const { status } = props.cell.row.original;
                     return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
                 },
-            },
-            {
-                Header: t(langKeys.createdBy),
-                accessor: "createdby",
-            },
-            {
-                Header: t(langKeys.creationDate),
-                accessor: "createdate",
-                Cell: (props: any) => {
-                    const date = props.cell.row.original.createdate;
-                    return date.split(".")[0].split(" ")[0];
-                },
-            },
+            }
         ],
         []
     );
@@ -130,7 +159,7 @@ const Corporation: FC = () => {
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(execute(insCorp({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.corpid })));
+            dispatch(execute(insProduct({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.productid })));
             dispatch(showBackdrop(true));
             setWaitSave(true);
         };
@@ -149,7 +178,7 @@ const Corporation: FC = () => {
             <TableZyx
                 columns={columns}
                 data={dataView}
-                titlemodule={t(langKeys.corporation_plural, { count: 2 })}
+                titlemodule={t(langKeys.products, { count: 2 })}
                 download={!!pagePermissions.download}
                 onClickRow={handleEdit}
                 loading={mainResult.loading}
@@ -167,4 +196,4 @@ const Corporation: FC = () => {
         );
     }
 };
-export default Corporation;
+export default Product;

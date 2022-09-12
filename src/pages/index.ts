@@ -14,3 +14,4 @@ export { default as Stock } from './Stock';
 export { default as Supplier } from './Supplier';
 
 export { default as Shops } from './Shop/Index';
+export { default as Products } from './Product/Index';

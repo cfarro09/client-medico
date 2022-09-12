@@ -112,7 +112,6 @@ const WarehouseModal: React.FC<modalPorps> = ({
     const classes = useStyles();
     const { t } = useTranslation();
     const dispatch = useDispatch();
-    const [modalData, setModalData] = useState<Dictionary>();
     const {
         register,
         handleSubmit,
@@ -134,7 +133,6 @@ const WarehouseModal: React.FC<modalPorps> = ({
                 status: row?.status || "ACTIVO",
                 type: row?.type || "NINGUNO",
             });
-
             register("description", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         }
     }, [openModal]);

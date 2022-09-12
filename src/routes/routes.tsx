@@ -1,4 +1,4 @@
-import { AccountBalance, AccountCircle, AccountTree, AllInbox, Apartment, AssignmentInd, Domain, HomeWork, LocalShipping, Loyalty, Receipt } from "@material-ui/icons";
+import { AccountCircle, AllInbox, Apartment, AssignmentInd, Domain, LocalMall, LocalShipping, Loyalty, Receipt, Store } from "@material-ui/icons";
 import { RouteConfig } from "@types";
 import paths from "common/constants/paths";
 import {
@@ -48,7 +48,7 @@ export const routes: RouteConfig[] = [
         description: "Shops",
         tooltip: "Shops",
         path: paths.SHOPS,
-        icon: (color) => <HomeWork stroke={color} fill={color} />,
+        icon: (color) => <Store stroke={color} fill={color} />,
     },
     {
         key: paths.CUSTOMERS,
@@ -73,17 +73,24 @@ export const routes: RouteConfig[] = [
     },
     {
         key: paths.PURCHASES,
-        description: "Purchases",
-        tooltip: "Purchases",
+        description: "Compras",
+        tooltip: "Compras",
         path: paths.PURCHASES,
         icon: (color) => <Receipt stroke={color} fill={color} />,
     },
     {
         key: paths.STOCK,
-        description: "Stock",
-        tooltip: "Stock",
+        description: "Inventario",
+        tooltip: "Inventario",
         path: paths.STOCK,
         icon: (color) => <AllInbox stroke={color} fill={color} />,
+    },
+    {
+        key: paths.PRODUCTS,
+        description: "Productos",
+        tooltip: "Productos",
+        path: paths.PRODUCTS,
+        icon: (color) => <LocalMall stroke={color} fill={color} />,
     },
     {
         key: paths.SIGNIN,

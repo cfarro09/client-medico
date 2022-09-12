@@ -12,6 +12,7 @@ const paths = {
     PURCHASES: '/purchases',
     STOCK: '/stock',
     SIGNIN: '/sign-in',
+    PRODUCTS: '/products',
 };
 
 export default paths;
