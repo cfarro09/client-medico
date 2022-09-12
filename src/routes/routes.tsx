@@ -1,4 +1,4 @@
-import { AccountCircle } from "@material-ui/icons";
+import { AccountBalance, AccountCircle, AccountTree, AllInbox, Apartment, AssignmentInd, Domain, HomeWork, LocalShipping, Loyalty, Receipt } from "@material-ui/icons";
 import { RouteConfig } from "@types";
 import paths from "common/constants/paths";
 import {
@@ -20,7 +20,7 @@ export const routes: RouteConfig[] = [
         description: <Trans i18nKey={langKeys.corporation_plural} count={2} />,
         tooltip: <Trans i18nKey={langKeys.corporation_plural} />,
         path: paths.CORPORATIONS,
-        icon: (color) => <ExtrasIcon stroke={color} fill={color} />,
+        icon: (color) => <Apartment stroke={color} fill={color} />,
     },
     {
         key: paths.REPORTS,
@@ -41,49 +41,49 @@ export const routes: RouteConfig[] = [
         description: <Trans i18nKey={langKeys.domain_plural} count={2} />,
         tooltip: <Trans i18nKey={langKeys.domain_plural} />,
         path: paths.DOMAINS,
-        icon: (color) => <ExtrasIcon stroke={color} fill={color} />,
+        icon: (color) => <Domain stroke={color} fill={color} />,
     },
     {
         key: paths.SHOPS,
         description: "Shops",
         tooltip: "Shops",
         path: paths.SHOPS,
-        icon: (color) => <ExtrasIcon stroke={color} fill={color} />,
+        icon: (color) => <HomeWork stroke={color} fill={color} />,
     },
     {
         key: paths.CUSTOMERS,
         description: <Trans i18nKey={langKeys.customer} count={2} />,
         tooltip: <Trans i18nKey={langKeys.customer} />,
         path: paths.CUSTOMERS,
-        icon: (color) => <ExtrasIcon stroke={color} fill={color} />,
+        icon: (color) => <AssignmentInd stroke={color} fill={color} />,
     },
     {
         key: paths.SUPPLIER,
         description: <Trans i18nKey={langKeys.supplier} count={2} />,
         tooltip: <Trans i18nKey={langKeys.supplier} />,
         path: paths.SUPPLIER,
-        icon: (color) => <ExtrasIcon stroke={color} fill={color} />,
+        icon: (color) => <LocalShipping stroke={color} fill={color} />,
     },
     {
         key: paths.SALES,
-        description: <Trans i18nKey={langKeys.salesperson} count={2} />,
-        tooltip: <Trans i18nKey={langKeys.salesperson} />,
+        description: <Trans i18nKey={langKeys.sales} count={2} />,
+        tooltip: <Trans i18nKey={langKeys.sales} />,
         path: paths.SALES,
-        icon: (color) => <ExtrasIcon stroke={color} fill={color} />,
+        icon: (color) => <Loyalty stroke={color} fill={color} />,
     },
     {
         key: paths.PURCHASES,
         description: "Purchases",
         tooltip: "Purchases",
         path: paths.PURCHASES,
-        icon: (color) => <ExtrasIcon stroke={color} fill={color} />,
+        icon: (color) => <Receipt stroke={color} fill={color} />,
     },
     {
         key: paths.STOCK,
         description: "Stock",
         tooltip: "Stock",
         path: paths.STOCK,
-        icon: (color) => <ExtrasIcon stroke={color} fill={color} />,
+        icon: (color) => <AllInbox stroke={color} fill={color} />,
     },
     {
         key: paths.SIGNIN,

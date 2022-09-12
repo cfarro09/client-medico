@@ -188,7 +188,7 @@ const WarehouseModal: React.FC<modalPorps> = ({
                 <div className={[classes.pb2, classes.px5, classes.modal_body].join(" ")}>
                     <div className={[classes.text_center, classes.mb3].join(" ")}>
                         <h2 className="mb1">{row ? `${row.description}` : "Nuevo Almacen"}</h2>
-                        <p>{row ? "Edite" : "Ingrese"} la información de la tienda.</p>
+                        <p>{row ? "Edite" : "Ingrese"} la información del almacen.</p>
                     </div>
                     <div className="row-zyx">
                         <FieldEdit

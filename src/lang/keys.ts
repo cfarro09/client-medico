@@ -1343,6 +1343,7 @@ export const langKeys = {
     avgResponseTimeOfClient: 'avgResponseTimeOfClient',
     totalTime: 'totalTime',
     salesperson: 'salesperson',
+    sales: 'sales',
     lastUpdate: 'lastUpdate',
     phase: 'phase',
     expectedRevenue: 'expectedRevenue',

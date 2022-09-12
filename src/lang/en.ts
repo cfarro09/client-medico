@@ -1345,6 +1345,7 @@ const translation: LangKeys = {
     avgResponseTimeOfClient: 'Avg. response time of client',
     totalTime: 'Total time',
     salesperson: 'Salesperson',
+    sales: 'Sales',
     lastUpdate: 'Last update',
     phase: 'Phase',
     expectedRevenue: 'Expected revenue',
