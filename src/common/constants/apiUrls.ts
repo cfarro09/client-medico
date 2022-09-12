@@ -1,9 +1,9 @@
 import { Dictionary } from "@types";
-const ENV = process.env.REACT_APP_ENV ?? 'LOCAL';
+const ENV = process.env.REACT_APP_ENV ?? 'DEVELOP';
 
 const APIS_URL = {
     DEVELOP: {
-        API: 'http://localhost:6065/api',
+        API: 'http://38.242.249.178:6067/api',
         WS: 'https://socket.laraigo.com',
         CHATFLOW: 'https://zyxmelinux.zyxmeapp.com/zyxme/chatflow',
         FACEBOOKAPP: '1094526090706564',

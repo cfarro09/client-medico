@@ -49,15 +49,15 @@ export const getRoles = (): IRequestBody => ({
     }
 })
 
-export const getWareHouse = (shopid: number | null = null): IRequestBody => ({
+export const getWareHouse = (shopid: number | null = null, key: string | null = null): IRequestBody => ({
     method: "UFN_WAREHOUSE_LST",
-    key: "UFN_WAREHOUSE_LST",
+    key: `UFN_WAREHOUSE_LST${key}`,
     parameters: { shopid }
 })
 
-export const getApplicationByRole = (roleid: number | null = null): IRequestBody => ({
+export const getApplicationByRole = (roleid: number | null = null, key: string | null = null): IRequestBody => ({
     method: "UFN_APPLICATIONROLE_SEL",
-    key: "UFN_APPLICATIONROLE_SEL",
+    key: `UFN_APPLICATIONROLE_SEL${key}`,
     parameters: { roleid }
 })
 
@@ -122,22 +122,30 @@ export const insShop = (parameters: Dictionary): IRequestBody => ({
     parameters: { ...parameters }
 });
 
-export const insUser = (parameters: Dictionary): IRequestBody => ({
+export const insUser = ({ userid = 0, usr, password = "", doc_type, doc_number, full_name, email, address, status, operation }: Dictionary): IRequestBody => ({
     method: "UFN_USER_INS",
     key: "UFN_USER_INS",
     parameters: {
-        password: '',
-        ...parameters,
-        pwdchangefirstlogin: true,
-        twofactorauthentication: false,
-        registercode: '',
-        image: '',
-        zone: '',
-        address: '',
-        district: '',
-        phone: '',
-        roleid: 2,
-        description: '',
-        type: 'NINGUNO'
+        id: userid, 
+        usr, 
+        password, 
+        doc_type, 
+        doc_number, 
+        full_name, 
+        email, 
+        address: "", 
+        status, 
+        operation,
+        type: 'NINGUNO',
+    }
+});
+
+export const shopUserIns = ({ shopuserid = 0, shopid, roleid, bydefault, warehouses, redirect, operation }: Dictionary): IRequestBody => ({
+    method: "UFN_SHOPUSERID_INS",
+    key: "UFN_SHOPUSERID_INS",
+    parameters: {
+        id: shopuserid,
+        shopid, roleid, bydefault, warehouses, redirect, operation,
+        description: ""
     }
 });

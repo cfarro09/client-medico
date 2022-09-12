@@ -11,7 +11,7 @@ import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import { execute, getCollectionAux, resetMainAux } from "store/main/actions";
-import { getApplicationByRole, getShopsByUserid, getWareHouse, insUser } from "common/helpers";
+import { getApplicationByRole, getShopsByUserid, getWareHouse, insUser, shopUserIns } from "common/helpers";
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
 import LockOpenIcon from '@material-ui/icons/LockOpen';
@@ -48,7 +48,7 @@ type IShops = {
 }
 
 type FormFields = {
-    id: number;
+    userid: number;
     operation: string;
     full_name: string;
     password: string;
@@ -168,11 +168,12 @@ const DetailShop: React.FC<{
     register: any,
     item: Dictionary,
     errors: any,
-    getValues: (param: any) => void,
+    getValues: (param: any) => any,
     trigger: (param: any) => void,
+    shopRemove: (param: any) => void,
     setValue: (param: any, param1: any) => void,
     dataExtra: Dictionary,
-}> = ({ i, item, errors, getValues, setValue, register, dataExtra: data, trigger }) => {
+}> = ({ i, item, errors, getValues, setValue, register, dataExtra: data, trigger, shopRemove }) => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainAux = useSelector((state) => state.main.mainAux);
@@ -188,7 +189,7 @@ const DetailShop: React.FC<{
         setValue(`shops.${i}.shopid`, shop?.shopid || 0);
         setValue(`shops.${i}.warehouses`, "")
         if (shop) {
-            dispatch(getCollectionAux(getWareHouse(shop.shopid)))
+            dispatch(getCollectionAux(getWareHouse(shop.shopid, item.shopuserid)))
         } else {
             setDataExtra({
                 ...dataExtra,
@@ -201,7 +202,7 @@ const DetailShop: React.FC<{
         setValue(`shops.${i}.roleid`, shop?.roleid || 0);
         setValue(`shops.${i}.redirect`, "")
         if (shop) {
-            dispatch(getCollectionAux(getApplicationByRole(shop.roleid)))
+            dispatch(getCollectionAux(getApplicationByRole(shop.roleid, item.shopuserid)))
         } else {
             setDataExtra({
                 ...dataExtra,
@@ -211,20 +212,20 @@ const DetailShop: React.FC<{
     }
 
     useEffect(() => {
-        if (item) {
-            dispatch(getCollectionAux(getWareHouse(item.shopid)))
-            dispatch(getCollectionAux(getApplicationByRole(item.roleid)))
+        if (item?.shopid) {
+            dispatch(getCollectionAux(getWareHouse(item.shopid, item.shopuserid)))
+            dispatch(getCollectionAux(getApplicationByRole(item.roleid, item.shopuserid)))
         }
     }, [])
-    
+
     useEffect(() => {
         if (!mainAux.error && !mainAux.loading) {
-            if (mainAux.key === "UFN_WAREHOUSE_LST") {
+            if (mainAux.key === `UFN_WAREHOUSE_LST${item.shopuserid}`) {
                 setDataExtra(prev => ({
                     ...prev,
                     warehouse: mainAux.data
                 }))
-            } else if (mainAux.key === "UFN_APPLICATIONROLE_SEL") {
+            } else if (mainAux.key === `UFN_APPLICATIONROLE_SEL${item.shopuserid}`) {
                 setDataExtra(prev => ({
                     ...prev,
                     application: mainAux.data
@@ -233,15 +234,33 @@ const DetailShop: React.FC<{
         }
     }, [mainAux, setValue])
 
+    if (getValues(`shops.${i}.status`) === "ELIMINADO") {
+        return null
+    }
     return (
         <div style={{ borderBottom: '1px solid #e1e1e1' }}>
-            <div style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
                 <TemplateSwitch
                     label={t(langKeys.bydefault)}
                     valueDefault={getValues(`shops.${i}.bydefault`)}
                     mb={0}
                     onChange={(value) => setValue(`shops.${i}.bydefault`, value)}
                 />
+                <Button
+                    variant="contained"
+                    type="button"
+                    color="primary"
+                    startIcon={<ClearIcon color="secondary" />}
+                    style={{ backgroundColor: "#FB5F5F" }}
+                    onClick={() => {
+                        if (item.shopuserid < 0) {
+                            shopRemove(i)
+                        } else {
+                            setValue(`shops.${i}.status`, "ELIMINADO")
+                            trigger(`shops.${i}.status`)
+                        }
+                    }}
+                >{t(langKeys.delete)}</Button>
             </div>
             <div className="row-zyx">
                 <FieldSelect
@@ -345,7 +364,7 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
 
     const { control, register, handleSubmit, setValue, trigger, getValues, formState: { errors } } = useForm<FormFields>({
         defaultValues: {
-            id: row?.userid || 0,
+            userid: row?.userid || 0,
             operation: row ? "UPDATE" : "INSERT",
             full_name: row?.full_name || '',
             password: row?.password || '',
@@ -414,7 +433,7 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
     }, [executeRes, waitSave])
 
     React.useEffect(() => {
-        register('id');
+        register('userid');
         register('password');
         register('status', { validate: (value) => (value && !!value.length) || "" + t(langKeys.field_required) });
         register('full_name', { validate: (value) => (value && !!value.length) || "" + t(langKeys.field_required) });
@@ -425,6 +444,8 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
 
         if (row) {
             dispatch(getCollectionAux(getShopsByUserid(row.userid)));
+        } else {
+            shopAppend({ bydefault: true })
         }
     }, [register, t]);
 
@@ -433,9 +454,18 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
             dispatch(showSnackbar({ show: true, success: false, message: t(langKeys.password_required) }));
             return;
         }
+        if (data.shops.filter(item => item.status !== "ELIMINADO").length === 0) {
+            dispatch(showSnackbar({ show: true, success: false, message: "Debe tener como minimo una tienda asignada" }));
+        }
         const callback = () => {
             dispatch(showBackdrop(true));
-            dispatch(execute(insUser(data)));
+            dispatch(execute({
+                header: insUser({ ...data, operation: data.userid ? "UPDATE" : "INSERT" }),
+                detail: data.shops.map(x => shopUserIns({
+                    ...x,
+                    operation: x.shopuserid > 0 ? (x.status === "ELIMINADO" ? "DELETE" : "UPDATE") : "INSERT"
+                }))
+            }, true));
             setWaitSave(true)
         }
 
@@ -497,7 +527,7 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                             label={t(langKeys.status)}
                             className="col-6"
                             loading={multiData.loading}
-                            valueDefault={row?.status || "ACTIVO"}
+                            valueDefault={row?.status}
                             onChange={(value) => setValue('status', value ? value.domainvalue : '')}
                             error={errors?.status?.message}
                             data={dataExtra.status}
@@ -542,6 +572,18 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                         />
                     </div>
                 </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
+                    <TitleDetail
+                        title={"Tiendas"}
+                    />
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<SaveIcon color="secondary" />}
+                        style={{ backgroundColor: "#55BD84" }}
+                        onClick={() => shopAppend({ shopuserid: fieldsShop.length * -1 })}
+                    >{t(langKeys.add)}</Button>
+                </div>
                 <div className={classes.containerDetail} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     {fieldsShop.map((item: Dictionary, i: number) => (
                         <DetailShop
@@ -552,6 +594,7 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                             errors={errors}
                             getValues={getValues}
                             trigger={trigger}
+                            shopRemove={shopRemove}
                             setValue={setValue}
                             dataExtra={dataExtra}
                         />
