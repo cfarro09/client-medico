@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getApplications, getRoles, getShops, getUserSel, getValuesFromDomain, getWareHouse, insCorp } from "common/helpers";
+import { getRoles, getShops, getUserSel, getValuesFromDomain, getWareHouse, insUser } from "common/helpers";
 import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -117,7 +117,6 @@ const User: FC = () => {
                 Header: t(langKeys.status),
                 accessor: 'status',
             },
-
         ],
         []
     );
@@ -134,7 +133,7 @@ const User: FC = () => {
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(execute(insCorp({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.corpid })));
+            dispatch(execute(insUser({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.corpid })));
             dispatch(showBackdrop(true));
             setWaitSave(true);
         };
