@@ -18,6 +18,18 @@ export const getShopSel = (userid: number): IRequestBody => ({
     parameters: {}
 })
 
+export const getProductList = (): IRequestBody => ({
+    method: "UFN_PRODUCT_LST",
+    key: "UFN_PRODUCT_LST",
+    parameters: {}
+})
+
+export const getSupplierList = (): IRequestBody => ({
+    method: "UFN_SUPPLIER_LST",
+    key: "UFN_SUPPLIER_LST",
+    parameters: {}
+})
+
 export const getWarehouseSel = ({ shopid, id }: Dictionary): IRequestBody => ({
     method: "UFN_WAREHOUSE_SEL",
     key: "UFN_WAREHOUSE_SEL",

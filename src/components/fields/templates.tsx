@@ -454,6 +454,7 @@ export const FieldSelect: React.FC<TemplateAutocompleteProps> = ({ error, label,
             }
             <Autocomplete
                 filterSelectedOptions
+                autoHighlight={true}
                 style={style}
                 fullWidth
                 disabled={disabled}
@@ -1048,7 +1049,7 @@ export const FieldEditWithSelect: React.FC<EditWithSelectProps> = ({ label, clas
     )
 }
 
-export const FieldEditArray: React.FC<InputProps> = ({ label, style = {}, className, disabled = false, valueDefault = "", onChange, onBlur, error, type = "text", rows = 1, fregister = {}, inputProps = {}, variant = "standard" }) => {
+export const FieldEditArray: React.FC<InputProps & { onlyPositiveNumber?: boolean }> = ({ label, style = {}, className, disabled = false, valueDefault = "", onlyPositiveNumber = false, onChange, onBlur, error, type = "text", rows = 1, fregister = {}, inputProps = {}, variant = "standard" }) => {
     return (
         <div className={className} style={style}>
             {label && <Box fontWeight={500} lineHeight="18px" fontSize={14} mb={1} color="textPrimary">{label}</Box>}
@@ -1064,7 +1065,13 @@ export const FieldEditArray: React.FC<InputProps> = ({ label, style = {}, classN
                 helperText={error || null}
                 rows={rows}
                 onChange={(e) => {
-                    onChange && onChange(e.target.value);
+                    if (type === "number" && onlyPositiveNumber) {
+                        if (parseInt(e.target.value) >= 0) {
+                            onChange && onChange(e.target.value);    
+                        }
+                    } else {
+                        onChange && onChange(e.target.value);
+                    }
                 }}
                 onBlur={(e) => {
                     onBlur && onBlur(e.target.value);
