@@ -40,7 +40,11 @@ const useStyles = makeStyles((theme) => ({
 
 type FormFields = {
     purchaseid: number,
-    products: Dictionary[]
+    products: Dictionary[],
+    supplierid: number,
+    warehouseid: number,
+    purchasecreatedate: string,
+    purchasenumber: string,
 }
 
 const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
@@ -54,11 +58,13 @@ const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetch
         type: Dictionary[],
         products: Dictionary[],
         suppliers: Dictionary[],
+        warehouses: Dictionary[],
     }>({
         status: [],
         type: [],
         products: [],
-        suppliers: []
+        suppliers: [],
+        warehouses: [],
     });
     const dispatch = useDispatch();
     const { t } = useTranslation();
@@ -66,6 +72,10 @@ const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetch
     const { register, control, handleSubmit, setValue, getValues, formState: { errors }, trigger } = useForm<FormFields>({
         defaultValues: {
             purchaseid: row?.purchaseid || 0,
+            supplierid: row?.supplierid || 0,
+            warehouseid: row?.warehouseid || 0,
+            purchasecreatedate: row?.purchasecreatedate || "",
+            purchasenumber: row?.purchasenumber || "",
             products: []
         },
     });
@@ -80,13 +90,15 @@ const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetch
             const dataTypes = multiData.data.find((x) => x.key === "DOMAIN-TIPOCORP");
             const products = multiData.data.find((x) => x.key === "UFN_PRODUCT_LST");
             const suppliers = multiData.data.find((x) => x.key === "UFN_SUPPLIER_LST");
-            if (dataStatus && dataTypes && products && suppliers) {
+            const warehouses = multiData.data.find((x) => x.key === "UFN_WAREHOUSE_LST");
+            if (dataStatus && dataTypes && products && suppliers && warehouses) {
                 setProductsToShow(products.data)
                 setDataExtra({
                     status: dataStatus.data,
                     type: dataTypes.data,
                     products: products.data,
                     suppliers: suppliers.data,
+                    warehouses: warehouses.data,
                 });
             }
         }
@@ -135,8 +147,10 @@ const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetch
 
     React.useEffect(() => {
         register("purchaseid");
-        // register("type", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        // register("status", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
+        register("supplierid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
+        register("warehouseid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
+        register("purchasenumber", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
+        register("purchasecreatedate", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
     }, [register]);
 
     return (
@@ -170,25 +184,47 @@ const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetch
                 </div>
                 <div className={classes.containerDetail}>
                     <div className="row-zyx">
-                        {/* <FieldEdit
-                            label={t(langKeys.corporation)}
+                        <FieldEdit
+                            label={"N° Orden"}
                             className="col-6"
-                            valueDefault={getValues("description")}
-                            onChange={(value) => setValue("description", value)}
-                            error={errors?.description?.message}
+                            valueDefault={getValues("purchasenumber")}
+                            onChange={(value) => setValue("purchasenumber", value)}
+                            error={errors?.purchasenumber?.message}
+                            disabled={true}
+                        />
+                        <FieldEdit
+                            label={"Fecha de la orden"}
+                            type="date"
+                            className="col-6"
+                            valueDefault={getValues("purchasecreatedate")}
+                            onChange={(value) => setValue("purchasecreatedate", value)}
+                            error={errors?.purchasecreatedate?.message}
+                        />
+                    </div>
+
+                    <div className="row-zyx">
+                        <FieldSelect
+                            loading={multiData.loading}
+                            label={t(langKeys.provider)}
+                            className="col-6"
+                            valueDefault={getValues('supplierid')}
+                            onChange={(value) => setValue('supplierid', value ? value.supplierid : 0)}
+                            error={errors?.supplierid?.message}
+                            data={dataExtra.suppliers}
+                            optionDesc="description"
+                            optionValue="supplierid"
                         />
                         <FieldSelect
-                            label={t(langKeys.type)}
+                            loading={multiData.loading}
+                            label={"Almacen"}
                             className="col-6"
-                            valueDefault={getValues("type")}
-                            onChange={(value) => setValue("type", value?.domainvalue)}
-                            error={errors?.type?.message}
-                            data={dataExtra.type}
-                            uset={true}
-                            prefixTranslation="type_corp_"
-                            optionDesc="domainvalue"
-                            optionValue="domainvalue"
-                        /> */}
+                            valueDefault={getValues('warehouseid')}
+                            onChange={(value) => setValue('warehouseid', value ? value.warehouseid : 0)}
+                            error={errors?.warehouseid?.message}
+                            data={dataExtra.suppliers}
+                            optionDesc="description"
+                            optionValue="warehouseid"
+                        />
                     </div>
                 </div>
                 <div className={classes.containerDetail}>
@@ -205,7 +241,7 @@ const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetch
                             // trigger(`products.${i}.price`)
                         }}
                         data={productsToShow}
-                        optionDesc="product_name"
+                        optionDesc="description"
                         optionValue="productid"
                     />
                     <TableContainer>
@@ -213,12 +249,6 @@ const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetch
                             <TableHead>
                                 <TableRow>
                                     <TableCell>
-                                        {/* <IconButton
-                                            size="small"
-                                            onClick={async () => productAppend({ productid: 0, price: 0.0, quantity: 0, subtotal: 0.0 })}
-                                        >
-                                            <AddIcon />
-                                        </IconButton> */}
                                     </TableCell>
                                     <TableCell>Producto</TableCell>
                                     <TableCell style={{ textAlign: 'right' }}>Precio</TableCell>

@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getCorpSel, getProductList, getSupplierList, getValuesFromDomain, insCorp } from "common/helpers";
+import { getCorpSel, getProductList, getSupplierList, getValuesFromDomain, getWareHouse, insCorp } from "common/helpers";
 import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -44,7 +44,8 @@ const Corporation: FC = () => {
             getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
             getValuesFromDomain("TIPOCORP", "DOMAIN-TIPOCORP"),
             getProductList(),
-            getSupplierList()
+            getSupplierList(),
+            getWareHouse(),
         ]));
         return () => {
             dispatch(resetAllMain());

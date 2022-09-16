@@ -134,7 +134,7 @@ const SignIn = () => {
     return (
         <Container component="main" maxWidth="xs" className={classes.containerLogin}>
             <div className={classes.childContainer}>
-                <img src="https://staticfileszyxme.s3.us-east.cloud-object-storage.appdomain.cloud/logo_rintisax.png" alt="titledev" width="390" />
+                <img src="./logo.png" alt="titledev" width="350" style={{marginLeft: 'auto', marginRight: 'auto'}} />
                 <div className={classes.paper}>
                     {resLogin.error && (
                         <Alert className={classes.alertheader} variant="filled" severity="error">

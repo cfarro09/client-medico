@@ -70,7 +70,7 @@ export const getRoles = (): IRequestBody => ({
     }
 })
 
-export const getWareHouse = (shopid: number | null = null, key: string | null = null): IRequestBody => ({
+export const getWareHouse = (shopid: number | null = null, key: string | null = ""): IRequestBody => ({
     method: "UFN_WAREHOUSE_LST",
     key: `UFN_WAREHOUSE_LST${key}`,
     parameters: { shopid }
