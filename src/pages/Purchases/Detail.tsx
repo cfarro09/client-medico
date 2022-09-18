@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { DetailModule, Dictionary } from "@types";
-import { FieldEdit, FieldEditArray, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
+import { FieldEdit, FieldEditArray, FieldEditMulti, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
 import React, { useEffect, useState } from "react"; // we need this to make JSX compile
@@ -11,13 +11,12 @@ import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import { execute } from "store/main/actions";
-import { insCorp } from "common/helpers";
+import { insCorp, insPurchase, insPurchaseDetail } from "common/helpers";
 import { Button, makeStyles, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableFooter } from '@material-ui/core';
-import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
 const arrayBread = [
-    { id: "view-1", name: "Corporation" },
-    { id: "view-2", name: "Corporation detail" },
+    { id: "view-1", name: "Purchase" },
+    { id: "view-2", name: "Purchase detail" },
 ];
 
 const useStyles = makeStyles((theme) => ({
@@ -45,9 +44,10 @@ type FormFields = {
     warehouseid: number,
     purchasecreatedate: string,
     purchasenumber: string,
+    observations: string
 }
 
-const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
+const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
     const classes = useStyles();
     const [waitSave, setWaitSave] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
@@ -74,8 +74,9 @@ const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetch
             purchaseid: row?.purchaseid || 0,
             supplierid: row?.supplierid || 0,
             warehouseid: row?.warehouseid || 0,
-            purchasecreatedate: row?.purchasecreatedate || "",
+            purchasecreatedate: row?.purchasecreatedate || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
             purchasenumber: row?.purchasenumber || "",
+            observations: row?.observations || "",
             products: []
         },
     });
@@ -100,6 +101,11 @@ const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetch
                     suppliers: suppliers.data,
                     warehouses: warehouses.data,
                 });
+
+                setValue('supplierid', suppliers.data?.[0]?.supplierid || 0);
+                trigger("supplierid");
+                setValue('warehouseid', warehouses.data?.[0]?.warehouseid || 0);
+                trigger("warehouseid");
             }
         }
     }, [multiData]);
@@ -130,11 +136,27 @@ const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetch
 
 
     const onSubmit = handleSubmit((data) => {
+        if (data.products.filter(item => item.status !== "ELIMINADO").length === 0) {
+            dispatch(showSnackbar({ show: true, success: false, message: "Debe tener como minimo un producto registrado" }));
+            return
+        }
         const callback = () => {
             dispatch(showBackdrop(true));
-            dispatch(execute(insCorp(data)));
-            setWaitSave(true);
-        };
+            dispatch(execute({
+                header: insPurchase({
+                    ...data,
+                    operation: data.purchaseid ? "UPDATE" : "INSERT",
+                    status: 'ACTIVO',
+                    total: 0
+                }),
+                detail: data.products.map(x => insPurchaseDetail({
+                    ...x,
+                    operation: x.purchasedetailid > 0 ? (x.status === "ELIMINADO" ? "DELETE" : "UPDATE") : "INSERT",
+                    status: 'ACTIVO',
+                }))
+            }, true));
+            setWaitSave(true)
+        }
 
         dispatch(
             manageConfirmation({
@@ -149,9 +171,11 @@ const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetch
         register("purchaseid");
         register("supplierid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
         register("warehouseid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
-        register("purchasenumber", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
+        register("observations");
+        register("purchasenumber");
         register("purchasecreatedate", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
     }, [register]);
+
 
     return (
         <div style={{ width: "100%" }}>
@@ -221,9 +245,19 @@ const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetch
                             valueDefault={getValues('warehouseid')}
                             onChange={(value) => setValue('warehouseid', value ? value.warehouseid : 0)}
                             error={errors?.warehouseid?.message}
-                            data={dataExtra.suppliers}
+                            data={dataExtra.warehouses}
                             optionDesc="description"
                             optionValue="warehouseid"
+                        />
+                    </div>
+                    <div className="row-zyx">
+                        <FieldEditMulti
+                            label={"Observación"}
+                            type="date"
+                            className="col-12"
+                            valueDefault={getValues("observations")}
+                            onChange={(value) => setValue("observations", value)}
+                            error={errors?.observations?.message}
                         />
                     </div>
                 </div>
@@ -234,7 +268,7 @@ const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetch
                         onChange={(value) => {
                             if (value) {
                                 setProductsToShow(productsToShow.filter(x => x.productid !== value.productid))
-                                productAppend({ productid: value.productid, product_description: value.description, price: parseFloat((value?.purchase_price || "0")), quantity: 0, subtotal: 0.0 })
+                                productAppend({ purchasedetailid: fieldsProduct.length * -1, productid: value.productid, product_description: value.description, price: parseFloat((value?.purchase_price || "0")), quantity: 0, subtotal: 0.0 })
                             }
                             // setValue(`products.${i}.productid`, value?.productid || 0);
                             // setValue(`products.${i}.price`, parseFloat((value?.purchase_price || "0")));
@@ -342,4 +376,4 @@ const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetch
     );
 };
 
-export default DetailCorporation;
+export default DetailPurcharse;

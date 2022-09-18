@@ -33,7 +33,7 @@ export const getSupplierList = (): IRequestBody => ({
 export const getWarehouseSel = ({ shopid, id }: Dictionary): IRequestBody => ({
     method: "UFN_WAREHOUSE_SEL",
     key: "UFN_WAREHOUSE_SEL",
-    parameters: { shopid, id, all: id === 0}
+    parameters: { shopid, id, all: id === 0 }
 })
 
 export const getCorpSel = (id: number): IRequestBody => ({
@@ -119,6 +119,42 @@ export const getDomainValueSel = (domainname: string): IRequestBody => ({
     }
 })
 
+export const insPurchase = ({ purchaseid, status, operation, total, supplierid, warehouseid, purchasecreatedate, purchasenumber, observations }: Dictionary): IRequestBody => ({
+    method: "UFN_PURCHASE_ORDER_INS",
+    key: "UFN_PURCHASE_ORDER_INS",
+    parameters: {
+        id: purchaseid,
+        supplierid,
+        bill_number: null,
+        total,
+        status,
+        type: null,
+        purchse_order_number: purchasenumber,
+        bill_entry_date: null,
+        purchase_order_create_date: purchasecreatedate,
+        warehouseid,
+        observations,
+        operation
+    }
+})
+
+export const insPurchaseDetail = ({ status, operation, purchasedetailid, productid, price, quantity, subtotal: total }: Dictionary): IRequestBody => ({
+    method: "UFN_PURCHASE_DETAIL_INS",
+    key: "UFN_PURCHASE_DETAIL_INS",
+    parameters: {
+        id: purchasedetailid || 0,
+        productid,
+        total,
+        requested_quantity: quantity,
+        discount: 0,
+        status,
+        type: "",
+        price,
+        delivered_quantity: quantity,
+        operation
+    }
+})
+
 export const insDomain = ({ domainname, description, type, status, operation }: Dictionary): IRequestBody => ({
     method: "UFN_DOMAIN_INS",
     key: "UFN_DOMAIN_INS",
@@ -159,15 +195,15 @@ export const insUser = ({ userid = 0, usr, password = "", doc_type, doc_number, 
     method: "UFN_USER_INS",
     key: "UFN_USER_INS",
     parameters: {
-        id: userid, 
-        usr, 
-        password, 
-        doc_type, 
-        doc_number, 
-        full_name, 
-        email, 
-        address: "", 
-        status, 
+        id: userid,
+        usr,
+        password,
+        doc_type,
+        doc_number,
+        full_name,
+        email,
+        address: "",
+        status,
         operation,
         type: 'NINGUNO',
     }
