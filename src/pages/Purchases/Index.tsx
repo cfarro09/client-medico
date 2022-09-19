@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getCorpSel, getProductList, getSupplierList, getValuesFromDomain, getWareHouse, insCorp } from "common/helpers";
+import { getCorpSel, getProductList, getPurchases, getSupplierList, getValuesFromDomain, getWareHouse, insCorp } from "common/helpers";
 import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -36,7 +36,7 @@ const Corporation: FC = () => {
         }
     }, [applications]);
 
-    const fetchData = () => dispatch(getCollection(getCorpSel(0)));
+    const fetchData = () => dispatch(getCollection(getPurchases()));
 
     useEffect(() => {
         fetchData();
@@ -53,7 +53,7 @@ const Corporation: FC = () => {
     }, []);
 
     useEffect(() => {
-        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_CORPORATION_SEL") {
+        if (!mainResult.loading && !mainResult.error && mainResult.key === "UNF_PURCHASE_ORDER_SEL") {
             setDataView(mainResult.data);
         }
     }, [mainResult]);
@@ -79,7 +79,7 @@ const Corporation: FC = () => {
     const columns = React.useMemo(
         () => [
             {
-                accessor: "corpid",
+                accessor: "purchaseorderid",
                 isComponent: true,
                 minWidth: 60,
                 width: "1%",
@@ -93,28 +93,29 @@ const Corporation: FC = () => {
                 },
             },
             {
-                Header: t(langKeys.description),
-                accessor: "description",
+                Header: "N° Orden",
+                accessor: "purchase_order_number",
             },
             {
-                Header: t(langKeys.status),
-                accessor: "status",
-                prefixTranslation: "status_",
+                Header: "Proveedor",
+                accessor: "supplier_name",
+            },
+            {
+                Header: "Almacen",
+                accessor: "warehouse_name",
+            },
+            {
+                Header: "Productos",
+                accessor: "num_records",
+                type: "number",
+            },
+            {
+                Header: "Total",
+                type: "number",
+                accessor: "total",
                 Cell: (props: any) => {
-                    const { status } = props.cell.row.original;
-                    return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
-                },
-            },
-            {
-                Header: t(langKeys.createdBy),
-                accessor: "createdby",
-            },
-            {
-                Header: t(langKeys.creationDate),
-                accessor: "createdate",
-                Cell: (props: any) => {
-                    const date = props.cell.row.original.createdate;
-                    return date.split(".")[0].split(" ")[0];
+                    const { total } = props.cell.row.original;
+                    return parseFloat(total).toFixed(2)
                 },
             },
         ],
