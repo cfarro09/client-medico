@@ -116,8 +116,8 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
 
     React.useEffect(() => {
         register("product_name", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register("price_1", { validate: (value) => (value && value > 0) || t(langKeys.field_required) });
-        register("purchase_price", { validate: (value) => (value && value > 0) || t(langKeys.field_required) });
+        // register("price_1", { validate: (value) => (value && value > 0) || t(langKeys.field_required) });
+        // register("purchase_price", { validate: (value) => (value && value > 0) || t(langKeys.field_required) });
         register("status", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
     }, [register]);
 
@@ -222,6 +222,7 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                             valueDefault={getValues("n_bottles")}
                             onChange={(value) => setValue("n_bottles", value)}
                             error={errors?.n_bottles?.message}
+                            InputProps={{ inputProps: { min: "0" } }}
                         />
                     </div>
                     <div className="row-zyx">
