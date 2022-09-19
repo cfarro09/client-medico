@@ -222,6 +222,7 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                             valueDefault={getValues("n_bottles")}
                             onChange={(value) => setValue("n_bottles", value)}
                             error={errors?.n_bottles?.message}
+                            InputProps={{ inputProps: { min: "0" } }}
                         />
                     </div>
                     <div className="row-zyx">
