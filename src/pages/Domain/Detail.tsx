@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Accordion, AccordionDetails, AccordionSummary, Button, makeStyles, Typography } from "@material-ui/core";
-import { DetailModule, Dictionary } from "@types";
+import { DetailModule, Dictionary, MultiData } from "@types";
 import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TemplateIcons, TitleDetail } from "components";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
@@ -12,14 +12,14 @@ import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import { execute, getCollectionAux, resetMainAux } from "store/main/actions";
-import { getWarehouseSel, insShop, insWarehouse } from "common/helpers";
+import { getDomainValueSel, insDomain, insDomainvalue } from "common/helpers";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import TableZyx from "components/fields/table-simple";
-import WarehouseModal from "./Modals/WarehouseModal";
+import DomainModal from "./Modals/DomainModal";
 
 const arrayBread = [
-    { id: "view-1", name: "Shops" },
-    { id: "view-2", name: "Shop detail" },
+    { id: "view-1", name: "Domain" },
+    { id: "view-2", name: "Domain detail" },
 ];
 
 const useStyles = makeStyles((theme) => ({
@@ -45,10 +45,17 @@ const useStyles = makeStyles((theme) => ({
 
 interface RowSelected {
     row: Dictionary | null;
+    domainname: string | "";
     edit: boolean;
 }
 
-const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
+interface DetailProps {
+    data: RowSelected;
+    setViewSelected: (view: string) => void;
+    fetchData?: () => void
+}
+
+const Detail: React.FC<DetailProps> = ({ data: { row, domainname, edit }, setViewSelected, fetchData }) => {
     const { t } = useTranslation();
     const classes = useStyles();
     const dispatch = useDispatch();
@@ -56,10 +63,10 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
     const executeResult = useSelector((state) => state.main.execute);
     const multiData = useSelector((state) => state.main.multiData);
     const detailRes = useSelector((state) => state.main.mainAux);
-    const [dataWarehouse, setDataWarehouse] = useState<Dictionary[]>([]);
+    const [dataDomain, setDataDomain] = useState<Dictionary[]>([]);
     const [openModal, setOpenModal] = useState(false);
-    const [rowSelected, setRowSelected] = useState<RowSelected>({ row: null, edit: false });
-    const [warehouseToDelete, setWarehouseToDelete] = useState<Dictionary[]>([]);
+    const [rowSelected, setRowSelected] = useState<RowSelected>({ row: null, edit: false, domainname: '' });
+    const [domainToDelete, setDomainToDelete] = useState<Dictionary[]>([]);
     const [dataExtra, setDataExtra] = useState<{ status: Dictionary[]; type: Dictionary[] }>({ status: [], type: [] });
 
     useEffect(() => {
@@ -107,72 +114,94 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
         formState: { errors },
     } = useForm({
         defaultValues: {
-            id: row?.shopid || 0,
+            id: row?.domainid || 0,
+            operation: row ? "EDIT" : "INSERT",
             description: row?.description || "",
-            type: row?.type || "NINGUNO",
+            domainname: row?.domainname || "",
+            type: row?.type || "",
             status: row?.status || "ACTIVO",
-            operation: row ? "UPDATE" : "INSERT",
         },
     });
+
+    React.useEffect(() => {
+        register("id");
+        register("domainname", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
+        register("description", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
+        register("status", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
+
+        dispatch(resetMainAux());
+        row && dispatch(getCollectionAux(getDomainValueSel(row?.domainname || "")));
+    }, [register]);
 
     const onSubmit = handleSubmit((data) => {
         const callback = () => {
             dispatch(showBackdrop(true));
-            dispatch(execute({
-                header: insShop({ ...data}),
-                detail: [
-                    ...dataWarehouse.filter(x => !!x.operation).map(x => insWarehouse({ ...data, ...x, id: x.warehouseid ? x.warehouseid : 0 })),
-                    ...warehouseToDelete.map(x => insWarehouse({ ...x, id: x.warehouseid }))
-                ]
-            }, true));
-            setWaitSave(true)
-        }
+            dispatch(
+                execute(
+                    {
+                        header: insDomain({ ...data }),
+                        detail: [
+                            ...dataDomain
+                                .filter((x) => !!x.operation)
+                                .map((x) =>
+                                    insDomainvalue({
+                                        ...data,
+                                        ...x,
+                                        status: data?.status,
+                                        id: x.domainid ? x.domainid : 0,
+                                    })
+                                ),
+                            ...domainToDelete.map((x) =>
+                                insDomainvalue({ ...x, id: x.domainid, description: data.description, type: data.type })
+                            ),
+                        ],
+                    },
+                    true
+                )
+            );
+            setWaitSave(true);
+        };
 
-        dispatch(manageConfirmation({
-            visible: true,
-            question: t(langKeys.confirmation_save),
-            callback
-        }))
+        dispatch(
+            manageConfirmation({
+                visible: true,
+                question: t(langKeys.confirmation_save),
+                callback,
+            })
+        );
     });
-
-    React.useEffect(() => {
-        register("description", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register("type", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register("status", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-
-        dispatch(resetMainAux());
-        row && dispatch(getCollectionAux(getWarehouseSel({ shopid: row?.shopid, id: 0 })));
-    }, [register]);
 
     useEffect(() => {
         if (!detailRes.loading && !detailRes.error) {
-            setDataWarehouse(detailRes.data);
+            setDataDomain(detailRes.data);
         }
     }, [detailRes]);
 
     const handleRegister = () => {
-        setRowSelected({ row: null, edit: false });
-        setOpenModal(true)
+        setRowSelected({ row: null, edit: false, domainname });
+        setOpenModal(true);
     };
 
     const handleEdit = (row: Dictionary) => {
-        setRowSelected({ row, edit: true })
-        setOpenModal(true)
+        setRowSelected({ row, edit: true, domainname });
+        setOpenModal(true);
     };
 
     const handleDelete = (row: Dictionary) => {
         if (row && row.operation !== "INSERT") {
-            setWarehouseToDelete(p => [...p, { ...row, operation: "DELETE", status: 'ELIMINADO' }]);
+            setDomainToDelete((p) => [...p, { ...row, operation: "DELETE", status: "ELIMINADO" }]);
         } else {
-            row.operation = 'DELETE';
+            row.operation = "DELETE";
         }
-        setDataWarehouse(p => p.filter(x => (row.operation === "DELETE" ? x.operation !== "DELETE" : row.warehouseid !== x.warehouseid)));
+        setDataDomain((p) =>
+            p.filter((x) => (row.operation === "DELETE" ? x.operation !== "DELETE" : row.domainid !== x.domainid))
+        );
     };
 
     const columns = React.useMemo(
         () => [
             {
-                accessor: "warehouseid",
+                accessor: "domainid",
                 NoFilter: true,
                 isComponent: true,
                 minWidth: 60,
@@ -189,13 +218,13 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                 },
             },
             {
-                Header: t(langKeys.description),
-                accessor: "description",
+                Header: t(langKeys.code),
+                accessor: "domainvalue",
                 NoFilter: true,
             },
             {
-                Header: t(langKeys.address),
-                accessor: "address",
+                Header: t(langKeys.description),
+                accessor: "domaindesc",
                 NoFilter: true,
             },
             {
@@ -213,7 +242,7 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
             <form onSubmit={onSubmit}>
                 <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
                 <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-                    <TitleDetail title={row ? `${row.description}` : "Nueva Tienda"} />
+                    <TitleDetail title={row ? `${row.domainname}` : "Nuevo Dominio"} />
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                         <Button
                             variant="contained"
@@ -240,23 +269,19 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                 <div className={classes.containerDetail}>
                     <div className="row-zyx">
                         <FieldEdit
+                            label={t(langKeys.domain)}
+                            disabled={row ? true : false}
+                            className="col-6"
+                            valueDefault={row?.domainname || ""}
+                            onChange={(value) => setValue("domainname", value)}
+                            error={errors?.domainname?.message}
+                        />
+                        <FieldEdit
                             label={t(langKeys.description)}
                             className="col-6"
-                            valueDefault={getValues("description")}
+                            valueDefault={row?.description || ""}
                             onChange={(value) => setValue("description", value)}
                             error={errors?.description?.message}
-                        />
-                        <FieldSelect
-                            label={t(langKeys.type)}
-                            className="col-6"
-                            valueDefault={getValues("type")}
-                            onChange={(value) => setValue("type", value?.domainvalue)}
-                            error={errors?.type?.message}
-                            data={dataExtra.type}
-                            uset={true}
-                            prefixTranslation="type_corp_"
-                            optionDesc="domainvalue"
-                            optionValue="domainvalue"
                         />
                     </div>
                     <div className="row-zyx">
@@ -281,7 +306,7 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                             aria-controls="panel1a-content"
                             id="panel1a-header"
                         >
-                            <Typography>{"Almacenes"}</Typography>
+                            <Typography>{"Lista de Valores"}</Typography>
                         </AccordionSummary>
                         <AccordionDetails>
                             {detailRes.error ? (
@@ -289,7 +314,7 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                             ) : (
                                 <TableZyx
                                     columns={columns}
-                                    data={dataWarehouse}
+                                    data={dataDomain}
                                     download={false}
                                     loading={detailRes.loading}
                                     filterGeneral={false}
@@ -302,13 +327,13 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                     </Accordion>
                 </div>
             </form>
-            <WarehouseModal
+            <DomainModal
                 data={rowSelected}
                 openModal={openModal}
                 setOpenModal={setOpenModal}
-                updateRecords={setDataWarehouse}
-                dataDomain={dataWarehouse}
-                dataToDelete={warehouseToDelete}
+                updateRecords={setDataDomain}
+                dataDomain={dataDomain}
+                dataToDelete={domainToDelete}
             />
         </div>
     );

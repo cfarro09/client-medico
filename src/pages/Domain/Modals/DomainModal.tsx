@@ -12,6 +12,7 @@ import { showSnackbar } from "store/popus/actions";
 interface RowSelected {
     row: Dictionary | null;
     edit: boolean;
+    domainname: string | "";
 }
 
 export interface modalPorps {
@@ -100,8 +101,8 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const WarehouseModal: React.FC<modalPorps> = ({
-    data: { row, edit },
+const DomainModal: React.FC<modalPorps> = ({
+    data: { row, edit, domainname},
     setOpenModal,
     openModal,
     data,
@@ -124,26 +125,25 @@ const WarehouseModal: React.FC<modalPorps> = ({
     useEffect(() => {
         if (openModal) {
             reset({
-                id: row?.warehouseid || 0,
-                description: row?.description || "",
-                contact_name: row?.contact_name || "",
-                contact_email: row?.contact_email || "",
-                contact_phone: row?.contact_phone || "",
-                address: row?.address || "",
+                domaindesc: row?.domaindesc || "",
+                domainvalue: row?.domainvalue || "",
+                bydefault: row?.bydefault || false,
                 status: row?.status || "ACTIVO",
-                type: row?.type || "NINGUNO",
+                type: row?.type || "",
             });
-            register("description", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
+
+            register("domainvalue", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
+            register("domaindesc", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         }
     }, [openModal]);
 
     const onSubmit = handleSubmit((data) => {
-        if (!edit && dataDomain && dataDomain.some((d) => d.description === data.description)) {
+        if (!edit && dataDomain && dataDomain.some((d) => d.domainvalue === data.domainvalue)) {
             dispatch(showSnackbar({ show: true, success: false, message: t(langKeys.code_duplicate) }));
             return;
         }
 
-        if (!edit && dataToDelete && dataToDelete.some((d) => d.description === data.description)) {
+        if (!edit && dataToDelete && dataToDelete.some((d) => d.domainvalue === data.domainvalue)) {
             dispatch(showSnackbar({ show: true, success: false, message: "Se ha eliminado ese registro" }));
             return;
         }
@@ -152,7 +152,7 @@ const WarehouseModal: React.FC<modalPorps> = ({
             updateRecords &&
                 updateRecords((p: Dictionary[]) =>
                     p.map((x) =>
-                        x.warehouseid === row?.warehouseid || ""
+                        x.domainvalue === row?.domainvalue || ""
                             ? { ...x, ...data, operation: x.operation || "UPDATE" }
                             : x
                     )
@@ -185,46 +185,33 @@ const WarehouseModal: React.FC<modalPorps> = ({
             <div className="modal_content">
                 <div className={[classes.pb2, classes.px5, classes.modal_body].join(" ")}>
                     <div className={[classes.text_center, classes.mb3].join(" ")}>
-                        <h2 className="mb1">{row ? `${row.description}` : "Nuevo Almacen"}</h2>
-                        <p>{row ? "Edite" : "Ingrese"} la información del almacen.</p>
+                        <h2 className="mb1">{row ? `${row.description}` : "Nuevo Valor"}</h2>
+                        <p>{row ? "Edite" : "Ingrese"} la información del valor.</p>
                     </div>
                     <div className="row-zyx">
+                        <FieldEdit
+                            label={t(langKeys.domain)}
+                            disabled={true}
+                            className="col-6"
+                            valueDefault={row?.domainname || domainname}
+                            onChange={(value) => setValue("domainname", value)}
+                        />
+                    </div>
+                    <div className="row-zyx">
+                        <FieldEdit
+                            label={t(langKeys.code)}
+                            disabled={edit ? true : false}
+                            className="col-6"
+                            valueDefault={getValues("domainvalue")}
+                            onChange={(value) => setValue("domainvalue", value)}
+                            error={errors?.domainvalue?.message}
+                        />
                         <FieldEdit
                             label={t(langKeys.description)}
-                            className="col-4"
-                            valueDefault={getValues("description")}
-                            onChange={(value) => setValue("description", value)}
-                            error={errors?.description?.message}
-                        />
-                        <FieldEdit
-                            label={t(langKeys.lead_contact_name)}
-                            className="col-4"
-                            valueDefault={getValues("contact_name")}
-                            onChange={(value) => setValue("contact_name", value)}
-                            error={errors?.contact_name?.message}
-                        />
-                        <FieldEdit
-                            label={"Telefono contacto"}
-                            className="col-4"
-                            valueDefault={getValues("contact_phone")}
-                            onChange={(value) => setValue("contact_phone", value)}
-                            error={errors?.contact_phone?.message}
-                        />
-                    </div>
-                    <div className="row-zyx">
-                        <FieldEdit
-                            label={"Correo contacto"}
-                            className="col-4"
-                            valueDefault={getValues("contact_email")}
-                            onChange={(value) => setValue("contact_email", value)}
-                            error={errors?.contact_email?.message}
-                        />
-                        <FieldEdit
-                            label={t(langKeys.address)}
-                            className="col-8"
-                            valueDefault={getValues("address")}
-                            onChange={(value) => setValue("address", value)}
-                            error={errors?.address?.message}
+                            className="col-6"
+                            valueDefault={getValues("domaindesc")}
+                            onChange={(value) => setValue("domaindesc", value)}
+                            error={errors?.domaindesc?.message}
                         />
                     </div>
                 </div>
@@ -233,4 +220,4 @@ const WarehouseModal: React.FC<modalPorps> = ({
     );
 };
 
-export default WarehouseModal;
+export default DomainModal;

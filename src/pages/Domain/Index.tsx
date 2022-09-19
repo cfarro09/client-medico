@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getDomainSel, getValuesFromDomain, insShop } from "common/helpers";
+import { getDomainSel, getValuesFromDomain, insDomain } from "common/helpers";
 import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -12,12 +12,18 @@ import { execute, getCollection, getMultiCollection, resetAllMain } from "store/
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
 
+interface RowSelected {
+    row: Dictionary | null;
+    domainname: string | "";
+    edit: boolean;
+}
+
 const Domains: FC = () => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainResult = useSelector((state) => state.main.mainData);
     const [viewSelected, setViewSelected] = useState("view-1");
-    const [rowSelected, setRowSelected] = useState<Dictionary | null>(null);
+    const [rowSelected, setRowSelected] = useState<RowSelected>({ row: null, domainname: "", edit: false });
     const [waitSave, setWaitSave] = useState(false);
     const [dataView, setDataView] = useState<Dictionary[]>([]);
     const applications = useSelector((state) => state.login?.validateToken?.user?.menu);
@@ -111,17 +117,17 @@ const Domains: FC = () => {
 
     const handleRegister = () => {
         setViewSelected("view-2");
-        setRowSelected(null);
+        setRowSelected({ row: null, domainname: "", edit: true });
     };
 
     const handleEdit = (row: Dictionary) => {
         setViewSelected("view-2");
-        setRowSelected(row);
+        setRowSelected({ row, domainname: row.domainname, edit: false });
     };
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(execute(insShop({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.shopid })));
+            dispatch(execute(insDomain({ ...row, operation: 'DELETE', status: 'ELIMINADO' })));
             dispatch(showBackdrop(true));
             setWaitSave(true);
         };
@@ -154,7 +160,7 @@ const Domains: FC = () => {
             />
         );
     } else {
-        return <Detail row={rowSelected} setViewSelected={setViewSelected} fetchData={fetchData} />;
+        return <Detail data={rowSelected} setViewSelected={setViewSelected} fetchData={fetchData} />;
     }
 };
 export default Domains;
