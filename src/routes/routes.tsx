@@ -36,13 +36,13 @@ export const routes: RouteConfig[] = [
         path: paths.USERS,
         icon: (className) => <AccountCircle style={{ width: 22, height: 22 }} className={className} />,
     },
-    {
-        key: paths.DOMAINS,
-        description: <Trans i18nKey={langKeys.domain_plural} count={2} />,
-        tooltip: <Trans i18nKey={langKeys.domain_plural} />,
-        path: paths.DOMAINS,
-        icon: (color) => <Domain stroke={color} fill={color} />,
-    },
+    // {
+    //     key: paths.DOMAINS,
+    //     description: <Trans i18nKey={langKeys.domain_plural} count={2} />,
+    //     tooltip: <Trans i18nKey={langKeys.domain_plural} />,
+    //     path: paths.DOMAINS,
+    //     icon: (color) => <Domain stroke={color} fill={color} />,
+    // },
     {
         key: paths.SHOPS,
         description: "Shops",
