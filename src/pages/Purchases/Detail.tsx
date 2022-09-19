@@ -11,13 +11,20 @@ import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import { execute } from "store/main/actions";
-import { insCorp, insPurchase, insPurchaseDetail } from "common/helpers";
+import { insPurchase, insPurchaseDetail } from "common/helpers";
 import { Button, makeStyles, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableFooter } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
+
 const arrayBread = [
     { id: "view-1", name: "Purchase" },
     { id: "view-2", name: "Purchase detail" },
 ];
+
+const statusList = [
+    { value: "BORRADOR" },
+    { value: "CONFIRMADO" },
+    { value: "ENTREGADO" },
+]
 
 const useStyles = makeStyles((theme) => ({
     containerDetail: {
@@ -44,7 +51,10 @@ type FormFields = {
     warehouseid: number,
     purchasecreatedate: string,
     purchasenumber: string,
-    observations: string
+    observations: string,
+    status: string,
+    bill_entry_date: string,
+    bill_number: string
 }
 
 const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
@@ -77,6 +87,9 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
             purchasecreatedate: row?.purchasecreatedate || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
             purchasenumber: row?.purchasenumber || "",
             observations: row?.observations || "",
+            status: row?.status || "BORRADOR",
+            bill_entry_date: row?.bill_entry_date || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
+            bill_number: row?.bill_number || "",
             products: []
         },
     });
@@ -177,6 +190,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
         register("purchasecreatedate", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
     }, [register]);
 
+    console.log("getValues('status')", getValues('status'))
 
     return (
         <div style={{ width: "100%" }}>
@@ -210,7 +224,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                 <div className={classes.containerDetail}>
                     <div className="row-zyx">
                         <FieldEdit
-                            label={"N° Orden"}
+                            label={"N° Orden de compra"}
                             className="col-6"
                             valueDefault={getValues("purchasenumber")}
                             onChange={(value) => setValue("purchasenumber", value)}
@@ -218,7 +232,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                             disabled={true}
                         />
                         <FieldEdit
-                            label={"Fecha de la orden"}
+                            label={"Fecha de la orden de compra"}
                             type="date"
                             className="col-6"
                             valueDefault={getValues("purchasecreatedate")}
@@ -252,9 +266,45 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                         />
                     </div>
                     <div className="row-zyx">
+                        <FieldSelect
+                            loading={multiData.loading}
+                            label={t(langKeys.status)}
+                            className="col-6"
+                            valueDefault={getValues('status')}
+                            onChange={(value) => {
+                                setValue('status', value ? value.value : 0);
+                                trigger('status')
+                            }}
+                            error={errors?.status?.message}
+                            data={statusList}
+                            optionDesc="value"
+                            optionValue="value"
+                        />
+                    </div>
+                    {getValues('status') === "ENTREGADO" && (
+                        <div className="row-zyx">
+                            <FieldEdit
+                                label={"N° Factura"}
+                                className="col-6"
+                                valueDefault={getValues("bill_number")}
+                                onChange={(value) => setValue("bill_number", value)}
+                                error={errors?.bill_number?.message}
+                            />
+                            <FieldEdit
+                                label={"Fecha de la factura"}
+                                type="date"
+                                className="col-6"
+                                valueDefault={getValues("bill_entry_date")}
+                                onChange={(value) => setValue("bill_entry_date", value)}
+                                error={errors?.bill_entry_date?.message}
+                            />
+                        </div>
+                    )}
+                    <div className="row-zyx">
                         <FieldEditMulti
                             label={"Observación"}
                             type="date"
+                            rows={3}
                             className="col-12"
                             valueDefault={getValues("observations")}
                             onChange={(value) => setValue("observations", value)}
