@@ -30,6 +30,12 @@ export const getSupplierList = (): IRequestBody => ({
     parameters: {}
 })
 
+export const getPurchases = (): IRequestBody => ({
+    method: "UNF_PURCHASE_ORDER_SEL",
+    key: "UNF_PURCHASE_ORDER_SEL",
+    parameters: {}
+})
+
 export const getWarehouseSel = ({ shopid, id }: Dictionary): IRequestBody => ({
     method: "UFN_WAREHOUSE_SEL",
     key: "UFN_WAREHOUSE_SEL",
@@ -129,7 +135,7 @@ export const insPurchase = ({ purchaseid, status, operation, total, supplierid, 
         total,
         status,
         type: null,
-        purchse_order_number: purchasenumber,
+        purchase_order_number: purchasenumber,
         bill_entry_date: null,
         purchase_order_create_date: purchasecreatedate,
         warehouseid,

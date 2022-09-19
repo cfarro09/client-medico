@@ -141,13 +141,14 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
             return
         }
         const callback = () => {
+            const total = data.products.filter(item => item.status !== "ELIMINADO").reduce((acc, item) => acc + item.subtotal, 0)
             dispatch(showBackdrop(true));
             dispatch(execute({
                 header: insPurchase({
                     ...data,
                     operation: data.purchaseid ? "UPDATE" : "INSERT",
                     status: 'ACTIVO',
-                    total: 0
+                    total
                 }),
                 detail: data.products.map(x => insPurchaseDetail({
                     ...x,
