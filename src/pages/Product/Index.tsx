@@ -43,7 +43,8 @@ const Product: FC = () => {
         dispatch(getMultiCollection([
             getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
             getValuesFromDomain("CATEGORIAPRODUCTO", "DOMAIN-CATEGORIAPRODUCTO"),
-            getValuesFromDomain("TIPOEMPAQUE", "DOMAIN-TIPOEMPAQUE")
+            getValuesFromDomain("TIPOEMPAQUE", "DOMAIN-TIPOEMPAQUE"),
+            getValuesFromDomain("UNIDADMEDIDAPRODUCTO", "DOMAIN-UNIDADMEDIDAPRODUCTO")
         ]));
         return () => {
             dispatch(resetAllMain());
@@ -103,16 +104,20 @@ const Product: FC = () => {
                 accessor: 'product_description',
             },
             {
-                Header: 'Unidad',
+                Header: 'Unidad de Medida',
                 accessor: 'unit',
             },
             {
-                Header: 'Precio 1',
+                Header: 'Precio unit',
                 accessor: 'price_1',
             },
             {
-                Header: 'Precio 2',
+                Header: 'Precio mayor',
                 accessor: 'price_2',
+            },
+            {
+                Header: 'Precio Compra',
+                accessor: 'purchase_price',
             },
             {
                 Header: 'Marca',

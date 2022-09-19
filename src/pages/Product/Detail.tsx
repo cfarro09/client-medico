@@ -38,7 +38,12 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
     const [waitSave, setWaitSave] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
     const multiData = useSelector((state) => state.main.multiData);
-    const [dataExtra, setDataExtra] = useState<{ status: Dictionary[]; category: Dictionary[]; package: Dictionary[]}>({ status: [], category: [], package: [] });
+    const [dataExtra, setDataExtra] = useState<{
+        status: Dictionary[];
+        category: Dictionary[];
+        package: Dictionary[];
+        unit: Dictionary[];
+    }>({ status: [], category: [], package: [], unit: [] });
     const dispatch = useDispatch();
     const { t } = useTranslation();
 
@@ -47,11 +52,13 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
             const dataStatus = multiData.data.find((x) => x.key === "DOMAIN-ESTADOGENERICO");
             const dataCategory = multiData.data.find((x) => x.key === "DOMAIN-CATEGORIAPRODUCTO");
             const dataPackage = multiData.data.find((x) => x.key === "DOMAIN-TIPOEMPAQUE");
-            if (dataStatus && dataCategory && dataPackage) {
+            const dataUnit = multiData.data.find((x) => x.key === "DOMAIN-UNIDADMEDIDAPRODUCTO");
+            if (dataStatus && dataCategory && dataPackage && dataUnit) {
                 setDataExtra({
                     status: dataStatus.data,
                     category: dataCategory.data,
                     package: dataPackage.data,
+                    unit: dataUnit.data,
                 });
             }
         }
@@ -96,6 +103,7 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
             unit: row?.unit || "",
             price_1: row?.price_1 || 0,
             price_2: row?.price_2 || 0,
+            purchase_price: row?.purchase_price || 0,
             product_brand: row?.product_brand || "",
             category: row?.category || "",
             types_packaging: row?.types_packaging || "",
@@ -109,6 +117,7 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
     React.useEffect(() => {
         register("product_name", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register("price_1", { validate: (value) => (value && value > 0) || t(langKeys.field_required) });
+        register("purchase_price", { validate: (value) => (value && value > 0) || t(langKeys.field_required) });
         register("status", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
     }, [register]);
 
@@ -133,7 +142,7 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
             <form onSubmit={onSubmit}>
                 <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
                 <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-                    <TitleDetail title={row ? `${row.description}` : t(langKeys.newcorporation)} />
+                    <TitleDetail title={row ? `${row.product_name}` : "Nuevo producto"} />
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                         <Button
                             variant="contained"
@@ -182,47 +191,13 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                             onChange={(value) => setValue("product_description", value)}
                             error={errors?.product_description?.message}
                         />
-                        <FieldEdit
-                            label={"Unidad"}
+                        <FieldSelect
+                            label={"Unidad de Medida"}
                             className="col-6"
                             valueDefault={getValues("unit")}
-                            onChange={(value) => setValue("unit", value)}
+                            onChange={(value) => setValue("unit", value?.domainvalue)}
                             error={errors?.unit?.message}
-                        />
-                    </div>
-                    <div className="row-zyx">
-                        <FieldEdit
-                            label={"Precio 1"}
-                            className="col-6"
-                            type="number"
-                            valueDefault={getValues("price_1")}
-                            onChange={(value) => setValue("price_1", value)}
-                            error={errors?.price_1?.message}
-                        />
-                        <FieldEdit
-                            label={"Precio 2"}
-                            className="col-6"
-                            type="number"
-                            valueDefault={getValues("price_2")}
-                            onChange={(value) => setValue("price_2", value)}
-                            error={errors?.price_2?.message}
-                        />
-                    </div>
-                    <div className="row-zyx">
-                        <FieldEdit
-                            label={t(langKeys.brand)}
-                            className="col-6"
-                            valueDefault={getValues("product_brand")}
-                            onChange={(value) => setValue("product_brand", value)}
-                            error={errors?.product_brand?.message}
-                        />
-                        <FieldSelect
-                            label={t(langKeys.category)}
-                            className="col-6"
-                            valueDefault={getValues("category")}
-                            onChange={(value) => setValue("category", value?.domainvalue)}
-                            error={errors?.category?.message}
-                            data={dataExtra.category}
+                            data={dataExtra.unit}
                             uset={true}
                             optionDesc="domainvalue"
                             optionValue="domainvalue"
@@ -230,12 +205,71 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                     </div>
                     <div className="row-zyx">
                         <FieldSelect
-                            label={"Tipo Empaque"}
+                            label={"Presentacion"}
                             className="col-6"
                             valueDefault={getValues("types_packaging")}
                             onChange={(value) => setValue("types_packaging", value?.domainvalue)}
                             error={errors?.types_packaging?.message}
                             data={dataExtra.package}
+                            uset={true}
+                            optionDesc="domainvalue"
+                            optionValue="domainvalue"
+                        />
+                        <FieldEdit
+                            label={"N Unidades de presentacion"}
+                            className="col-6"
+                            type="number"
+                            valueDefault={getValues("n_bottles")}
+                            onChange={(value) => setValue("n_bottles", value)}
+                            error={errors?.n_bottles?.message}
+                        />
+                    </div>
+                    <div className="row-zyx">
+                        <FieldEdit
+                            label={"Precio venta unit"}
+                            className="col-6"
+                            type="number"
+                            valueDefault={getValues("price_1")}
+                            onChange={(value) => setValue("price_1", value)}
+                            error={errors?.price_1?.message}
+                            InputProps={{ inputProps: { min: "0" } }}
+                        />
+                        <FieldEdit
+                            label={"Precio venta mayor"}
+                            className="col-6"
+                            type="number"
+                            valueDefault={getValues("price_2")}
+                            onChange={(value) => setValue("price_2", value)}
+                            error={errors?.price_2?.message}
+                            InputProps={{ inputProps: { min: "0" } }}
+                        />
+                    </div>
+                    <div className="row-zyx">
+                        <FieldEdit
+                            label={"Precio referencial compra"}
+                            className="col-6"
+                            type="number"
+                            valueDefault={getValues("purchase_price")}
+                            onChange={(value) => setValue("purchase_price", value)}
+                            error={errors?.purchase_price?.message}
+                            InputProps={{ inputProps: { min: "0" } }}
+                        />
+                        <FieldEdit
+                            label={t(langKeys.brand)}
+                            className="col-6"
+                            valueDefault={getValues("product_brand")}
+                            onChange={(value) => setValue("product_brand", value)}
+                            error={errors?.product_brand?.message}
+                        />
+                    </div>
+                    <div className="row-zyx">
+                        <FieldSelect
+                            label={t(langKeys.category)}
+                            className="col-6"
+                            valueDefault={getValues("category")}
+                            onChange={(value) => setValue("category", value?.domainvalue)}
+                            error={errors?.category?.message}
+                            data={dataExtra.category}
                             uset={true}
                             optionDesc="domainvalue"
                             optionValue="domainvalue"
@@ -249,14 +283,6 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                         />
                     </div>
                     <div className="row-zyx">
-                        <FieldEdit
-                            label={"N Unidades"}
-                            className="col-6"
-                            type="number"
-                            valueDefault={getValues("n_bottles")}
-                            onChange={(value) => setValue("n_bottles", value)}
-                            error={errors?.n_bottles?.message}
-                        />
                         <FieldSelect
                             label={t(langKeys.status)}
                             className="col-6"
