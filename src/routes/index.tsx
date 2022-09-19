@@ -3,7 +3,7 @@ import React, { FC } from "react";
 import Layout from 'components/layout/Layout';
 import Popus from 'components/layout/Popus';
 import {
-	Users, SignIn, NotFound, Forbidden, InternalServererror, Domains,
+	Users, SignIn, NotFound, Forbidden, InternalServererror,
 	Shops, Customers, Purachases, Sales, Stock, Supplier, Corporation, Products
 } from 'pages';
 
@@ -91,9 +91,6 @@ const RouterApp: FC = () => {
 					<Layout mainClasses={classes.main}><Users /></Layout>
 				</ProtectRoute>
 
-				<ProtectRoute exact path={paths.DOMAINS}>
-					<Layout mainClasses={classes.main}><Domains /></Layout>
-				</ProtectRoute>
 				<ProtectRoute exact path={paths.CORPORATIONS}>
 					<Layout mainClasses={classes.main}><Corporation /></Layout>
 				</ProtectRoute>
