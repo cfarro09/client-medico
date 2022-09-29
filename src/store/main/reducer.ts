@@ -41,7 +41,7 @@ export interface IState {
     mainDynamic: IListStatePaginated<Dictionary>;
     multiData: IListStatePaginated<MultiData>;
     multiDataAux: IListStatePaginated<itemMulti>;
-    execute: IListStatePaginated<Dictionary> & { success: boolean | undefined | null };
+    execute: IListStatePaginated<Dictionary> & { success: boolean | undefined | null, key?: string };
     uploadData: IBaseState2;
     processData: IBaseState2;
     mainAux: IListStatePaginated<Dictionary> & { key?: string; };

@@ -11,7 +11,7 @@ import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import { execute } from "store/main/actions";
-import { insPurchase, insPurchaseDetail } from "common/helpers";
+import { insPurchase, insPurchaseDetail, processOC } from "common/helpers";
 import { Button, makeStyles, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableFooter } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Tabs from '@material-ui/core/Tabs';
@@ -128,16 +128,20 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
     useEffect(() => {
         if (waitSave) {
             if (!executeResult.loading && !executeResult.error) {
-                dispatch(
-                    showSnackbar({
-                        show: true,
-                        success: true,
-                        message: t(row ? langKeys.successful_edit : langKeys.successful_register),
-                    })
-                );
-                fetchData && fetchData();
-                dispatch(showBackdrop(false));
-                setViewSelected("view-1");
+                if ((executeResult.key === "UFN_PURCHASE_ORDER_INS" && getValues("purchaseid") === 0 && getValues("status") === "ENTREGADO")) {
+                    dispatch(execute(processOC(executeResult.data?.[0]?.p_purchaseorderid)));
+                } else {
+                    dispatch(
+                        showSnackbar({
+                            show: true,
+                            success: true,
+                            message: t(row ? langKeys.successful_edit : langKeys.successful_register),
+                        })
+                    );
+                    fetchData && fetchData();
+                    dispatch(showBackdrop(false));
+                    setViewSelected("view-1");
+                }
             } else if (executeResult.error) {
                 const errormessage = t(executeResult.code || "error_unexpected_error", {
                     module: t(langKeys.corporation_plural).toLocaleLowerCase(),
@@ -393,7 +397,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                                     onChange={(value) => {
                                                         setValue(`products.${i}.unit_selected`, value.unit)
                                                         setValue(`products.${i}.n_bottles`, value.quantity)
-                                                        
+
                                                         const quantity = getValues(`products.${i}.quantity`);
                                                         const price = getValues(`products.${i}.price`);
                                                         const n_bottles = getValues(`products.${i}.n_bottles`);

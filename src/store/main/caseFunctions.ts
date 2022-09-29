@@ -302,6 +302,7 @@ export const executeSuccess = (state: IState, action: IAction): IState => {
         ...state,
         execute: {
             data: action.payload.data || [],
+            key: action.payload.key || '',
             count: 0,
             loading: false,
             error: false,
@@ -316,6 +317,7 @@ export const executeFailure = (state: IState, action: IAction): IState => ({
         ...state.execute,
         loading: false,
         error: true,
+        key: action.payload.key || '',
         code: action.payload.code ? "error_" + action.payload.code.toString().toLowerCase() : 'error_unexpected_error',
         message: action.payload.message || 'error_unexpected_error',
         success: false,
