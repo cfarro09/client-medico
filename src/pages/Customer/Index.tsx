@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getUserSel, getValuesFromDomain, insCorp } from "common/helpers";
+import { getCustomerSel, getValuesFromDomain, insCostumer } from "common/helpers";
 import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -12,11 +12,10 @@ import { execute, getCollection, getMultiCollection, resetAllMain } from "store/
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
 
-const User: FC = () => {
+const Customer: FC = () => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainResult = useSelector((state) => state.main.mainData);
-    const mainMultiResult = useSelector((state) => state.main.multiData);
     const [viewSelected, setViewSelected] = useState("view-1");
     const [rowSelected, setRowSelected] = useState<Dictionary | null>(null);
     const [waitSave, setWaitSave] = useState(false);
@@ -28,14 +27,33 @@ const User: FC = () => {
     useEffect(() => {
         if (applications) {
             setPagePermissions({
-                "view": applications["/user"][0],
-                "modify": applications["/user"][1],
-                "insert": applications["/user"][2],
-                "delete": applications["/user"][3],
-                "download": applications["/user"][4],
+                "view": applications["/customer"][0],
+                "modify": applications["/customer"][1],
+                "insert": applications["/customer"][2],
+                "delete": applications["/customer"][3],
+                "download": applications["/customer"][4],
             });
         }
     }, [applications]);
+
+    const fetchData = () => dispatch(getCollection(getCustomerSel(0)));
+
+    useEffect(() => {
+        fetchData();
+        dispatch(getMultiCollection([
+            getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
+            getValuesFromDomain("TIPODOCUMENTO", "DOMAIN-TIPODOCUMENTO")
+        ]));
+        return () => {
+            dispatch(resetAllMain());
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_CUSTOMER_SEL") {
+            setDataView(mainResult.data);
+        }
+    }, [mainResult]);
 
     useEffect(() => {
         if (waitSave) {
@@ -55,67 +73,59 @@ const User: FC = () => {
         }
     }, [executeResult, waitSave]);
 
-    useEffect(() => {
-        fetchData();
-        dispatch(getMultiCollection([
-            getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
-            getValuesFromDomain("TIPODOCUMENTO", "DOMAIN-TIPODOCUMENTO")
-        ]));
-        return () => {
-            dispatch(resetAllMain());
-        };
-    }, []);
-
-    useEffect(() => {
-        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_USER_SEL") {
-            setDataView(mainResult.data);
-        }
-    }, [mainResult]);
-
-    const fetchData = () => dispatch(getCollection(getUserSel(0)));
-
     const columns = React.useMemo(
         () => [
             {
-                accessor: 'userid',
-                NoFilter: true,
+                accessor: "customerid",
                 isComponent: true,
                 minWidth: 60,
-                width: '1%',
+                width: "1%",
                 Cell: (props: any) => {
                     const row = props.cell.row.original;
                     return (
                         <TemplateIcons
                             deleteFunction={() => handleDelete(row)}
                         />
-                    )
-                }
+                    );
+                },
             },
             {
-                Header: t(langKeys.user),
-                accessor: 'usr',
+                Header: 'Descripcion',
+                accessor: 'description'
             },
             {
-                Header: t(langKeys.fullname),
-                accessor: 'full_name',
+                Header: 'Tipo Documento',
+                accessor: 'doc_type'
             },
             {
-                Header: "N° doc",
-                accessor: 'doc_number',
+                Header: 'Nro Documento',
+                accessor: 'doc_num'
             },
             {
-                Header: t(langKeys.email),
-                accessor: 'email',
+                Header: 'Nombre Contacto',
+                accessor: 'contact_name'
             },
             {
-                Header: t(langKeys.role),
-                accessor: 'roles',
+                Header: 'Email Contacto',
+                accessor: 'contact_email'
+            },
+            {
+                Header: 'Telefono Contacto',
+                accessor: 'contact_phone'
+            },
+            {
+                Header: 'Direccion',
+                accessor: 'address'
             },
             {
                 Header: t(langKeys.status),
-                accessor: 'status',
+                accessor: "status",
+                prefixTranslation: "status_",
+                Cell: (props: any) => {
+                    const { status } = props.cell.row.original;
+                    return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
+                },
             },
-
         ],
         []
     );
@@ -132,7 +142,7 @@ const User: FC = () => {
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(execute(insCorp({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.corpid })));
+            dispatch(execute(insCostumer({ ...row, operation: "DELETE", type: "NINGUNO", id: row.customerid })));
             dispatch(showBackdrop(true));
             setWaitSave(true);
         };
@@ -147,33 +157,26 @@ const User: FC = () => {
     };
 
     if (viewSelected === "view-1") {
-
-        if (mainResult.error) {
-            return <h1>ERROR</h1>;
-        }
-
         return (
             <TableZyx
                 columns={columns}
-                titlemodule={t(langKeys.user, { count: 2 })}
                 data={dataView}
+                titlemodule={'Clientes'}
                 download={!!pagePermissions.download}
-                loading={mainResult.loading}
                 onClickRow={handleEdit}
+                loading={mainResult.loading}
                 register={!!pagePermissions.insert}
-                hoverShadow={true}
                 handleRegister={handleRegister}
             />
-        )
-    }
-    else {
+        );
+    } else {
         return (
             <Detail
                 row={rowSelected}
                 setViewSelected={setViewSelected}
                 fetchData={fetchData}
             />
-        )
+        );
     }
 };
-export default User;
+export default Customer;

@@ -5,7 +5,7 @@ export { default as Forbidden } from './Forbidden';
 export { default as InternalServererror } from './InternalServerError';
 export { default as Corporation } from './Corporation/Index';
 
-export { default as Customers } from './Customer/Index';
+export { default as Customer } from './Customer/Index';
 export { default as Purachases } from './Purchases/Index';
 export { default as Sales } from './Sales';
 export { default as Stock } from './Stock';
