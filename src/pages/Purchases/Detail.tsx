@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { DetailModule, Dictionary } from "@types";
-import { FieldEdit, FieldEditArray, FieldEditMulti, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
+import { AntTab, FieldEdit, FieldEditArray, FieldEditMulti, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
 import React, { useEffect, useState } from "react"; // we need this to make JSX compile
@@ -14,6 +14,7 @@ import { execute } from "store/main/actions";
 import { insPurchase, insPurchaseDetail } from "common/helpers";
 import { Button, makeStyles, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableFooter } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
+import Tabs from '@material-ui/core/Tabs';
 
 const arrayBread = [
     { id: "view-1", name: "Purchase" },
@@ -63,6 +64,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
     const executeResult = useSelector((state) => state.main.execute);
     const multiData = useSelector((state) => state.main.multiData);
     const [productsToShow, setProductsToShow] = useState<Dictionary[]>([])
+    const [pageSelected, setPageSelected] = useState(0)
     const [dataExtra, setDataExtra] = useState<{
         status: Dictionary[];
         type: Dictionary[],
@@ -105,6 +107,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
             const products = multiData.data.find((x) => x.key === "UFN_PRODUCT_LST");
             const suppliers = multiData.data.find((x) => x.key === "UFN_SUPPLIER_LST");
             const warehouses = multiData.data.find((x) => x.key === "UFN_WAREHOUSE_LST");
+
             if (dataStatus && dataTypes && products && suppliers && warehouses) {
                 setProductsToShow(products.data)
                 setDataExtra({
@@ -167,6 +170,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                     ...x,
                     operation: x.purchasedetailid > 0 ? (x.status === "ELIMINADO" ? "DELETE" : "UPDATE") : "INSERT",
                     status: 'ACTIVO',
+                    quantity: x.n_bottles * x.quantity
                 }))
             }, true));
             setWaitSave(true)
@@ -189,8 +193,6 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
         register("purchasenumber");
         register("purchasecreatedate", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
     }, [register]);
-
-    console.log("getValues('status')", getValues('status'))
 
     return (
         <div style={{ width: "100%" }}>
@@ -221,207 +223,256 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                         </Button>
                     </div>
                 </div>
-                <div className={classes.containerDetail}>
-                    <div className="row-zyx">
-                        <FieldEdit
-                            label={"N° Orden de compra"}
-                            className="col-6"
-                            valueDefault={getValues("purchasenumber")}
-                            onChange={(value) => setValue("purchasenumber", value)}
-                            error={errors?.purchasenumber?.message}
-                            disabled={true}
-                        />
-                        <FieldEdit
-                            label={"Fecha de la orden de compra"}
-                            type="date"
-                            className="col-6"
-                            valueDefault={getValues("purchasecreatedate")}
-                            onChange={(value) => setValue("purchasecreatedate", value)}
-                            error={errors?.purchasecreatedate?.message}
-                        />
-                    </div>
+                <Tabs
+                    value={pageSelected}
+                    indicatorColor="primary"
+                    variant="fullWidth"
+                    style={{ borderBottom: '1px solid #EBEAED', backgroundColor: '#FFF', marginTop: 8 }}
+                    textColor="primary"
+                    onChange={(_, value) => setPageSelected(value)}
+                >
+                    <AntTab label={"Informacion"} />
+                    <AntTab label="Productos" />
+                </Tabs>
 
-                    <div className="row-zyx">
-                        <FieldSelect
-                            loading={multiData.loading}
-                            label={t(langKeys.provider)}
-                            className="col-6"
-                            valueDefault={getValues('supplierid')}
-                            onChange={(value) => setValue('supplierid', value ? value.supplierid : 0)}
-                            error={errors?.supplierid?.message}
-                            data={dataExtra.suppliers}
-                            optionDesc="description"
-                            optionValue="supplierid"
-                        />
-                        <FieldSelect
-                            loading={multiData.loading}
-                            label={"Almacen"}
-                            className="col-6"
-                            valueDefault={getValues('warehouseid')}
-                            onChange={(value) => setValue('warehouseid', value ? value.warehouseid : 0)}
-                            error={errors?.warehouseid?.message}
-                            data={dataExtra.warehouses}
-                            optionDesc="description"
-                            optionValue="warehouseid"
-                        />
-                    </div>
-                    <div className="row-zyx">
-                        <FieldSelect
-                            loading={multiData.loading}
-                            label={t(langKeys.status)}
-                            className="col-6"
-                            valueDefault={getValues('status')}
-                            onChange={(value) => {
-                                setValue('status', value ? value.value : 0);
-                                trigger('status')
-                            }}
-                            error={errors?.status?.message}
-                            data={statusList}
-                            optionDesc="value"
-                            optionValue="value"
-                        />
-                    </div>
-                    {getValues('status') === "ENTREGADO" && (
+                {pageSelected === 0 && (
+                    <div className={classes.containerDetail}>
                         <div className="row-zyx">
                             <FieldEdit
-                                label={"N° Factura"}
+                                label={"N° Orden de compra"}
                                 className="col-6"
-                                valueDefault={getValues("bill_number")}
-                                onChange={(value) => setValue("bill_number", value)}
-                                error={errors?.bill_number?.message}
+                                valueDefault={getValues("purchasenumber")}
+                                onChange={(value) => setValue("purchasenumber", value)}
+                                error={errors?.purchasenumber?.message}
+                                disabled={true}
                             />
                             <FieldEdit
-                                label={"Fecha de la factura"}
+                                label={"Fecha de la orden de compra"}
                                 type="date"
                                 className="col-6"
-                                valueDefault={getValues("bill_entry_date")}
-                                onChange={(value) => setValue("bill_entry_date", value)}
-                                error={errors?.bill_entry_date?.message}
+                                valueDefault={getValues("purchasecreatedate")}
+                                onChange={(value) => setValue("purchasecreatedate", value)}
+                                error={errors?.purchasecreatedate?.message}
                             />
                         </div>
-                    )}
-                    <div className="row-zyx">
-                        <FieldEditMulti
-                            label={"Observación"}
-                            type="date"
-                            rows={3}
-                            className="col-12"
-                            valueDefault={getValues("observations")}
-                            onChange={(value) => setValue("observations", value)}
-                            error={errors?.observations?.message}
-                        />
+
+                        <div className="row-zyx">
+                            <FieldSelect
+                                loading={multiData.loading}
+                                label={t(langKeys.provider)}
+                                className="col-6"
+                                valueDefault={getValues('supplierid')}
+                                onChange={(value) => setValue('supplierid', value ? value.supplierid : 0)}
+                                error={errors?.supplierid?.message}
+                                data={dataExtra.suppliers}
+                                optionDesc="description"
+                                optionValue="supplierid"
+                            />
+                            <FieldSelect
+                                loading={multiData.loading}
+                                label={"Almacen"}
+                                className="col-6"
+                                valueDefault={getValues('warehouseid')}
+                                onChange={(value) => setValue('warehouseid', value ? value.warehouseid : 0)}
+                                error={errors?.warehouseid?.message}
+                                data={dataExtra.warehouses}
+                                optionDesc="description"
+                                optionValue="warehouseid"
+                            />
+                        </div>
+                        <div className="row-zyx">
+                            <FieldSelect
+                                loading={multiData.loading}
+                                label={t(langKeys.status)}
+                                className="col-6"
+                                valueDefault={getValues('status')}
+                                onChange={(value) => {
+                                    setValue('status', value ? value.value : 0);
+                                    trigger('status')
+                                }}
+                                error={errors?.status?.message}
+                                data={statusList}
+                                optionDesc="value"
+                                optionValue="value"
+                            />
+                        </div>
+                        {getValues('status') === "ENTREGADO" && (
+                            <div className="row-zyx">
+                                <FieldEdit
+                                    label={"N° Factura"}
+                                    className="col-6"
+                                    valueDefault={getValues("bill_number")}
+                                    onChange={(value) => setValue("bill_number", value)}
+                                    error={errors?.bill_number?.message}
+                                />
+                                <FieldEdit
+                                    label={"Fecha de la factura"}
+                                    type="date"
+                                    className="col-6"
+                                    valueDefault={getValues("bill_entry_date")}
+                                    onChange={(value) => setValue("bill_entry_date", value)}
+                                    error={errors?.bill_entry_date?.message}
+                                />
+                            </div>
+                        )}
+                        <div className="row-zyx">
+                            <FieldEditMulti
+                                label={"Observación"}
+                                type="date"
+                                rows={3}
+                                className="col-12"
+                                valueDefault={getValues("observations")}
+                                onChange={(value) => setValue("observations", value)}
+                                error={errors?.observations?.message}
+                            />
+                        </div>
                     </div>
-                </div>
-                <div className={classes.containerDetail}>
-                    <FieldSelect
-                        label={"Product"}
-                        variant='outlined'
-                        onChange={(value) => {
-                            if (value) {
-                                setProductsToShow(productsToShow.filter(x => x.productid !== value.productid))
-                                productAppend({ purchasedetailid: fieldsProduct.length * -1, productid: value.productid, product_description: value.description, price: parseFloat((value?.purchase_price || "0")), quantity: 0, subtotal: 0.0 })
-                            }
-                            // setValue(`products.${i}.productid`, value?.productid || 0);
-                            // setValue(`products.${i}.price`, parseFloat((value?.purchase_price || "0")));
-                            // trigger(`products.${i}.price`)
-                        }}
-                        data={productsToShow}
-                        optionDesc="description"
-                        optionValue="productid"
-                    />
-                    <TableContainer>
-                        <Table size="small">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>
-                                    </TableCell>
-                                    <TableCell>Producto</TableCell>
-                                    <TableCell style={{ textAlign: 'right' }}>Precio</TableCell>
-                                    <TableCell style={{ textAlign: 'right' }}>Cantidad</TableCell>
-                                    <TableCell style={{ textAlign: 'right' }}>Subtotal</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody style={{ marginTop: 5 }}>
-                                {fieldsProduct.map((item, i: number) =>
-                                    <TableRow key={item.id}>
-                                        <TableCell width={30}>
-                                            <div style={{ display: 'flex' }}>
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={() => { productRemove(i) }}
-                                                >
-                                                    <DeleteIcon style={{ color: '#777777' }} />
-                                                </IconButton>
-                                            </div>
+                )}
+                {pageSelected === 1 && (
+                    <div className={classes.containerDetail}>
+                        <FieldSelect
+                            label={"Product"}
+                            variant='outlined'
+                            onChange={(value) => {
+                                if (value) {
+                                    setProductsToShow(productsToShow.filter(x => x.productid !== value.productid))
+                                    productAppend({
+                                        purchasedetailid: fieldsProduct.length * -1,
+                                        productid: value.productid,
+                                        product_description: value.description,
+                                        price: parseFloat((value?.purchase_price || "0")), quantity: 0, subtotal: 0.0,
+                                        list_unit: [
+                                            { unit: value.unit, unit_desc: `${value.unit} (1)`, quantity: 1 },
+                                            ...(value.n_bottles > 0 ? [{ unit: value.types_packaging, quantity: value.n_bottles, unit_desc: `${value.types_packaging} (${value.n_bottles})` }] : [])
+                                        ],
+                                        unit_selected: value.unit,
+                                        n_bottles: 1
+                                    })
+                                }
+                            }}
+                            data={productsToShow}
+                            optionDesc="description"
+                            optionValue="productid"
+                        />
+                        <TableContainer>
+                            <Table size="small">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>
                                         </TableCell>
-                                        <TableCell >
-                                            <div>
-                                                {getValues(`products.${i}.product_description`)}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell width={200}>
-                                            <div style={{ textAlign: 'right' }}>
+                                        <TableCell>Producto</TableCell>
+                                        <TableCell style={{ textAlign: 'right' }}>Unidad</TableCell>
+                                        <TableCell style={{ textAlign: 'right' }}>Cantidad</TableCell>
+                                        <TableCell style={{ textAlign: 'right' }}>Precio</TableCell>
+                                        <TableCell style={{ textAlign: 'right' }}>Subtotal</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody style={{ marginTop: 5 }}>
+                                    {fieldsProduct.map((item, i: number) =>
+                                        <TableRow key={item.id}>
+                                            <TableCell width={30}>
+                                                <div style={{ display: 'flex' }}>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => { productRemove(i) }}
+                                                    >
+                                                        <DeleteIcon style={{ color: '#777777' }} />
+                                                    </IconButton>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell >
+                                                <div>
+                                                    {getValues(`products.${i}.product_description`)}
+                                                </div>
+                                            </TableCell>
+
+                                            <TableCell width={200}>
+                                                <FieldSelect
+                                                    label={""}
+                                                    variant='outlined'
+                                                    valueDefault={getValues(`products.${i}.unit_selected`)}
+                                                    onChange={(value) => {
+                                                        setValue(`products.${i}.unit_selected`, value.unit)
+                                                        setValue(`products.${i}.n_bottles`, value.quantity)
+                                                        
+                                                        const quantity = getValues(`products.${i}.quantity`);
+                                                        const price = getValues(`products.${i}.price`);
+                                                        const n_bottles = getValues(`products.${i}.n_bottles`);
+                                                        setValue(`products.${i}.subtotal`, price * quantity * n_bottles);
+                                                        trigger(`products.${i}.subtotal`);
+                                                    }}
+                                                    disableClearable={true}
+                                                    data={item.list_unit}
+                                                    optionDesc="unit_desc"
+                                                    optionValue="unit"
+                                                />
+                                            </TableCell>
+                                            <TableCell width={180}>
                                                 <FieldEditArray
                                                     fregister={{
                                                         ...register(`products.${i}.quantity`),
                                                     }}
                                                     inputProps={{ min: 0, style: { textAlign: 'right' } }} // the change is here
                                                     type={"number"}
-                                                    valueDefault={getValues(`products.${i}.price`)}
+                                                    valueDefault={getValues(`products.${i}.quantity`)}
                                                     error={errors?.products?.[i]?.quantity?.message}
+                                                    onChange={(value) => {
+                                                        setValue(`products.${i}.quantity`, value)
+                                                        const price = getValues(`products.${i}.price`);
+                                                        const n_bottles = getValues(`products.${i}.n_bottles`);
+                                                        setValue(`products.${i}.subtotal`, price * value * n_bottles);
+                                                        trigger(`products.${i}.subtotal`);
+                                                    }}
+                                                />
+                                            </TableCell>
+                                            <TableCell width={180}>
+                                                <FieldEditArray
+                                                    fregister={{
+                                                        ...register(`products.${i}.price`),
+                                                    }}
+                                                    inputProps={{ min: 0, style: { textAlign: 'right' } }} // the change is here
+                                                    type={"number"}
+                                                    valueDefault={getValues(`products.${i}.price`)}
+                                                    error={errors?.products?.[i]?.price?.message}
                                                     onChange={(value) => {
                                                         console.log("value", value)
                                                         setValue(`products.${i}.price`, value);
                                                         const quantity = getValues(`products.${i}.quantity`);
-                                                        setValue(`products.${i}.subtotal`, quantity * value);
+                                                        const n_bottles = getValues(`products.${i}.n_bottles`);
+                                                        setValue(`products.${i}.subtotal`, quantity * value * n_bottles);
                                                         trigger(`products.${i}.subtotal`)
                                                     }}
                                                 />
-                                            </div>
-                                        </TableCell>
-                                        <TableCell width={200}>
-                                            <FieldEditArray
-                                                fregister={{
-                                                    ...register(`products.${i}.quantity`),
-                                                }}
-                                                inputProps={{ min: 0, style: { textAlign: 'right' } }} // the change is here
-                                                type={"number"}
-                                                valueDefault={getValues(`products.${i}.quantity`)}
-                                                error={errors?.products?.[i]?.quantity?.message}
-                                                onChange={(value) => {
-                                                    setValue(`products.${i}.quantity`, value)
-                                                    const price = getValues(`products.${i}.price`);
-                                                    setValue(`products.${i}.subtotal`, price * value);
-                                                    trigger(`products.${i}.subtotal`);
-                                                }}
-                                            />
-                                        </TableCell>
-                                        <TableCell width={200}>
-                                            <div style={{ textAlign: 'right' }}>
-                                                {getValues(`products.${i}.subtotal`).toFixed(2)}
-                                            </div>
+                                            </TableCell>
+                                            <TableCell width={180}>
+                                                <div style={{ textAlign: 'right' }}>
+                                                    {getValues(`products.${i}.subtotal`).toFixed(2)}
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                                <TableFooter>
+                                    <TableRow>
+                                        <TableCell></TableCell>
+                                        <TableCell></TableCell>
+                                        <TableCell></TableCell>
+                                        <TableCell></TableCell>
+                                        <TableCell>Total</TableCell>
+                                        <TableCell style={{
+                                            fontWeight: "bold",
+                                            color: "black",
+                                            textAlign: "right",
+                                        }}>
+                                            {getValues("products").reduce((acc, x) => acc + x.subtotal, 0).toFixed(2)}
                                         </TableCell>
                                     </TableRow>
-                                )}
-                            </TableBody>
-                            <TableFooter>
-                                <TableRow>
-                                    <TableCell></TableCell>
-                                    <TableCell></TableCell>
-                                    <TableCell></TableCell>
-                                    <TableCell>Total</TableCell>
-                                    <TableCell style={{
-                                        fontWeight: "bold",
-                                        color: "black",
-                                        textAlign: "right",
-                                    }}>
-                                        {getValues("products").reduce((acc, x) => acc + x.subtotal, 0).toFixed(2)}
-                                    </TableCell>
-                                </TableRow>
-                            </TableFooter>
-                        </Table>
-                    </TableContainer>
-                </div>
+                                </TableFooter>
+                            </Table>
+                        </TableContainer>
+                    </div>
+                )}
+
             </form>
         </div>
     );

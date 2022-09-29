@@ -319,6 +319,7 @@ interface TemplateAutocompleteProps extends InputProps {
     loading?: boolean;
     triggerOnChangeOnFirst?: boolean;
     readOnly?: boolean;
+    disableClearable?: boolean;
 }
 
 export const FieldEdit: React.FC<InputProps> = ({ label, size, className, disabled = false, valueDefault = "", onChange, onBlur, error, type = "text", rows = 1, fregister = {}, inputProps = {}, InputProps = {}, variant = "standard", style }) => {
@@ -429,7 +430,7 @@ export const GetIcon: React.FC<IconProps> = ({ channelType, width = 15, height =
     return <TelegramIcon style={{ color, width, height }} />
 }
 
-export const FieldSelect: React.FC<TemplateAutocompleteProps> = ({ error, label, data, optionValue, optionDesc, valueDefault = "", onChange, disabled = false, className = null, style = null, triggerOnChangeOnFirst = false, loading = false, fregister = {}, uset = false, prefixTranslation = "", variant = "standard", readOnly = false }) => {
+export const FieldSelect: React.FC<TemplateAutocompleteProps> = ({ disableClearable = false, error, label, data, optionValue, optionDesc, valueDefault = "", onChange, disabled = false, className = null, style = null, triggerOnChangeOnFirst = false, loading = false, fregister = {}, uset = false, prefixTranslation = "", variant = "standard", readOnly = false }) => {
     const { t } = useTranslation();
     const [value, setValue] = useState<Dictionary | null>(null);
 
@@ -466,6 +467,7 @@ export const FieldSelect: React.FC<TemplateAutocompleteProps> = ({ error, label,
                 }}
                 getOptionLabel={option => option ? (uset ? t(prefixTranslation + option[optionDesc]?.toLowerCase()).toUpperCase() : (option[optionDesc] || '')) : ''}
                 options={data}
+                disableClearable={disableClearable}
                 loading={loading}
                 size="small"
                 renderInput={(params) => (

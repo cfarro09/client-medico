@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import { changeOrganization } from 'store/login/actions';
+import { changeShop } from 'store/login/actions';
 
 import { FieldSelect } from 'components';
 import { showSnackbar, showBackdrop } from 'store/popus/actions';
@@ -8,19 +8,19 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'hooks';
 import { useDispatch } from 'react-redux';
 
-const ManageOrganization: FC = () => {
+const ManageShop: FC = () => {
     const dispatch = useDispatch();
 
     const { t } = useTranslation();
 
     const user = useSelector(state => state.login.validateToken.user);
 
-    const resChangeOrganization = useSelector(state => state.login.triggerChangeOrganization);
+    const resChangeShop = useSelector(state => state.login.triggerChangeShop);
     const [triggerSave, setTriggerSave] = React.useState(false)
 
-    const handleChangeOrganization = (value: any) => {
+    const handleChangeShop = (value: any) => {
         if (value) {
-            dispatch(changeOrganization(value.corpid, value.orgid, value.corpdesc, value.orgdesc));
+            dispatch(changeShop(value.corpid, value.shopid));
             dispatch(showBackdrop(true));
             setTriggerSave(true)
         }
@@ -28,7 +28,7 @@ const ManageOrganization: FC = () => {
 
     React.useEffect(() => {
         if (triggerSave) {
-            if (!resChangeOrganization.loading && !resChangeOrganization.error) {
+            if (!resChangeShop.loading && !resChangeShop.error) {
                 dispatch(showBackdrop(false));
                 window.location.reload()
                 // dispatch(wsConnect({ userid: user?.userid, orgid: user?.orgid, usertype: 'PLATFORM' }));
@@ -36,32 +36,32 @@ const ManageOrganization: FC = () => {
                 // setTimeout(() => {
                 //     history.push(redirect);
                 // });
-            } else if (resChangeOrganization.error) {
-                const errormessage = t(resChangeOrganization.code || "error_unexpected_error")
+            } else if (resChangeShop.error) {
+                const errormessage = t(resChangeShop.code || "error_unexpected_error")
                 dispatch(showSnackbar({ show: true, success: false, message: errormessage }))
                 setTriggerSave(false);
                 dispatch(showBackdrop(false));
             }
         }
         // return () => {
-        //     dispatch(resetChangeOrganization());
+        //     dispatch(resetChangeShop());
         // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [resChangeOrganization, triggerSave])
+    }, [resChangeShop, triggerSave])
 
     return (
         <FieldSelect
             label="Organization"
-            valueDefault={user?.orgid}
+            valueDefault={user?.shopid}
             className="w-full"
-            onChange={handleChangeOrganization}
+            onChange={handleChangeShop}
             variant="outlined"
-            disabled={resChangeOrganization.loading}
-            data={user?.organizations!!}
-            optionDesc="orgdesc"
-            optionValue="orgid"
+            disabled={resChangeShop.loading}
+            data={user?.shops!!}
+            optionDesc="shop_name"
+            optionValue="shopid"
         />
     );
 };
 
-export default ManageOrganization;
+export default ManageShop;

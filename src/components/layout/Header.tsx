@@ -43,7 +43,7 @@ const Header = ({ classes }: IProps) => {
                     <Menu />
                 </IconButton>
                 <img
-                    src="https://staticfileszyxme.s3.us-east.cloud-object-storage.appdomain.cloud/ic_launcher_foreground.png"
+                    src="./logo.png"
                     style={{ height: 37 }}
                     alt="logo"
                 />

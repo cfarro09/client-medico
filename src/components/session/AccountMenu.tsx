@@ -11,6 +11,7 @@ import { useHistory } from 'react-router-dom';
 import Avatar from '@material-ui/core/Avatar';
 import PowerSettingsNewIcon from '@material-ui/icons/PowerSettingsNew';
 import { ManageOrganization, BadgeGo, StatusConnection } from 'components';
+import ManageShop from "./ManageShop";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -138,6 +139,7 @@ const AccountMenu: FC = () => {
                         {user?.email}
                     </div>
                     <StatusConnection />
+                    <ManageShop />
                     <Button
                         variant="outlined"
                         onClick={signOut}
