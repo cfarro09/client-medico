@@ -8,7 +8,7 @@ export { default as Corporation } from './Corporation/Index';
 export { default as Customer } from './Customer/Index';
 export { default as Purachases } from './Purchases/Index';
 export { default as Sales } from './Sales';
-export { default as Stock } from './Stock';
+export { default as Stock } from './Stock/Index';
 
 export { default as Shops } from './Shop/Index';
 export { default as Products } from './Product/Index';

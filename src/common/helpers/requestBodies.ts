@@ -51,6 +51,12 @@ export const getCorpSel = (id: number): IRequestBody => ({
     }
 });
 
+export const getStockSel = ( parameters: Dictionary): IRequestBody => ({
+    method: "UFN_STOCK_SEL",
+    key: "UFN_STOCK_SEL",
+    parameters: {... parameters }
+});
+
 export const getSupplierSel = (id: number): IRequestBody => ({
     method: "UFN_SUPPLIER_SEL",
     key: "UFN_SUPPLIER_SEL",
