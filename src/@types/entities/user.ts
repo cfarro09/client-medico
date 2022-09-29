@@ -11,11 +11,10 @@ interface ObjectApps {
     [key: string]: boolean[]
 }
 
-interface Organization {
-    orgid: number;
+interface Shop {
+    shopid: number;
     corpid: number;
-    orgdesc: string;
-    corpdesc: string;
+    shop_name: string;
 }
 
 interface Properties {
@@ -35,10 +34,10 @@ export interface IUser {
     redirect: string;
     userid: number;
     corpid: number;
-    orgid: number;
+    shopid: number;
     menu: ObjectApps;
     image: string | null;
-    organizations: Organization[];
+    shops: Shop[];
     automaticConnection?: boolean;
     properties: Properties;
     countrycode: string;

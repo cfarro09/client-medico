@@ -3,7 +3,7 @@ export { default as IOSSwitch } from './fields/IOSSwitch';
 
 export * from './fields/templates';
 export { default as StatusConnection } from './session/Status';
-export { default as ManageOrganization } from './session/ManageOrganization';
+export { default as ManageOrganization } from './session/ManageShop';
 export { default as NotificationMenu } from './session/NotificationMenu';
 export { default as AccountMenu } from './session/AccountMenu';
 export { default as ListPaginated } from './fields/ListPaginated';

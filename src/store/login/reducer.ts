@@ -11,7 +11,7 @@ export interface IUserTmp extends ITemplate {
 
 export interface IState {
     login: IUserTmp;
-    triggerChangeOrganization: ITemplate;
+    triggerChangeShop: ITemplate;
     validateToken: IUserTmp;
     logout: ITemplate;
     ignorePwdchangefirstloginValidation: boolean;
@@ -19,7 +19,7 @@ export interface IState {
 
 export const initialState: IState = {
     login: { ...initialCommon, user: null },
-    triggerChangeOrganization: initialCommon,
+    triggerChangeShop: initialCommon,
     validateToken: { ...initialCommon, user: null, loading: true },
     logout: initialCommon,
     ignorePwdchangefirstloginValidation: false,
@@ -36,10 +36,10 @@ export default createReducer<IState>(initialState, {
     [actionTypes.VALIDATE_TOKEN_FAILURE]: caseFunctions.validateTokenFailure,
     [actionTypes.VALIDATE_TOKEN_RESET]: caseFunctions.validateTokenReset,
 
-    [actionTypes.CHANGE_ORGANIZATION]: caseFunctions.changeOrganization,
-    [actionTypes.CHANGE_ORGANIZATION_SUCCESS]: caseFunctions.changeOrganizationSuccess,
-    [actionTypes.CHANGE_ORGANIZATION_FAILURE]: caseFunctions.changeOrganizationFailure,
-    [actionTypes.CHANGE_ORGANIZATION_RESET]: caseFunctions.changeOrganizationReset,
+    [actionTypes.CHANGE_SHOP]: caseFunctions.changeShop,
+    [actionTypes.CHANGE_SHOP_SUCCESS]: caseFunctions.changeShopSuccess,
+    [actionTypes.CHANGE_SHOP_FAILURE]: caseFunctions.changeShopFailure,
+    [actionTypes.CHANGE_SHOP_RESET]: caseFunctions.changeShopReset,
 
     [actionTypes.CHANGE_DATA_USER]: caseFunctions.updateUserInformation,
     [actionTypes.LOGOUT]: caseFunctions.logout,

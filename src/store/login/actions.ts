@@ -27,19 +27,19 @@ export const validateToken = (): IActionCall => ({
 export const resetValidateToken = (): IActionCall => ({ type: actionTypes.VALIDATE_TOKEN_RESET });
 
 
-export const changeOrganization = (newcorpid: number, neworgid: number, corpdesc: string, orgdesc: string): IActionCall => ({
-    callAPI: () => CommonService.changeOrganization(newcorpid, neworgid, corpdesc, orgdesc),
+export const changeShop = (newcorpid: number, newshopid: number): IActionCall => ({
+    callAPI: () => CommonService.changeShop(newcorpid, newshopid),
     types: {
-        loading: actionTypes.CHANGE_ORGANIZATION,
-        success: actionTypes.CHANGE_ORGANIZATION_SUCCESS,
-        failure: actionTypes.CHANGE_ORGANIZATION_FAILURE,
+        loading: actionTypes.CHANGE_SHOP,
+        success: actionTypes.CHANGE_SHOP_SUCCESS,
+        failure: actionTypes.CHANGE_SHOP_FAILURE,
     },
     type: null,
 });
 
 export const updateUserInformation = (firstname: string, lastname: string, image: string): IActionCall => ({ type: actionTypes.CHANGE_DATA_USER, payload: { firstname, lastname, image } });
 
-export const resetChangeOrganization = (): IActionCall => ({ type: actionTypes.CHANGE_ORGANIZATION_RESET });
+export const resetChangeShop = (): IActionCall => ({ type: actionTypes.CHANGE_SHOP_RESET });
 
 
 

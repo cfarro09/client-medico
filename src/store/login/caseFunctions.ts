@@ -97,33 +97,33 @@ export const validateTokenReset = (state: IState): IState => ({
 
 
 
-export const changeOrganization = (state: IState): IState => ({
+export const changeShop = (state: IState): IState => ({
     ...state,
-    triggerChangeOrganization: {
-        ...state.triggerChangeOrganization,
+    triggerChangeShop: {
+        ...state.triggerChangeShop,
         loading: true,
         error: false
     }
 });
 
-export const changeOrganizationSuccess = (state: IState, action: IAction): IState => {
+export const changeShopSuccess = (state: IState, action: IAction): IState => {
     saveAuthorizationToken(action.payload.data.token);
     return {
         ...state,
-        triggerChangeOrganization: {
-            ...state.triggerChangeOrganization,
+        triggerChangeShop: {
+            ...state.triggerChangeShop,
             loading: false,
             error: false,
         }
     }
 };
 
-export const changeOrganizationFailure = (state: IState, action: IAction): IState => {
+export const changeShopFailure = (state: IState, action: IAction): IState => {
     // removeAuthorizationToken()
     return {
         ...state,
-        triggerChangeOrganization: {
-            ...state.triggerChangeOrganization,
+        triggerChangeShop: {
+            ...state.triggerChangeShop,
             loading: false,
             error: true,
             code: action.payload.code ? "error_" + action.payload.code.toString().toLowerCase() : 'error_unexpected_error',
@@ -131,9 +131,9 @@ export const changeOrganizationFailure = (state: IState, action: IAction): IStat
     }
 };
 
-export const changeOrganizationReset = (state: IState): IState => ({
+export const changeShopReset = (state: IState): IState => ({
     ...state,
-    triggerChangeOrganization: initialState.triggerChangeOrganization,
+    triggerChangeShop: initialState.triggerChangeShop,
 });
 
 
