@@ -51,6 +51,15 @@ export const getCorpSel = (id: number): IRequestBody => ({
     }
 });
 
+export const getSupplierSel = (id: number): IRequestBody => ({
+    method: "UFN_SUPPLIER_SEL",
+    key: "UFN_SUPPLIER_SEL",
+    parameters: {
+        id: id,
+        all: id === 0,
+    }
+});
+
 export const getProductSel = (id: number): IRequestBody => ({
     method: "UFN_PRODUCT_SEL",
     key: "UFN_PRODUCT_SEL",
@@ -177,6 +186,12 @@ export const insCorp = ({ id, description, type, status, logo, logotype, operati
     method: "UFN_CORPORATION_INS",
     key: "UFN_CORPORATION_INS",
     parameters: { id, description, type, status, logo, logotype, operation }
+});
+
+export const insSupplier = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_SUPPLIER_INS",
+    key: "UFN_SUPPLIER_INS",
+    parameters: { ...parameters }
 });
 
 export const insProduct = (parameters: Dictionary): IRequestBody => ({

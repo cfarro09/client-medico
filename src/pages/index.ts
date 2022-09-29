@@ -9,8 +9,8 @@ export { default as Customers } from './Customer/Index';
 export { default as Purachases } from './Purchases/Index';
 export { default as Sales } from './Sales';
 export { default as Stock } from './Stock';
-export { default as Supplier } from './Supplier';
 
 export { default as Shops } from './Shop/Index';
 export { default as Products } from './Product/Index';
 export { default as Domains } from './Domain/Index';
+export { default as Supplier } from './Supplier/Index';
