@@ -51,7 +51,7 @@ const ManageShop: FC = () => {
 
     return (
         <FieldSelect
-            label="Organization"
+            label="Tienda"
             valueDefault={user?.shopid}
             className="w-full"
             onChange={handleChangeShop}

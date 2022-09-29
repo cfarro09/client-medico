@@ -22,8 +22,7 @@ const arrayBread = [
 ];
 
 const statusList = [
-    { value: "BORRADOR" },
-    { value: "CONFIRMADO" },
+    { value: "PENDIENTE" },
     { value: "ENTREGADO" },
 ]
 
@@ -89,7 +88,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
             purchasecreatedate: row?.purchasecreatedate || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
             purchasenumber: row?.purchasenumber || "",
             observations: row?.observations || "",
-            status: row?.status || "BORRADOR",
+            status: row?.status || "PENDIENTE",
             bill_entry_date: row?.bill_entry_date || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
             bill_number: row?.bill_number || "",
             products: []
@@ -163,7 +162,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                 header: insPurchase({
                     ...data,
                     operation: data.purchaseid ? "UPDATE" : "INSERT",
-                    status: 'ACTIVO',
+                    // status: 'ACTIVO',
                     total
                 }),
                 detail: data.products.map(x => insPurchaseDetail({
