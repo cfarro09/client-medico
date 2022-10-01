@@ -97,6 +97,10 @@ const Corporation: FC = () => {
                 accessor: "purchase_order_number",
             },
             {
+                Header: "Estado",
+                accessor: "status",
+            },
+            {
                 Header: "Proveedor",
                 accessor: "supplier_name",
             },

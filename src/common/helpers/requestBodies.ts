@@ -170,7 +170,7 @@ export const processOC = (purchaseorderid: number): IRequestBody => ({
     }
 })
 
-export const insPurchaseDetail = ({ status, operation, purchasedetailid, productid, price, quantity, subtotal: total }: Dictionary): IRequestBody => ({
+export const insPurchaseDetail = ({ status, operation, delivered_quantity, purchasedetailid, productid, price, quantity, subtotal: total }: Dictionary): IRequestBody => ({
     method: "UFN_PURCHASE_DETAIL_INS",
     key: "UFN_PURCHASE_DETAIL_INS",
     parameters: {

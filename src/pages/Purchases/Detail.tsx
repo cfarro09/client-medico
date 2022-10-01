@@ -166,13 +166,13 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                 header: insPurchase({
                     ...data,
                     operation: data.purchaseid ? "UPDATE" : "INSERT",
-                    // status: 'ACTIVO',
                     total
                 }),
                 detail: data.products.map(x => insPurchaseDetail({
                     ...x,
                     operation: x.purchasedetailid > 0 ? (x.status === "ELIMINADO" ? "DELETE" : "UPDATE") : "INSERT",
                     status: 'ACTIVO',
+                    delivered_quantity: data.status === "ENTREGADO" ? x.quantity : 0,
                     quantity: x.n_bottles * x.quantity
                 }))
             }, true));
