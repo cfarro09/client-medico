@@ -10,8 +10,8 @@ import { useDispatch } from "react-redux";
 import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
-import { execute } from "store/main/actions";
-import { insPurchase, insPurchaseDetail, processOC } from "common/helpers";
+import { execute, getCollectionAux } from "store/main/actions";
+import { getDetailPurchase, insPurchase, insPurchaseDetail, processOC } from "common/helpers";
 import { Button, makeStyles, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableFooter } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Tabs from '@material-ui/core/Tabs';
@@ -50,7 +50,7 @@ type FormFields = {
     supplierid: number,
     warehouseid: number,
     purchasecreatedate: string,
-    purchasenumber: string,
+    purchase_order_number: string,
     observations: string,
     status: string,
     bill_entry_date: string,
@@ -62,8 +62,10 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
     const [waitSave, setWaitSave] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
     const multiData = useSelector((state) => state.main.multiData);
+    const mainAux = useSelector((state) => state.main.mainAux);
     const [productsToShow, setProductsToShow] = useState<Dictionary[]>([])
     const [pageSelected, setPageSelected] = useState(0)
+    const [lock, setLock] = useState(false)
     const [dataExtra, setDataExtra] = useState<{
         status: Dictionary[];
         type: Dictionary[],
@@ -86,7 +88,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
             supplierid: row?.supplierid || 0,
             warehouseid: row?.warehouseid || 0,
             purchasecreatedate: row?.purchasecreatedate || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
-            purchasenumber: row?.purchasenumber || "",
+            purchase_order_number: row?.purchase_order_number || "",
             observations: row?.observations || "",
             status: row?.status || "PENDIENTE",
             bill_entry_date: row?.bill_entry_date || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
@@ -128,7 +130,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
     useEffect(() => {
         if (waitSave) {
             if (!executeResult.loading && !executeResult.error) {
-                if ((executeResult.key === "UFN_PURCHASE_ORDER_INS" && getValues("purchaseid") === 0 && getValues("status") === "ENTREGADO")) {
+                if ((executeResult.key === "UFN_PURCHASE_ORDER_INS" && getValues("purchaseid") === 0 && lock)) {
                     dispatch(execute(processOC(executeResult.data?.[0]?.p_purchaseorderid)));
                 } else {
                     dispatch(
@@ -188,13 +190,43 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
         );
     });
 
+    useEffect(() => {
+        if (!mainAux.loading && !mainAux.error) {
+            if (mainAux.key === "UFN_PURHCASE_ORDER_DETAIL_SEL") {
+                setValue("products", mainAux.data.map(x => ({
+                    purchasedetailid: x.purchaseorderdetailid,
+                    productid: x.productid,
+                    quantity: x.requested_quantity,
+                    product_description: x.product_name,
+                    price: parseFloat((x.price || "0")),
+                    subtotal: parseFloat((x.total || "0")),
+
+                    list_unit: [
+                        { unit: x.unit, unit_desc: `${x.unit} (1)`, quantity: 1 },
+                        ...(x.n_bottles > 0 ? [{ unit: x.types_packaging, quantity: x.n_bottles, unit_desc: `${x.types_packaging} (${x.n_bottles})` }] : [])
+                    ],
+                    unit_selected: x.unit,
+                    n_bottles: 1
+                })));
+                trigger("products")
+            }
+        }
+    }, [mainAux])
+
     React.useEffect(() => {
         register("purchaseid");
         register("supplierid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
         register("warehouseid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
         register("observations");
-        register("purchasenumber");
+        register("purchase_order_number");
         register("purchasecreatedate", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
+
+        if (row?.purchaseorderid) {
+            if (row.status === "ENTREGADO") {
+                setLock(true)
+            }
+            dispatch(getCollectionAux(getDetailPurchase(row?.purchaseorderid)))
+        }
     }, [register]);
 
     return (
@@ -202,7 +234,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
             <form onSubmit={onSubmit}>
                 <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
                 <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-                    <TitleDetail title={row ? `${row.description}` : "Nueva orden de compra"} />
+                    <TitleDetail title={row ? `${row.purchase_order_number}` : "Nueva orden de compra"} />
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                         <Button
                             variant="contained"
@@ -214,16 +246,18 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                         >
                             {t(langKeys.back)}
                         </Button>
-                        <Button
-                            className={classes.button}
-                            variant="contained"
-                            color="primary"
-                            type="submit"
-                            startIcon={<SaveIcon color="secondary" />}
-                            style={{ backgroundColor: "#55BD84" }}
-                        >
-                            {t(langKeys.save)}
-                        </Button>
+                        {!lock && (
+                            <Button
+                                className={classes.button}
+                                variant="contained"
+                                color="primary"
+                                type="submit"
+                                startIcon={<SaveIcon color="secondary" />}
+                                style={{ backgroundColor: "#55BD84" }}
+                            >
+                                {t(langKeys.save)}
+                            </Button>
+                        )}
                     </div>
                 </div>
                 <Tabs
@@ -244,9 +278,9 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                             <FieldEdit
                                 label={"N° Orden de compra"}
                                 className="col-6"
-                                valueDefault={getValues("purchasenumber")}
-                                onChange={(value) => setValue("purchasenumber", value)}
-                                error={errors?.purchasenumber?.message}
+                                valueDefault={getValues("purchase_order_number")}
+                                onChange={(value) => setValue("purchase_order_number", value)}
+                                error={errors?.purchase_order_number?.message}
                                 disabled={true}
                             />
                             <FieldEdit
@@ -256,6 +290,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                 valueDefault={getValues("purchasecreatedate")}
                                 onChange={(value) => setValue("purchasecreatedate", value)}
                                 error={errors?.purchasecreatedate?.message}
+                                disabled={lock}
                             />
                         </div>
 
@@ -269,6 +304,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                 error={errors?.supplierid?.message}
                                 data={dataExtra.suppliers}
                                 optionDesc="description"
+                                disabled={lock}
                                 optionValue="supplierid"
                             />
                             <FieldSelect
@@ -280,6 +316,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                 error={errors?.warehouseid?.message}
                                 data={dataExtra.warehouses}
                                 optionDesc="description"
+                                disabled={lock}
                                 optionValue="warehouseid"
                             />
                         </div>
@@ -296,10 +333,11 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                 error={errors?.status?.message}
                                 data={statusList}
                                 optionDesc="value"
+                                disabled={lock}
                                 optionValue="value"
                             />
                         </div>
-                        {getValues('status') === "ENTREGADO" && (
+                        {getValues("status") === "ENTREGADO" && (
                             <div className="row-zyx">
                                 <FieldEdit
                                     label={"N° Factura"}
@@ -307,11 +345,13 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                     valueDefault={getValues("bill_number")}
                                     onChange={(value) => setValue("bill_number", value)}
                                     error={errors?.bill_number?.message}
+                                    disabled={lock}
                                 />
                                 <FieldEdit
                                     label={"Fecha de la factura"}
                                     type="date"
                                     className="col-6"
+                                    disabled={lock}
                                     valueDefault={getValues("bill_entry_date")}
                                     onChange={(value) => setValue("bill_entry_date", value)}
                                     error={errors?.bill_entry_date?.message}
@@ -324,6 +364,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                 type="date"
                                 rows={3}
                                 className="col-12"
+                                disabled={lock}
                                 valueDefault={getValues("observations")}
                                 onChange={(value) => setValue("observations", value)}
                                 error={errors?.observations?.message}
@@ -333,30 +374,32 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                 )}
                 {pageSelected === 1 && (
                     <div className={classes.containerDetail}>
-                        <FieldSelect
-                            label={"Product"}
-                            variant='outlined'
-                            onChange={(value) => {
-                                if (value) {
-                                    setProductsToShow(productsToShow.filter(x => x.productid !== value.productid))
-                                    productAppend({
-                                        purchasedetailid: fieldsProduct.length * -1,
-                                        productid: value.productid,
-                                        product_description: value.description,
-                                        price: parseFloat((value?.purchase_price || "0")), quantity: 0, subtotal: 0.0,
-                                        list_unit: [
-                                            { unit: value.unit, unit_desc: `${value.unit} (1)`, quantity: 1 },
-                                            ...(value.n_bottles > 0 ? [{ unit: value.types_packaging, quantity: value.n_bottles, unit_desc: `${value.types_packaging} (${value.n_bottles})` }] : [])
-                                        ],
-                                        unit_selected: value.unit,
-                                        n_bottles: 1
-                                    })
-                                }
-                            }}
-                            data={productsToShow}
-                            optionDesc="description"
-                            optionValue="productid"
-                        />
+                        {!lock && (
+                            <FieldSelect
+                                label={"Product"}
+                                variant='outlined'
+                                onChange={(value) => {
+                                    if (value) {
+                                        setProductsToShow(productsToShow.filter(x => x.productid !== value.productid))
+                                        productAppend({
+                                            purchasedetailid: fieldsProduct.length * -1,
+                                            productid: value.productid,
+                                            product_description: value.description,
+                                            price: parseFloat((value?.purchase_price || "0")), quantity: 0, subtotal: 0.0,
+                                            list_unit: [
+                                                { unit: value.unit, unit_desc: `${value.unit} (1)`, quantity: 1 },
+                                                ...(value.n_bottles > 0 ? [{ unit: value.types_packaging, quantity: value.n_bottles, unit_desc: `${value.types_packaging} (${value.n_bottles})` }] : [])
+                                            ],
+                                            unit_selected: value.unit,
+                                            n_bottles: 1
+                                        })
+                                    }
+                                }}
+                                data={productsToShow}
+                                optionDesc="description"
+                                optionValue="productid"
+                            />
+                        )}
                         <TableContainer>
                             <Table size="small">
                                 <TableHead>
@@ -406,6 +449,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                                     }}
                                                     disableClearable={true}
                                                     data={item.list_unit}
+                                                    disabled={lock}
                                                     optionDesc="unit_desc"
                                                     optionValue="unit"
                                                 />
@@ -418,6 +462,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                                     inputProps={{ min: 0, style: { textAlign: 'right' } }} // the change is here
                                                     type={"number"}
                                                     valueDefault={getValues(`products.${i}.quantity`)}
+                                                    disabled={lock}
                                                     error={errors?.products?.[i]?.quantity?.message}
                                                     onChange={(value) => {
                                                         setValue(`products.${i}.quantity`, value)
@@ -437,6 +482,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                                     type={"number"}
                                                     valueDefault={getValues(`products.${i}.price`)}
                                                     error={errors?.products?.[i]?.price?.message}
+                                                    disabled={lock}
                                                     onChange={(value) => {
                                                         console.log("value", value)
                                                         setValue(`products.${i}.price`, value);

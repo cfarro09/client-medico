@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getCorpSel, getProductList, getPurchases, getSupplierList, getValuesFromDomain, getWareHouse, insCorp } from "common/helpers";
-import { TemplateIcons } from "components";
+import { getProductList, getPurchases, getSupplierList, getValuesFromDomain, getWareHouse, insPurchase } from "common/helpers";
+import { DialogZyx, TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
@@ -11,8 +11,9 @@ import { useDispatch } from "react-redux";
 import { execute, getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
+import SystemUpdateAltIcon from '@material-ui/icons/SystemUpdateAlt';
 
-const Corporation: FC = () => {
+const Purchase: FC = () => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainResult = useSelector((state) => state.main.mainData);
@@ -88,6 +89,8 @@ const Corporation: FC = () => {
                     return (
                         <TemplateIcons
                             deleteFunction={() => handleDelete(row)}
+                            extraOption={"Entrada de mercaderia"}
+                            ExtraICon={() => <SystemUpdateAltIcon width={18} style={{ fill: '#7721AD' }} />}
                         />
                     );
                 },
@@ -138,7 +141,7 @@ const Corporation: FC = () => {
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(execute(insCorp({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.corpid })));
+            dispatch(execute(insPurchase({ ...row, operation: "DELETE", status: "ELIMINADO", purchaseid: row.purchaseorderid })));
             dispatch(showBackdrop(true));
             setWaitSave(true);
         };
@@ -175,4 +178,5 @@ const Corporation: FC = () => {
         );
     }
 };
-export default Corporation;
+
+export default Purchase;
