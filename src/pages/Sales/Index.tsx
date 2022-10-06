@@ -13,7 +13,7 @@ import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/acti
 import Detail from "./Detail";
 import SystemUpdateAltIcon from '@material-ui/icons/SystemUpdateAlt';
 
-const Purchase: FC = () => {
+const Sales: FC = () => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainResult = useSelector((state) => state.main.mainData);
@@ -190,4 +190,4 @@ const Purchase: FC = () => {
     }
 };
 
-export default Purchase;
+export default Sales;
