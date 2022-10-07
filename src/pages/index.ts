@@ -14,3 +14,4 @@ export { default as Shops } from './Shop/Index';
 export { default as Products } from './Product/Index';
 export { default as Domains } from './Domain/Index';
 export { default as Supplier } from './Supplier/Index';
+export { default as Dashboard } from './Dashboard/Index';
