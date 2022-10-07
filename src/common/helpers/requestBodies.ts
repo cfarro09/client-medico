@@ -149,7 +149,7 @@ export const getDomainValueSel = (domainname: string): IRequestBody => ({
     }
 })
 
-export const insPurchase = ({ purchaseid, status, operation, total, supplierid, warehouseid, purchasecreatedate, purchasenumber, observations, bill_number, bill_entry_date }: Dictionary): IRequestBody => ({
+export const insPurchase = ({ purchaseid, status, operation, total, supplierid, warehouseid, purchasecreatedate, purchase_order_number, observations, bill_number, bill_entry_date, purchase_order_create_date }: Dictionary): IRequestBody => ({
     method: "UFN_PURCHASE_ORDER_INS",
     key: "UFN_PURCHASE_ORDER_INS",
     parameters: {
@@ -159,9 +159,9 @@ export const insPurchase = ({ purchaseid, status, operation, total, supplierid, 
         total,
         status,
         type: null,
-        purchase_order_number: purchasenumber,
+        purchase_order_number,
         bill_entry_date,
-        purchase_order_create_date: purchasecreatedate,
+        purchase_order_create_date: purchasecreatedate || purchase_order_create_date || null,
         warehouseid,
         observations,
         operation
@@ -176,7 +176,15 @@ export const processOC = (purchaseorderid: number): IRequestBody => ({
     }
 })
 
-export const insPurchaseDetail = ({ status, operation, purchasedetailid, productid, price, quantity, subtotal: total }: Dictionary): IRequestBody => ({
+export const getDetailPurchase = (purchaseorderid: number): IRequestBody => ({
+    method: "UFN_PURHCASE_ORDER_DETAIL_SEL",
+    key: "UFN_PURHCASE_ORDER_DETAIL_SEL",
+    parameters: {
+        purchaseorderid
+    }
+})
+
+export const insPurchaseDetail = ({ status, operation, delivered_quantity, purchasedetailid, productid, price, quantity, subtotal: total }: Dictionary): IRequestBody => ({
     method: "UFN_PURCHASE_DETAIL_INS",
     key: "UFN_PURCHASE_DETAIL_INS",
     parameters: {
@@ -188,7 +196,7 @@ export const insPurchaseDetail = ({ status, operation, purchasedetailid, product
         status,
         type: "",
         price,
-        delivered_quantity: quantity,
+        delivered_quantity,
         operation
     }
 })
