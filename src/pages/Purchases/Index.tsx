@@ -139,6 +139,7 @@ const Purchase: FC = () => {
     );
 
     const handleRegister = () => {
+        setMerchantEntry(false);
         setViewSelected("view-2");
         setRowSelected(null);
     };

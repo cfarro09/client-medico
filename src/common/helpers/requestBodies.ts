@@ -149,11 +149,11 @@ export const getDomainValueSel = (domainname: string): IRequestBody => ({
     }
 })
 
-export const insPurchase = ({ purchaseid, status, operation, total, supplierid, warehouseid, purchasecreatedate, purchase_order_number, observations, bill_number, bill_entry_date, purchase_order_create_date }: Dictionary): IRequestBody => ({
+export const insPurchase = ({ purchaseorderid, status, operation, total, supplierid, warehouseid, purchasecreatedate, purchase_order_number, observations, bill_number, bill_entry_date, purchase_order_create_date }: Dictionary): IRequestBody => ({
     method: "UFN_PURCHASE_ORDER_INS",
     key: "UFN_PURCHASE_ORDER_INS",
     parameters: {
-        id: purchaseid,
+        id: purchaseorderid,
         supplierid,
         bill_number,
         total,

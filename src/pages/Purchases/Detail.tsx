@@ -10,7 +10,7 @@ import { useDispatch } from "react-redux";
 import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
-import { execute, getCollectionAux } from "store/main/actions";
+import { execute, getCollectionAux, resetMainAux } from "store/main/actions";
 import { getDetailPurchase, insPurchase, insPurchaseDetail, processOC } from "common/helpers";
 import { Button, makeStyles, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableFooter } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -45,7 +45,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 type FormFields = {
-    purchaseid: number,
+    purchaseorderid: number,
     products: Dictionary[],
     supplierid: number,
     warehouseid: number,
@@ -84,7 +84,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
 
     const { register, control, handleSubmit, setValue, getValues, formState: { errors }, trigger } = useForm<FormFields>({
         defaultValues: {
-            purchaseid: row?.purchaseid || 0,
+            purchaseorderid: row?.purchaseorderid || 0,
             supplierid: row?.supplierid || 0,
             warehouseid: row?.warehouseid || 0,
             purchasecreatedate: row?.purchasecreatedate || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
@@ -130,7 +130,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
     useEffect(() => {
         if (waitSave) {
             if (!executeResult.loading && !executeResult.error) {
-                if ((executeResult.key === "UFN_PURCHASE_ORDER_INS" && getValues("purchaseid") === 0 && lock)) {
+                if ((executeResult.key === "UFN_PURCHASE_ORDER_INS" && ((getValues("purchaseorderid") === 0 && getValues("status") === "ENTREGADO") || merchantEntry))) {
                     dispatch(execute(processOC(executeResult.data?.[0]?.p_purchaseorderid)));
                 } else {
                     dispatch(
@@ -155,8 +155,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
         }
     }, [executeResult, waitSave]);
 
-
-    const onSubmit = handleSubmit((data) => {
+    const processTransaction = (data: FormFields, status: string = "") => {
         if (data.products.filter(item => item.status !== "ELIMINADO").length === 0) {
             dispatch(showSnackbar({ show: true, success: false, message: "Debe tener como minimo un producto registrado" }));
             return
@@ -167,15 +166,17 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
             dispatch(execute({
                 header: insPurchase({
                     ...data,
-                    operation: data.purchaseid ? "UPDATE" : "INSERT",
+                    operation: data.purchaseorderid ? "UPDATE" : "INSERT",
+                    status: merchantEntry ? status : data.status,
                     total
                 }),
                 detail: data.products.map(x => insPurchaseDetail({
                     ...x,
                     operation: x.purchasedetailid > 0 ? (x.status === "ELIMINADO" ? "DELETE" : "UPDATE") : "INSERT",
                     status: 'ACTIVO',
-                    delivered_quantity: data.status === "ENTREGADO" ? x.quantity : 0,
-                    quantity: x.n_bottles * x.quantity
+                    delivered_quantity: merchantEntry ? x.delivered_quantity : (data.status === "ENTREGADO" ? x.quantity : 0),
+                    quantity: x.n_bottles * x.quantity,
+                    price: x.price / x.n_bottles
                 }))
             }, true));
             setWaitSave(true)
@@ -188,7 +189,17 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                 callback,
             })
         );
-    });
+    }
+
+    const processEntryMerchant = async (status: string) => {
+        const allOk = await trigger(); //para q valide el formulario
+        if (allOk) {
+            const data = getValues();
+            processTransaction(data, status)
+        }
+    }
+
+    const onSubmit = handleSubmit((data) => processTransaction(data));
 
     useEffect(() => {
         if (!mainAux.loading && !mainAux.error) {
@@ -196,8 +207,9 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                 setValue("products", mainAux.data.map(x => ({
                     purchasedetailid: x.purchaseorderdetailid,
                     productid: x.productid,
-                    quantity: x.requested_quantity,
-                    delivered_quantity: x.requested_quantity,
+                    requested_quantity: x.requested_quantity,
+                    quantity: x.missing_quantity,
+                    delivered_quantity: 0,
                     product_description: x.product_name,
                     price: parseFloat((x.price || "0")),
                     subtotal: parseFloat((x.total || "0")),
@@ -211,10 +223,14 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                 trigger("products")
             }
         }
+        return () => {
+            dispatch(resetMainAux())
+        }
     }, [mainAux])
 
+    console.log("getValues(`products.${i}.quantity`)", getValues(`products.0.quantity`))
     React.useEffect(() => {
-        register("purchaseid");
+        register("purchaseorderid");
         register("supplierid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
         register("warehouseid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
         register("observations");
@@ -234,7 +250,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
             <form onSubmit={onSubmit}>
                 <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
                 <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-                    <TitleDetail title={row ?  (merchantEntry ? "Ingreso de mercaderia " : "") +`${row.purchase_order_number}` : "Nueva orden de compra"} />
+                    <TitleDetail title={row ? (merchantEntry ? "Ingreso de mercaderia " : "") + `${row.purchase_order_number}` : "Nueva orden de compra"} />
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                         <Button
                             variant="contained"
@@ -263,11 +279,25 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                 className={classes.button}
                                 variant="contained"
                                 color="primary"
-                                type="submit"
+                                type="button"
+                                startIcon={<SaveIcon color="secondary" />}
+                                style={{ backgroundColor: "#55BD84" }}
+                                onClick={() => processEntryMerchant("ENTREGADO")}
+                            >
+                                {"Ingreso total"}
+                            </Button>
+                        )}
+                        {merchantEntry && (
+                            <Button
+                                className={classes.button}
+                                variant="contained"
+                                color="primary"
+                                type="button"
+                                onClick={() => processEntryMerchant("ENTREGADO PARCIAL")}
                                 startIcon={<SaveIcon color="secondary" />}
                                 style={{ backgroundColor: "#55BD84" }}
                             >
-                                {"Ingreso de mercaderia"}
+                                {"Ingreso parcial"}
                             </Button>
                         )}
                     </div>
@@ -346,7 +376,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                     error={errors?.status?.message}
                                     data={statusList}
                                     optionDesc="value"
-                                    disabled={lock}
+                                    disabled={lock || getValues("purchaseorderid") !== 0}
                                     optionValue="value"
                                 />
                             </div>
@@ -427,7 +457,10 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                         <TableCell style={{ textAlign: 'right' }}>Unidad</TableCell>
                                         <TableCell style={{ textAlign: 'right' }}>Cantidad</TableCell>
                                         {merchantEntry && (
-                                            <TableCell style={{ textAlign: 'right' }}>Cantidad Entregada</TableCell>
+                                            <>
+                                                <TableCell style={{ textAlign: 'right' }}>Cantidad restante</TableCell>
+                                                <TableCell style={{ textAlign: 'right' }}>Cantidad a entregar</TableCell>
+                                            </>
                                         )}
                                         <TableCell style={{ textAlign: 'right' }}>Precio</TableCell>
                                         <TableCell style={{ textAlign: 'right' }}>Subtotal</TableCell>
@@ -465,8 +498,8 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
 
                                                         const quantity = getValues(`products.${i}.quantity`);
                                                         const price = getValues(`products.${i}.price`);
-                                                        const n_bottles = getValues(`products.${i}.n_bottles`);
-                                                        setValue(`products.${i}.subtotal`, price * quantity * n_bottles);
+                                                        // const n_bottles = getValues(`products.${i}.n_bottles`);
+                                                        setValue(`products.${i}.subtotal`, price * quantity);
                                                         trigger(`products.${i}.subtotal`);
                                                     }}
                                                     disableClearable={true}
@@ -476,10 +509,17 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                     optionValue="unit"
                                                 />
                                             </TableCell>
+                                            {merchantEntry && (
+                                                <TableCell width={100}>
+                                                    <div style={{ textAlign: "right" }}>
+                                                        {getValues(`products.${i}.requested_quantity`)}
+                                                    </div>
+                                                </TableCell>
+                                            )}
                                             <TableCell width={180}>
                                                 <FieldEditArray
                                                     fregister={{
-                                                        ...register(`products.${i}.quantity`),
+                                                        ...register(`products.${i}.quantity`, { validate: (value) => (value > 0) || "" + t(langKeys.field_required) }),
                                                     }}
                                                     inputProps={{ min: 0, style: { textAlign: 'right' } }} // the change is here
                                                     type={"number"}
@@ -489,8 +529,8 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                     onChange={(value) => {
                                                         setValue(`products.${i}.quantity`, value)
                                                         const price = getValues(`products.${i}.price`);
-                                                        const n_bottles = getValues(`products.${i}.n_bottles`);
-                                                        setValue(`products.${i}.subtotal`, price * value * n_bottles);
+                                                        // const n_bottles = getValues(`products.${i}.n_bottles`);
+                                                        setValue(`products.${i}.subtotal`, price * value);
                                                         trigger(`products.${i}.subtotal`);
                                                     }}
                                                 />
@@ -499,15 +539,14 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                 <TableCell width={180}>
                                                     <FieldEditArray
                                                         fregister={{
-                                                            ...register(`products.${i}.delivered_quantity`),
+                                                            ...register(`products.${i}.delivered_quantity`, { validate: (value) => (value >= 0 && value <= getValues(`products.${i}.quantity`)) || "Debe ingresar una cantidad correcta" }),
                                                         }}
                                                         inputProps={{ min: 0, max: getValues(`products.${i}.quantity`), style: { textAlign: 'right' } }} // the change is here
                                                         type={"number"}
                                                         valueDefault={getValues(`products.${i}.delivered_quantity`)}
                                                         error={errors?.products?.[i]?.delivered_quantity?.message}
                                                         onChange={(value) => {
-                                                            setValue(`products.${i}.delivered_quantity`, value)
-                                                            // trigger(`products.${i}.subtotal`);
+                                                            setValue(`products.${i}.delivered_quantity`, parseFloat(value || "0"))
                                                         }}
                                                     />
                                                 </TableCell>
@@ -515,7 +554,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                             <TableCell width={180}>
                                                 <FieldEditArray
                                                     fregister={{
-                                                        ...register(`products.${i}.price`),
+                                                        ...register(`products.${i}.price`, { validate: (value) => (value > 0) || "" + t(langKeys.field_required) }),
                                                     }}
                                                     inputProps={{ min: 0, style: { textAlign: 'right' } }} // the change is here
                                                     type={"number"}
@@ -526,8 +565,8 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                         console.log("value", value)
                                                         setValue(`products.${i}.price`, value);
                                                         const quantity = getValues(`products.${i}.quantity`);
-                                                        const n_bottles = getValues(`products.${i}.n_bottles`);
-                                                        setValue(`products.${i}.subtotal`, quantity * value * n_bottles);
+                                                        // const n_bottles = getValues(`products.${i}.n_bottles`);
+                                                        setValue(`products.${i}.subtotal`, quantity * value);
                                                         trigger(`products.${i}.subtotal`)
                                                     }}
                                                 />
@@ -547,7 +586,10 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                         <TableCell></TableCell>
                                         <TableCell></TableCell>
                                         {merchantEntry && (
-                                            <TableCell></TableCell>
+                                            <>
+                                                <TableCell></TableCell>
+                                                <TableCell></TableCell>
+                                            </>
                                         )}
                                         <TableCell>Total</TableCell>
                                         <TableCell style={{
