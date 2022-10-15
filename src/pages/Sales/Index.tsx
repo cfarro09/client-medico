@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getProductList, getPurchases, getSupplierList, getValuesFromDomain, getWareHouse, insPurchase } from "common/helpers";
+import { getProductList, getProductsWithStock, getSales, getSupplierList, getValuesFromDomain, getWareHouse, insPurchase } from "common/helpers";
 import { DialogZyx, TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -29,23 +29,23 @@ const Sales: FC = () => {
     useEffect(() => {
         if (applications) {
             setPagePermissions({
-                "view": applications["/purchases"][0],
-                "modify": applications["/purchases"][1],
-                "insert": applications["/purchases"][2],
-                "delete": applications["/purchases"][3],
-                "download": applications["/purchases"][4],
+                "view": applications["/sales"][0],
+                "modify": applications["/sales"][1],
+                "insert": applications["/sales"][2],
+                "delete": applications["/sales"][3],
+                "download": applications["/sales"][4],
             });
         }
     }, [applications]);
 
-    const fetchData = () => dispatch(getCollection(getPurchases()));
+    const fetchData = () => dispatch(getCollection(getSales()));
 
     useEffect(() => {
         fetchData();
         dispatch(getMultiCollection([
             getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
             getValuesFromDomain("TIPOCORP", "DOMAIN-TIPOCORP"),
-            getProductList(),
+            getProductsWithStock(),
             getSupplierList(),
             getWareHouse(),
         ]));
@@ -55,7 +55,7 @@ const Sales: FC = () => {
     }, []);
 
     useEffect(() => {
-        if (!mainResult.loading && !mainResult.error && mainResult.key === "UNF_PURCHASE_ORDER_SEL") {
+        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_SALE_ORDER_SEL") {
             setDataView(mainResult.data);
         }
     }, [mainResult]);
@@ -170,7 +170,7 @@ const Sales: FC = () => {
             <TableZyx
                 columns={columns}
                 data={dataView}
-                titlemodule={"Ordenes de compra"}
+                titlemodule={"Ventas"}
                 download={!!pagePermissions.download}
                 onClickRow={handleEdit}
                 loading={mainResult.loading}

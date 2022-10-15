@@ -70,13 +70,11 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
         status: Dictionary[];
         type: Dictionary[],
         products: Dictionary[],
-        suppliers: Dictionary[],
         warehouses: Dictionary[],
     }>({
         status: [],
         type: [],
         products: [],
-        suppliers: [],
         warehouses: [],
     });
     const dispatch = useDispatch();
@@ -105,22 +103,20 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
         if (!multiData.error && !multiData.loading) {
             const dataStatus = multiData.data.find((x) => x.key === "DOMAIN-ESTADOGENERICO");
             const dataTypes = multiData.data.find((x) => x.key === "DOMAIN-TIPOCORP");
-            const products = multiData.data.find((x) => x.key === "UFN_PRODUCT_LST");
-            const suppliers = multiData.data.find((x) => x.key === "UFN_SUPPLIER_LST");
+            const products = multiData.data.find((x) => x.key === "UFN_AVAILABLE_STOCK_SEL");
             const warehouses = multiData.data.find((x) => x.key === "UFN_WAREHOUSE_LST");
 
-            if (dataStatus && dataTypes && products && suppliers && warehouses) {
+            if (dataStatus && dataTypes && products && warehouses) {
                 setProductsToShow(products.data)
                 setDataExtra({
                     status: dataStatus.data,
                     type: dataTypes.data,
                     products: products.data,
-                    suppliers: suppliers.data,
                     warehouses: warehouses.data,
                 });
 
-                setValue('supplierid', suppliers.data?.[0]?.supplierid || 0);
-                trigger("supplierid");
+                // setValue('supplierid', suppliers.data?.[0]?.supplierid || 0);
+                // trigger("supplierid");
                 setValue('warehouseid', warehouses.data?.[0]?.warehouseid || 0);
                 trigger("warehouseid");
             }
@@ -215,7 +211,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
 
     React.useEffect(() => {
         register("purchaseid");
-        register("supplierid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
+        // register("supplierid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
         register("warehouseid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
         register("observations");
         register("purchase_order_number");
@@ -307,7 +303,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                         </div>
 
                         <div className="row-zyx">
-                            <FieldSelect
+                            {/* <FieldSelect
                                 loading={multiData.loading}
                                 label={t(langKeys.provider)}
                                 className="col-6"
@@ -318,7 +314,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                 optionDesc="description"
                                 disabled={lock}
                                 optionValue="supplierid"
-                            />
+                            /> */}
                             <FieldSelect
                                 loading={multiData.loading}
                                 label={"Almacen"}
@@ -332,46 +328,6 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                 optionValue="warehouseid"
                             />
                         </div>
-                        {!merchantEntry && (
-                            <div className="row-zyx">
-                                <FieldSelect
-                                    loading={multiData.loading}
-                                    label={t(langKeys.status)}
-                                    className="col-6"
-                                    valueDefault={getValues('status')}
-                                    onChange={(value) => {
-                                        setValue('status', value ? value.value : 0);
-                                        trigger('status')
-                                    }}
-                                    error={errors?.status?.message}
-                                    data={statusList}
-                                    optionDesc="value"
-                                    disabled={lock}
-                                    optionValue="value"
-                                />
-                            </div>
-                        )}
-                        {getValues("status") === "ENTREGADO" && (
-                            <div className="row-zyx">
-                                <FieldEdit
-                                    label={"N° Factura"}
-                                    className="col-6"
-                                    valueDefault={getValues("bill_number")}
-                                    onChange={(value) => setValue("bill_number", value)}
-                                    error={errors?.bill_number?.message}
-                                    disabled={lock}
-                                />
-                                <FieldEdit
-                                    label={"Fecha de la factura"}
-                                    type="date"
-                                    className="col-6"
-                                    disabled={lock}
-                                    valueDefault={getValues("bill_entry_date")}
-                                    onChange={(value) => setValue("bill_entry_date", value)}
-                                    error={errors?.bill_entry_date?.message}
-                                />
-                            </div>
-                        )}
                         <div className="row-zyx">
                             <FieldEditMulti
                                 label={"Observación"}

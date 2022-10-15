@@ -36,6 +36,12 @@ export const getPurchases = (): IRequestBody => ({
     parameters: {}
 })
 
+export const getSales = (): IRequestBody => ({
+    method: "UFN_SALE_ORDER_SEL",
+    key: "UFN_SALE_ORDER_SEL",
+    parameters: {}
+})
+
 export const getWarehouseSel = ({ shopid, id }: Dictionary): IRequestBody => ({
     method: "UFN_WAREHOUSE_SEL",
     key: "UFN_WAREHOUSE_SEL",
@@ -104,6 +110,12 @@ export const getWareHouse = (shopid: number | null = null, key: string | null = 
     method: "UFN_WAREHOUSE_LST",
     key: `UFN_WAREHOUSE_LST${key}`,
     parameters: { shopid }
+})
+
+export const getProductsWithStock = (): IRequestBody => ({
+    method: "UFN_AVAILABLE_STOCK_SEL",
+    key: `UFN_AVAILABLE_STOCK_SEL`,
+    parameters: { warehouseid: 0 }
 })
 
 export const getApplicationByRole = (roleid: number | null = null, key: string | null = null): IRequestBody => ({

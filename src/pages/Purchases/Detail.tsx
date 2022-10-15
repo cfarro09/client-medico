@@ -227,8 +227,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
             dispatch(resetMainAux())
         }
     }, [mainAux])
-
-    console.log("getValues(`products.${i}.quantity`)", getValues(`products.0.quantity`))
+    
     React.useEffect(() => {
         register("purchaseorderid");
         register("supplierid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
