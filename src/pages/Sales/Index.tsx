@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getProductList, getProductsWithStock, getSales, getSupplierList, getValuesFromDomain, getWareHouse, insPurchase } from "common/helpers";
-import { DialogZyx, TemplateIcons } from "components";
+import { getCustomerList, getProductsWithStock, getSales, getValuesFromDomain, getWareHouse, insPurchase } from "common/helpers";
+import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
@@ -11,7 +11,6 @@ import { useDispatch } from "react-redux";
 import { execute, getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
-import SystemUpdateAltIcon from '@material-ui/icons/SystemUpdateAlt';
 
 const Sales: FC = () => {
     const dispatch = useDispatch();
@@ -24,7 +23,6 @@ const Sales: FC = () => {
     const applications = useSelector((state) => state.login?.validateToken?.user?.menu);
     const [pagePermissions, setPagePermissions] = useState<Dictionary>({});
     const executeResult = useSelector((state) => state.main.execute);
-    const [merchantEntry, setMerchantEntry] = useState(false)
 
     useEffect(() => {
         if (applications) {
@@ -44,10 +42,10 @@ const Sales: FC = () => {
         fetchData();
         dispatch(getMultiCollection([
             getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
-            getValuesFromDomain("TIPOCORP", "DOMAIN-TIPOCORP"),
             getProductsWithStock(),
-            getSupplierList(),
+            getCustomerList(),
             getWareHouse(),
+            getValuesFromDomain("TIPOCOMPROBANTE", "DOMAIN-TIPOCOMPROBANTE"),
         ]));
         return () => {
             dispatch(resetAllMain());
@@ -81,7 +79,7 @@ const Sales: FC = () => {
     const columns = React.useMemo(
         () => [
             {
-                accessor: "purchaseorderid",
+                accessor: "saleorderid",
                 isComponent: true,
                 minWidth: 60,
                 width: "1%",
@@ -93,37 +91,33 @@ const Sales: FC = () => {
                     return (
                         <TemplateIcons
                             deleteFunction={() => handleDelete(row)}
-                            extraOption={"Entrada de mercaderia"}
-                            ExtraICon={() => <SystemUpdateAltIcon width={18} style={{ fill: '#7721AD' }} />}
-                            extraFunction={() => {
-                                setMerchantEntry(true);
-                                setViewSelected("view-2");
-                                setRowSelected(row);
-                            }}
                         />
                     );
                 },
             },
             {
                 Header: "N° Orden",
-                accessor: "purchase_order_number",
+                accessor: "bill_number",
             },
             {
                 Header: "Estado",
                 accessor: "status",
             },
             {
-                Header: "Proveedor",
-                accessor: "supplier_name",
+                Header: "Cliente",
+                accessor: "client_name",
             },
             {
                 Header: "Almacen",
                 accessor: "warehouse_name",
             },
             {
-                Header: "Productos",
-                accessor: "num_records",
-                type: "number",
+                Header: "Tipo comprobante",
+                accessor: "document_type",
+            },
+            {
+                Header: "N documento",
+                accessor: "document_number",
             },
             {
                 Header: "Total",
@@ -144,14 +138,13 @@ const Sales: FC = () => {
     };
 
     const handleEdit = (row: Dictionary) => {
-        setMerchantEntry(false)
         setViewSelected("view-2");
         setRowSelected(row);
     };
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(execute(insPurchase({ ...row, operation: "DELETE", status: "ELIMINADO", purchaseid: row.purchaseorderid })));
+            dispatch(execute(insPurchase({ ...row, operation: "DELETE", status: "ELIMINADO", purchaseid: row.saleorderid })));
             dispatch(showBackdrop(true));
             setWaitSave(true);
         };
@@ -184,7 +177,6 @@ const Sales: FC = () => {
                 row={rowSelected}
                 setViewSelected={setViewSelected}
                 fetchData={fetchData}
-                merchantEntry={merchantEntry}
             />
         );
     }

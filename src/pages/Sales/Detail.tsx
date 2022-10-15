@@ -10,21 +10,16 @@ import { useDispatch } from "react-redux";
 import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
-import { execute, getCollectionAux } from "store/main/actions";
-import { getDetailPurchase, insPurchase, insPurchaseDetail, processOC } from "common/helpers";
+import { execute, getCollectionAux, resetMainAux } from "store/main/actions";
+import { getDetailSale, insOrderSale, insSaleDetail } from "common/helpers";
 import { Button, makeStyles, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableFooter } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Tabs from '@material-ui/core/Tabs';
 
 const arrayBread = [
-    { id: "view-1", name: "Purchase" },
-    { id: "view-2", name: "Purchase detail" },
+    { id: "view-1", name: "Sale" },
+    { id: "view-2", name: "Sale detail" },
 ];
-
-const statusList = [
-    { value: "PENDIENTE" },
-    { value: "ENTREGADO" },
-]
 
 const useStyles = makeStyles((theme) => ({
     containerDetail: {
@@ -45,19 +40,19 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 type FormFields = {
-    purchaseid: number,
+    saleorderid: number,
     products: Dictionary[],
-    supplierid: number,
+    customerid: number,
     warehouseid: number,
-    purchasecreatedate: string,
-    purchase_order_number: string,
+    bill_number: string,
     observations: string,
+    document_type: string,
+    document_number: string,
     status: string,
     bill_entry_date: string,
-    bill_number: string
 }
 
-const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ row, setViewSelected, fetchData, merchantEntry }) => {
+const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
     const classes = useStyles();
     const [waitSave, setWaitSave] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
@@ -68,29 +63,31 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
     const [lock, setLock] = useState(false)
     const [dataExtra, setDataExtra] = useState<{
         status: Dictionary[];
-        type: Dictionary[],
         products: Dictionary[],
+        customers: Dictionary[],
         warehouses: Dictionary[],
+        docType: Dictionary[],
     }>({
         status: [],
-        type: [],
         products: [],
+        customers: [],
         warehouses: [],
+        docType: [],
     });
     const dispatch = useDispatch();
     const { t } = useTranslation();
 
     const { register, control, handleSubmit, setValue, getValues, formState: { errors }, trigger } = useForm<FormFields>({
         defaultValues: {
-            purchaseid: row?.purchaseid || 0,
-            supplierid: row?.supplierid || 0,
+            saleorderid: row?.saleorderid || 0,
+            customerid: row?.customerid || 0,
             warehouseid: row?.warehouseid || 0,
-            purchasecreatedate: row?.purchasecreatedate || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
-            purchase_order_number: row?.purchase_order_number || "",
+            bill_number: row?.bill_number || "",
             observations: row?.observations || "",
+            document_type: row?.document_type || "",
+            document_number: row?.document_number || "",
             status: row?.status || "PENDIENTE",
             bill_entry_date: row?.bill_entry_date || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
-            bill_number: row?.bill_number || "",
             products: []
         },
     });
@@ -102,21 +99,23 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
     useEffect(() => {
         if (!multiData.error && !multiData.loading) {
             const dataStatus = multiData.data.find((x) => x.key === "DOMAIN-ESTADOGENERICO");
-            const dataTypes = multiData.data.find((x) => x.key === "DOMAIN-TIPOCORP");
             const products = multiData.data.find((x) => x.key === "UFN_AVAILABLE_STOCK_SEL");
             const warehouses = multiData.data.find((x) => x.key === "UFN_WAREHOUSE_LST");
+            const customers = multiData.data.find((x) => x.key === "UFN_CUSTOMER_LST");
+            const docType = multiData.data.find(x => x.key === "DOMAIN-TIPOCOMPROBANTE");
 
-            if (dataStatus && dataTypes && products && warehouses) {
+            if (dataStatus && customers && products && warehouses && docType) {
                 setProductsToShow(products.data)
                 setDataExtra({
                     status: dataStatus.data,
-                    type: dataTypes.data,
                     products: products.data,
                     warehouses: warehouses.data,
+                    customers: customers.data,
+                    docType: docType.data,
                 });
 
-                // setValue('supplierid', suppliers.data?.[0]?.supplierid || 0);
-                // trigger("supplierid");
+                // setValue('customerid', suppliers.data?.[0]?.customerid || 0);
+                // trigger("customerid");
                 setValue('warehouseid', warehouses.data?.[0]?.warehouseid || 0);
                 trigger("warehouseid");
             }
@@ -126,20 +125,16 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
     useEffect(() => {
         if (waitSave) {
             if (!executeResult.loading && !executeResult.error) {
-                if ((executeResult.key === "UFN_PURCHASE_ORDER_INS" && getValues("purchaseid") === 0 && lock)) {
-                    dispatch(execute(processOC(executeResult.data?.[0]?.p_purchaseorderid)));
-                } else {
-                    dispatch(
-                        showSnackbar({
-                            show: true,
-                            success: true,
-                            message: t(row ? langKeys.successful_edit : langKeys.successful_register),
-                        })
-                    );
-                    fetchData && fetchData();
-                    dispatch(showBackdrop(false));
-                    setViewSelected("view-1");
-                }
+                dispatch(
+                    showSnackbar({
+                        show: true,
+                        success: true,
+                        message: t(row ? langKeys.successful_edit : langKeys.successful_register),
+                    })
+                );
+                fetchData && fetchData();
+                dispatch(showBackdrop(false));
+                setViewSelected("view-1");
             } else if (executeResult.error) {
                 const errormessage = t(executeResult.code || "error_unexpected_error", {
                     module: t(langKeys.corporation_plural).toLocaleLowerCase(),
@@ -161,16 +156,16 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
             const total = data.products.filter(item => item.status !== "ELIMINADO").reduce((acc, item) => acc + item.subtotal, 0)
             dispatch(showBackdrop(true));
             dispatch(execute({
-                header: insPurchase({
+                header: insOrderSale({
                     ...data,
-                    operation: data.purchaseid ? "UPDATE" : "INSERT",
+                    operation: data.saleorderid ? "UPDATE" : "INSERT",
+                    status: "ACTIVO",
                     total
                 }),
-                detail: data.products.map(x => insPurchaseDetail({
+                detail: data.products.map(x => insSaleDetail({
                     ...x,
-                    operation: x.purchasedetailid > 0 ? (x.status === "ELIMINADO" ? "DELETE" : "UPDATE") : "INSERT",
+                    operation: x.saleorderdetailid > 0 ? (x.status === "ELIMINADO" ? "DELETE" : "UPDATE") : "INSERT",
                     status: 'ACTIVO',
-                    delivered_quantity: data.status === "ENTREGADO" ? x.quantity : 0,
                     quantity: x.n_bottles * x.quantity
                 }))
             }, true));
@@ -188,12 +183,11 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
 
     useEffect(() => {
         if (!mainAux.loading && !mainAux.error) {
-            if (mainAux.key === "UFN_PURHCASE_ORDER_DETAIL_SEL") {
+            if (mainAux.key === "UFN_SALE_ORDER_DETAIL_SEL") {
                 setValue("products", mainAux.data.map(x => ({
-                    purchasedetailid: x.purchaseorderdetailid,
+                    saleorderdetailid: x.purchaseorderdetailid,
                     productid: x.productid,
-                    quantity: x.requested_quantity,
-                    delivered_quantity: x.requested_quantity,
+                    quantity: x.quantity,
                     product_description: x.product_name,
                     price: parseFloat((x.price || "0")),
                     subtotal: parseFloat((x.total || "0")),
@@ -207,21 +201,24 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                 trigger("products")
             }
         }
+        return () => {
+            dispatch(resetMainAux())
+        }
     }, [mainAux])
 
     React.useEffect(() => {
-        register("purchaseid");
-        // register("supplierid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
+        register("saleorderid");
+        register("customerid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
         register("warehouseid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
+        register("document_type", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
+        register("document_number", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
         register("observations");
-        register("purchase_order_number");
-        register("purchasecreatedate", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
+        register("bill_number");
+        register("bill_entry_date", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
 
-        if (row?.purchaseorderid) {
-            if (row.status === "ENTREGADO" || merchantEntry) {
-                setLock(true)
-            }
-            dispatch(getCollectionAux(getDetailPurchase(row?.purchaseorderid)))
+        if (row?.saleorderid) {
+            setLock(true)
+            dispatch(getCollectionAux(getDetailSale(row?.saleorderid)))
         }
     }, [register]);
 
@@ -230,7 +227,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
             <form onSubmit={onSubmit}>
                 <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
                 <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-                    <TitleDetail title={row ?  (merchantEntry ? "Ingreso de mercaderia " : "") +`${row.purchase_order_number}` : "Nueva orden de compra"} />
+                    <TitleDetail title={row ? `${row.bill_number}` : "Nueva venta"} />
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                         <Button
                             variant="contained"
@@ -254,18 +251,6 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                 {t(langKeys.save)}
                             </Button>
                         )}
-                        {merchantEntry && (
-                            <Button
-                                className={classes.button}
-                                variant="contained"
-                                color="primary"
-                                type="submit"
-                                startIcon={<SaveIcon color="secondary" />}
-                                style={{ backgroundColor: "#55BD84" }}
-                            >
-                                {"Ingreso de mercaderia"}
-                            </Button>
-                        )}
                     </div>
                 </div>
                 <Tabs
@@ -284,37 +269,58 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                     <div className={classes.containerDetail}>
                         <div className="row-zyx">
                             <FieldEdit
-                                label={"N° Orden de compra"}
+                                label={"N° Orden de venta"}
                                 className="col-6"
-                                valueDefault={getValues("purchase_order_number")}
-                                onChange={(value) => setValue("purchase_order_number", value)}
-                                error={errors?.purchase_order_number?.message}
+                                valueDefault={getValues("bill_number")}
+                                onChange={(value) => setValue("bill_number", value)}
+                                error={errors?.bill_number?.message}
                                 disabled={true}
                             />
                             <FieldEdit
-                                label={"Fecha de la orden de compra"}
+                                label={"Fecha de la orden de venta"}
                                 type="date"
                                 className="col-6"
-                                valueDefault={getValues("purchasecreatedate")}
-                                onChange={(value) => setValue("purchasecreatedate", value)}
-                                error={errors?.purchasecreatedate?.message}
+                                valueDefault={getValues("bill_entry_date")}
+                                onChange={(value) => setValue("bill_entry_date", value)}
+                                error={errors?.bill_entry_date?.message}
                                 disabled={lock}
                             />
                         </div>
-
                         <div className="row-zyx">
-                            {/* <FieldSelect
+                            <FieldSelect
                                 loading={multiData.loading}
-                                label={t(langKeys.provider)}
+                                label={"Tipo comprobante"}
                                 className="col-6"
-                                valueDefault={getValues('supplierid')}
-                                onChange={(value) => setValue('supplierid', value ? value.supplierid : 0)}
-                                error={errors?.supplierid?.message}
-                                data={dataExtra.suppliers}
+                                valueDefault={getValues('document_type')}
+                                onChange={(value) => setValue('document_type', value?.domainvalue || "")}
+                                error={errors?.document_type?.message}
+                                data={dataExtra.docType}
+                                disabled={lock}
+                                optionDesc="domaindesc"
+                                optionValue="domainvalue"
+                            />
+                            <FieldEdit
+                                label={"N° comprobante"}
+                                className="col-6"
+                                valueDefault={getValues("document_number")}
+                                onChange={(value) => setValue("document_number", value)}
+                                error={errors?.document_number?.message}
+                                disabled={lock}
+                            />
+                        </div>
+                        <div className="row-zyx">
+                            <FieldSelect
+                                loading={multiData.loading}
+                                label={t(langKeys.customer)}
+                                className="col-6"
+                                valueDefault={getValues('customerid')}
+                                onChange={(value) => setValue('customerid', value ? value.customerid : 0)}
+                                error={errors?.customerid?.message}
+                                data={dataExtra.customers}
                                 optionDesc="description"
                                 disabled={lock}
-                                optionValue="supplierid"
-                            /> */}
+                                optionValue="customerid"
+                            />
                             <FieldSelect
                                 loading={multiData.loading}
                                 label={"Almacen"}
@@ -334,7 +340,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                 type="date"
                                 rows={3}
                                 className="col-12"
-                                disabled={lock && !merchantEntry}
+                                disabled={lock}
                                 valueDefault={getValues("observations")}
                                 onChange={(value) => setValue("observations", value)}
                                 error={errors?.observations?.message}
@@ -352,12 +358,13 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                     if (value) {
                                         setProductsToShow(productsToShow.filter(x => x.productid !== value.productid))
                                         productAppend({
-                                            purchasedetailid: fieldsProduct.length * -1,
+                                            saleorderdetailid: fieldsProduct.length * -1,
                                             productid: value.productid,
+                                            stockid: value.stockid,
                                             product_description: value.description,
-                                            price: parseFloat((value?.purchase_price || "0")),
+                                            price: parseFloat((value?.price_1 || "0")),
                                             quantity: 0,
-                                            delivered_quantity: 0,
+                                            stock: value.quantity,
                                             subtotal: 0.0,
                                             list_unit: [
                                                 { unit: value.unit, unit_desc: `${value.unit} (1)`, quantity: 1 },
@@ -380,19 +387,16 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                         <TableCell>
                                         </TableCell>
                                         <TableCell>Producto</TableCell>
-                                        <TableCell style={{ textAlign: 'right' }}>Unidad</TableCell>
-                                        <TableCell style={{ textAlign: 'right' }}>Cantidad</TableCell>
-                                        {merchantEntry && (
-                                            <TableCell style={{ textAlign: 'right' }}>Cantidad Entregada</TableCell>
-                                        )}
-                                        <TableCell style={{ textAlign: 'right' }}>Precio</TableCell>
-                                        <TableCell style={{ textAlign: 'right' }}>Subtotal</TableCell>
+                                        <TableCell style={{}}>Unidad</TableCell>
+                                        <TableCell style={{}}>Cantidad</TableCell>
+                                        <TableCell style={{}}>Precio</TableCell>
+                                        <TableCell style={{}}>Subtotal</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody style={{ marginTop: 5 }}>
                                     {fieldsProduct.map((item, i: number) =>
                                         <TableRow key={item.id}>
-                                            <TableCell width={30}>
+                                            <TableCell width={20}>
                                                 {!lock && (
                                                     <div style={{ display: 'flex' }}>
                                                         <IconButton
@@ -409,7 +413,6 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                     {getValues(`products.${i}.product_description`)}
                                                 </div>
                                             </TableCell>
-
                                             <TableCell width={200}>
                                                 <FieldSelect
                                                     label={""}
@@ -435,7 +438,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                             <TableCell width={180}>
                                                 <FieldEditArray
                                                     fregister={{
-                                                        ...register(`products.${i}.quantity`),
+                                                        ...register(`products.${i}.quantity`, { validate: (value) => (value >= 0 && value <= getValues(`products.${i}.stock`)) || "Debe ingresar una cantidad correcta" }),
                                                     }}
                                                     inputProps={{ min: 0, style: { textAlign: 'right' } }} // the change is here
                                                     type={"number"}
@@ -451,23 +454,6 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                     }}
                                                 />
                                             </TableCell>
-                                            {merchantEntry && (
-                                                <TableCell width={180}>
-                                                    <FieldEditArray
-                                                        fregister={{
-                                                            ...register(`products.${i}.delivered_quantity`),
-                                                        }}
-                                                        inputProps={{ min: 0, max: getValues(`products.${i}.quantity`), style: { textAlign: 'right' } }} // the change is here
-                                                        type={"number"}
-                                                        valueDefault={getValues(`products.${i}.delivered_quantity`)}
-                                                        error={errors?.products?.[i]?.delivered_quantity?.message}
-                                                        onChange={(value) => {
-                                                            setValue(`products.${i}.delivered_quantity`, value)
-                                                            // trigger(`products.${i}.subtotal`);
-                                                        }}
-                                                    />
-                                                </TableCell>
-                                            )}
                                             <TableCell width={180}>
                                                 <FieldEditArray
                                                     fregister={{
@@ -488,7 +474,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                     }}
                                                 />
                                             </TableCell>
-                                            <TableCell width={180}>
+                                            <TableCell width={100}>
                                                 <div style={{ textAlign: 'right' }}>
                                                     {getValues(`products.${i}.subtotal`).toFixed(2)}
                                                 </div>
@@ -502,9 +488,6 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                         <TableCell></TableCell>
                                         <TableCell></TableCell>
                                         <TableCell></TableCell>
-                                        {merchantEntry && (
-                                            <TableCell></TableCell>
-                                        )}
                                         <TableCell>Total</TableCell>
                                         <TableCell style={{
                                             fontWeight: "bold",

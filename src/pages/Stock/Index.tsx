@@ -1,8 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Button, makeStyles, Typography } from "@material-ui/core";
 import { Dictionary } from "@types";
-import { getStockSel, getValuesFromDomain, getWareHouse, insCorp } from "common/helpers";
-import { FieldSelect, TemplateIcons } from "components";
+import { getStockSel, getValuesFromDomain, getWareHouse } from "common/helpers";
+import { FieldSelect } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
 import { SearchIcon } from "icons";
@@ -10,8 +10,8 @@ import { langKeys } from "lang/keys";
 import React, { FC, useEffect, useState } from "react"; // we need this to make JSX compile
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
-import { execute, getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
-import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
+import { getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
+import { showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
 
 const useStyles = makeStyles((theme) => ({
@@ -161,32 +161,6 @@ const Stock: FC = () => {
         ],
         []
     );
-
-    const handleRegister = () => {
-        setViewSelected("view-2");
-        setRowSelected(null);
-    };
-
-    const handleEdit = (row: Dictionary) => {
-        setViewSelected("view-2");
-        setRowSelected(row);
-    };
-
-    const handleDelete = (row: Dictionary) => {
-        const callback = () => {
-            dispatch(execute(insCorp({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.corpid })));
-            dispatch(showBackdrop(true));
-            setWaitSave(true);
-        };
-
-        dispatch(
-            manageConfirmation({
-                visible: true,
-                question: t(langKeys.confirmation_delete),
-                callback,
-            })
-        );
-    };
 
     if (viewSelected === "view-1") {
         return (

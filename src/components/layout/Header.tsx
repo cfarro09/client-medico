@@ -29,9 +29,11 @@ const Header = ({ classes }: IProps) => {
     const dispatch = useDispatch();
     const myClasses = useToolbarStyles();
     const openDrawer = useSelector(state => state.popus.openDrawer);
+
     React.useEffect(() => {
         !localStorage.getItem('openDrawer') && dispatch(setOpenDrawer(false));
-    }, [])
+    }, [dispatch])
+    
     return (
         <AppBar
             elevation={0}

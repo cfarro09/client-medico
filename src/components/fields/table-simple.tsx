@@ -232,7 +232,7 @@ export const SelectFilterTmp: React.FC<{ value: any; data: any[]; handleClickIte
 }
 
 export const DateOptionsMenuComponent = (value: any, handleClickItemMenu: (key: any) => void) => {
-    const { t } = useTranslation();
+    // const { t } = useTranslation();
     const [value2, setvalue2] = useState(null)
 
     useEffect(() => {
@@ -861,7 +861,7 @@ const TableZyx = React.memo(({
                                         column.activeOnHover ?
                                             <th style={{ width: "0px" }} key="header-floating"></th> :
                                             <TableCell key={ii} style={useSelection ? {
-                                                ...(column.width == 'auto' ? {
+                                                ...(column.width === 'auto' ? {
                                                     flex: 1,
                                                 } : {
                                                     minWidth: column.minWidth,

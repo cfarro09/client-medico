@@ -1,17 +1,16 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, Card, CardActions, CardContent, makeStyles, Paper, Typography } from "@material-ui/core";
-import { Dictionary } from "@types";
-import { getCorpSel, getValuesFromDomain, insCorp } from "common/helpers";
-import { TemplateIcons } from "components";
-import TableZyx from "components/fields/table-simple";
+import { makeStyles } from "@material-ui/core";
+// import { Dictionary } from "@types";
+import { getCorpSel, getValuesFromDomain } from "common/helpers";
+// import { TemplateIcons } from "components";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
 import React, { FC, useEffect, useState } from "react"; // we need this to make JSX compile
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
-import { execute, getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
-import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
-import Detail from "./Detail";
+import { getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
+import { showBackdrop, showSnackbar } from "store/popus/actions";
+// import Detail from "./Detail";
 
 const useStyles = makeStyles((theme) => ({
     container: {
@@ -54,23 +53,23 @@ const Dashboard: FC = () => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainResult = useSelector((state) => state.main.mainData);
-    const [viewSelected, setViewSelected] = useState("view-1");
-    const [rowSelected, setRowSelected] = useState<Dictionary | null>(null);
+    // const [viewSelected, setViewSelected] = useState("view-1");
+    // const [rowSelected, setRowSelected] = useState<Dictionary | null>(null);
     const [waitSave, setWaitSave] = useState(false);
-    const [dataView, setDataView] = useState<Dictionary[]>([]);
+    // const [dataView, setDataView] = useState<Dictionary[]>([]);
     const applications = useSelector((state) => state.login?.validateToken?.user?.menu);
-    const [pagePermissions, setPagePermissions] = useState<Dictionary>({});
+    // const [pagePermissions, setPagePermissions] = useState<Dictionary>({});
     const executeResult = useSelector((state) => state.main.execute);
 
     useEffect(() => {
         if (applications) {
-            setPagePermissions({
-                view: applications["/corporations"][0],
-                modify: applications["/corporations"][1],
-                insert: applications["/corporations"][2],
-                delete: applications["/corporations"][3],
-                download: applications["/corporations"][4],
-            });
+            // setPagePermissions({
+            //     view: applications["/corporations"][0],
+            //     modify: applications["/corporations"][1],
+            //     insert: applications["/corporations"][2],
+            //     delete: applications["/corporations"][3],
+            //     download: applications["/corporations"][4],
+            // });
         }
     }, [applications]);
 
@@ -91,7 +90,7 @@ const Dashboard: FC = () => {
 
     useEffect(() => {
         if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_CORPORATION_SEL") {
-            setDataView(mainResult.data);
+            // setDataView(mainResult.data);
         }
     }, [mainResult]);
 
@@ -113,72 +112,72 @@ const Dashboard: FC = () => {
         }
     }, [executeResult, waitSave]);
 
-    const columns = React.useMemo(
-        () => [
-            {
-                accessor: "corpid",
-                isComponent: true,
-                minWidth: 60,
-                width: "1%",
-                Cell: (props: any) => {
-                    const row = props.cell.row.original;
-                    return <TemplateIcons deleteFunction={() => handleDelete(row)} />;
-                },
-            },
-            {
-                Header: t(langKeys.description),
-                accessor: "description",
-            },
-            {
-                Header: t(langKeys.status),
-                accessor: "status",
-                prefixTranslation: "status_",
-                Cell: (props: any) => {
-                    const { status } = props.cell.row.original;
-                    return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
-                },
-            },
-            {
-                Header: t(langKeys.createdBy),
-                accessor: "createdby",
-            },
-            {
-                Header: t(langKeys.creationDate),
-                accessor: "createdate",
-                Cell: (props: any) => {
-                    const date = props.cell.row.original.createdate;
-                    return date.split(".")[0].split(" ")[0];
-                },
-            },
-        ],
-        []
-    );
+    // const columns = React.useMemo(
+    //     () => [
+    //         {
+    //             accessor: "corpid",
+    //             isComponent: true,
+    //             minWidth: 60,
+    //             width: "1%",
+    //             Cell: (props: any) => {
+    //                 const row = props.cell.row.original;
+    //                 return <TemplateIcons deleteFunction={() => handleDelete(row)} />;
+    //             },
+    //         },
+    //         {
+    //             Header: t(langKeys.description),
+    //             accessor: "description",
+    //         },
+    //         {
+    //             Header: t(langKeys.status),
+    //             accessor: "status",
+    //             prefixTranslation: "status_",
+    //             Cell: (props: any) => {
+    //                 const { status } = props.cell.row.original;
+    //                 return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
+    //             },
+    //         },
+    //         {
+    //             Header: t(langKeys.createdBy),
+    //             accessor: "createdby",
+    //         },
+    //         {
+    //             Header: t(langKeys.creationDate),
+    //             accessor: "createdate",
+    //             Cell: (props: any) => {
+    //                 const date = props.cell.row.original.createdate;
+    //                 return date.split(".")[0].split(" ")[0];
+    //             },
+    //         },
+    //     ],
+    //     []
+    // );
 
-    const handleRegister = () => {
-        setViewSelected("view-2");
-        setRowSelected(null);
-    };
+    // const handleRegister = () => {
+    //     setViewSelected("view-2");
+    //     setRowSelected(null);
+    // };
 
-    const handleEdit = (row: Dictionary) => {
-        setViewSelected("view-2");
-        setRowSelected(row);
-    };
+    // const handleEdit = (row: Dictionary) => {
+    //     setViewSelected("view-2");
+    //     setRowSelected(row);
+    // };
 
-    const handleDelete = (row: Dictionary) => {
-        const callback = () => {
-            dispatch(execute(insCorp({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.corpid })));
-            dispatch(showBackdrop(true));
-            setWaitSave(true);
-        };
+    // const handleDelete = (row: Dictionary) => {
+    //     const callback = () => {
+    //         dispatch(execute(insCorp({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.corpid })));
+    //         dispatch(showBackdrop(true));
+    //         setWaitSave(true);
+    //     };
 
-        dispatch(
-            manageConfirmation({
-                visible: true,
-                question: t(langKeys.confirmation_delete),
-                callback,
-            })
-        );
-    };
+    //     dispatch(
+    //         manageConfirmation({
+    //             visible: true,
+    //             question: t(langKeys.confirmation_delete),
+    //             callback,
+    //         })
+    //     );
+    // };
 
     return (
         <div style={{ width: "100%" }}>

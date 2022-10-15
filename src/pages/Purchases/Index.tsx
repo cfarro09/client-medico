@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
 import { getProductList, getPurchases, getSupplierList, getValuesFromDomain, getWareHouse, insPurchase } from "common/helpers";
-import { DialogZyx, TemplateIcons } from "components";
+import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
@@ -44,7 +44,6 @@ const Purchase: FC = () => {
         fetchData();
         dispatch(getMultiCollection([
             getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
-            getValuesFromDomain("TIPOCORP", "DOMAIN-TIPOCORP"),
             getProductList(),
             getSupplierList(),
             getWareHouse(),

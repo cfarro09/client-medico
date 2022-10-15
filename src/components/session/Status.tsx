@@ -3,8 +3,6 @@ import { createStyles, makeStyles, Paper, Theme } from "@material-ui/core";
 import IOSSwitch from "components/fields/IOSSwitch";
 import { Trans } from "react-i18next";
 import { langKeys } from "lang/keys";
-import { useSelector } from 'hooks';
-import { useDispatch } from 'react-redux';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -19,7 +17,7 @@ const useStyles = makeStyles((theme: Theme) =>
 
 const Status: FC = () => {
     const classes = useStyles();
-    const dispatch = useDispatch();
+    // const dispatch = useDispatch();
     // const userConnected = useSelector(state => state.inbox.userConnected);
 
     // const onChecked = () => {

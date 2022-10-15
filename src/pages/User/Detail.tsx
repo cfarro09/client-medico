@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Button, IconButton, InputAdornment, makeStyles } from "@material-ui/core";
 import { DetailModule, Dictionary } from "@types";
 import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TitleDetail, DialogZyx, TemplateSwitch, FieldMultiSelect } from "components";

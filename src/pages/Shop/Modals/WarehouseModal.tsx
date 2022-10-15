@@ -3,7 +3,7 @@ import { makeStyles } from "@material-ui/core";
 import { Dictionary } from "@types";
 import { DialogZyx, FieldEdit } from "components";
 import { langKeys } from "lang/keys";
-import React, { useEffect, useState } from "react"; // we need this to make JSX compile
+import React, { useEffect } from "react"; // we need this to make JSX compile
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";

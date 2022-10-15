@@ -10,7 +10,7 @@ import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import Avatar from '@material-ui/core/Avatar';
 import PowerSettingsNewIcon from '@material-ui/icons/PowerSettingsNew';
-import { ManageOrganization, BadgeGo, StatusConnection } from 'components';
+import { BadgeGo, StatusConnection } from 'components';
 import ManageShop from "./ManageShop";
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -82,10 +82,6 @@ const AccountMenu: FC = () => {
         dispatch(logout());
         history.push('/sign-in');
     }
-    const gotoSettings = () => {
-        history.push('/usersettings');
-    }
-
     const open = Boolean(anchorEl);
     const id = open ? 'simple-popoverxx' : undefined;
 

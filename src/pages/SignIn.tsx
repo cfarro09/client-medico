@@ -71,14 +71,10 @@ export const useStyles = makeStyles((theme) => ({
 }));
 
 export function Copyright() {
-    const { t } = useTranslation();
     return (
         <Fragment>
             <Typography variant="body2" color="textPrimary" align="center">
                 {'Copyright © '} IEE {new Date().getFullYear()}
-            </Typography>
-            <Typography variant="body2" color="textPrimary" align="center">
-                <a href="#" target="_blank" rel="noopener noreferrer">{t(langKeys.privacypoliciestitle)}</a>
             </Typography>
         </Fragment>
     );

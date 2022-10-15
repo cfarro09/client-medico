@@ -1,7 +1,4 @@
-import { DashboardTemplateSave, Dictionary, IChannel, IChatWebAdd, ICrmLead, ICrmLeadActivitySave, ICrmLeadNoteSave, ICrmLeadTagsSave, ILead, IPerson, IRequestBody, IRequestBodyPaginated } from '@types';
-import { uuidv4 } from '.';
-
-type ID = string | number;
+import { IRequestBody, Dictionary } from '@types';
 
 export const getUserSel = (userid: number): IRequestBody => ({
     method: "UFN_USER_SEL",
@@ -57,10 +54,10 @@ export const getCorpSel = (id: number): IRequestBody => ({
     }
 });
 
-export const getStockSel = ( parameters: Dictionary): IRequestBody => ({
+export const getStockSel = (parameters: Dictionary): IRequestBody => ({
     method: "UFN_STOCK_SEL",
     key: "UFN_STOCK_SEL",
-    parameters: {... parameters }
+    parameters: { ...parameters }
 });
 
 export const getSupplierSel = (id: number): IRequestBody => ({
@@ -79,6 +76,11 @@ export const getCustomerSel = (id: number): IRequestBody => ({
         id: id,
         all: id === 0,
     }
+});
+export const getCustomerList = (): IRequestBody => ({
+    method: "UFN_CUSTOMER_LST",
+    key: "UFN_CUSTOMER_LST",
+    parameters: {}
 });
 
 export const getProductSel = (id: number): IRequestBody => ({
@@ -196,6 +198,14 @@ export const getDetailPurchase = (purchaseorderid: number): IRequestBody => ({
     }
 })
 
+export const getDetailSale = (saleorderid: number): IRequestBody => ({
+    method: "UFN_SALE_ORDER_DETAIL_SEL",
+    key: "UFN_SALE_ORDER_DETAIL_SEL",
+    parameters: {
+        saleorderid
+    }
+})
+
 export const insPurchaseDetail = ({ status, operation, delivered_quantity, purchasedetailid, productid, price, quantity, subtotal: total }: Dictionary): IRequestBody => ({
     method: "UFN_PURCHASE_DETAIL_INS",
     key: "UFN_PURCHASE_DETAIL_INS",
@@ -210,6 +220,37 @@ export const insPurchaseDetail = ({ status, operation, delivered_quantity, purch
         price,
         delivered_quantity,
         operation
+    }
+})
+
+export const insOrderSale = ({ saleorderid, customerid, warehouseid, status, document_type, document_number, operation }: Dictionary): IRequestBody => ({
+    method: "UFN_SALE_ORDER_INS",
+    key: "UFN_SALE_ORDER_INS",
+    parameters: {
+        id: saleorderid || 0,
+        customerid,
+        warehouseid,
+        order_number: "",
+        status,
+        document_type,
+        document_number,
+        operation,
+    }
+})
+
+export const insSaleDetail = ({ saleorderdetailid, stockid, productid, quantity, subtotal: total, price, status, operation }: Dictionary): IRequestBody => ({
+    method: "UFN_SALE_ORDER_DETAIL_INS",
+    key: "UFN_SALE_ORDER_DETAIL_INS",
+    parameters: {
+        id: saleorderdetailid || 0,
+        stockid,
+        productid,
+        quantity,
+        status,
+        total,
+        discount: 0,
+        price,
+        operation,
     }
 })
 

@@ -2,7 +2,6 @@ import React, { FC, useEffect, useState } from 'react';
 
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import VisibilityIcon from '@material-ui/icons/Visibility';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import IconButton from '@material-ui/core/IconButton';
 import Breadcrumbs from '@material-ui/core/Breadcrumbs';
@@ -27,10 +26,10 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Tab, { TabProps } from '@material-ui/core/Tab';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import { FormControlLabel, FormHelperText, OutlinedInputProps, Radio, RadioGroup, RadioGroupProps, useTheme, TypographyVariant } from '@material-ui/core';
-import { Divider, Grid, ListItem, ListItemText, styled } from '@material-ui/core';
+import { Divider, Grid, ListItem, ListItemText } from '@material-ui/core';
 import { Skeleton } from '@material-ui/lab';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
-import { EmojiICon, GifIcon } from 'icons';
+import { GifIcon } from 'icons';
 // import { Picker } from 'emoji-mart'
 import { SearchField } from 'components';
 import CameraAltIcon from '@material-ui/icons/CameraAlt';
