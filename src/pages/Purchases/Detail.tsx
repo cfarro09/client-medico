@@ -561,7 +561,6 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                     error={errors?.products?.[i]?.price?.message}
                                                     disabled={lock}
                                                     onChange={(value) => {
-                                                        console.log("value", value)
                                                         setValue(`products.${i}.price`, value);
                                                         const quantity = getValues(`products.${i}.quantity`);
                                                         // const n_bottles = getValues(`products.${i}.n_bottles`);

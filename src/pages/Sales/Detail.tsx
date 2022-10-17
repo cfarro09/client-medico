@@ -15,6 +15,7 @@ import { getDetailSale, insOrderSale, insSaleDetail } from "common/helpers";
 import { Button, makeStyles, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableFooter } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Tabs from '@material-ui/core/Tabs';
+import AddIcon from '@material-ui/icons/Add';
 
 const arrayBread = [
     { id: "view-1", name: "Sale" },
@@ -42,6 +43,7 @@ const useStyles = makeStyles((theme) => ({
 type FormFields = {
     saleorderid: number,
     products: Dictionary[],
+    payments: Dictionary[],
     customerid: number,
     warehouseid: number,
     bill_number: string,
@@ -61,18 +63,21 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
     const [productsToShow, setProductsToShow] = useState<Dictionary[]>([])
     const [pageSelected, setPageSelected] = useState(0)
     const [lock, setLock] = useState(false)
+    const [totalOrder, setTotalOrder] = useState(0);
     const [dataExtra, setDataExtra] = useState<{
         status: Dictionary[];
         products: Dictionary[],
         customers: Dictionary[],
         warehouses: Dictionary[],
         docType: Dictionary[],
+        payments: Dictionary[],
     }>({
         status: [],
         products: [],
         customers: [],
         warehouses: [],
         docType: [],
+        payments: [],
     });
     const dispatch = useDispatch();
     const { t } = useTranslation();
@@ -88,12 +93,19 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
             document_number: row?.document_number || "",
             status: row?.status || "PENDIENTE",
             bill_entry_date: row?.bill_entry_date || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
-            products: []
+            products: [],
+            payments: [],
         },
     });
+
     const { fields: fieldsProduct, append: productAppend, remove: productRemove } = useFieldArray({
         control,
         name: 'products',
+    });
+
+    const { fields: fieldsPayment, append: paymentAppend, remove: paymentRemove } = useFieldArray({
+        control,
+        name: 'payments',
     });
 
     useEffect(() => {
@@ -103,8 +115,9 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
             const warehouses = multiData.data.find((x) => x.key === "UFN_WAREHOUSE_LST");
             const customers = multiData.data.find((x) => x.key === "UFN_CUSTOMER_LST");
             const docType = multiData.data.find(x => x.key === "DOMAIN-TIPOCOMPROBANTE");
+            const payments = multiData.data.find(x => x.key === "DOMAIN-METODOPAGO");
 
-            if (dataStatus && customers && products && warehouses && docType) {
+            if (dataStatus && customers && products && warehouses && docType && payments) {
                 setProductsToShow(products.data)
                 setDataExtra({
                     status: dataStatus.data,
@@ -112,8 +125,8 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                     warehouses: warehouses.data,
                     customers: customers.data,
                     docType: docType.data,
+                    payments: payments.data,
                 });
-
                 // setValue('customerid', suppliers.data?.[0]?.customerid || 0);
                 // trigger("customerid");
                 setValue('warehouseid', warehouses.data?.[0]?.warehouseid || 0);
@@ -146,10 +159,13 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
         }
     }, [executeResult, waitSave]);
 
-
     const onSubmit = handleSubmit((data) => {
         if (data.products.filter(item => item.status !== "ELIMINADO").length === 0) {
             dispatch(showSnackbar({ show: true, success: false, message: "Debe tener como minimo un producto registrado" }));
+            return
+        }
+        if (data.payments.reduce((acc, x) => acc + x.amount, 0) !== totalOrder) {
+            dispatch(showSnackbar({ show: true, success: false, message: "Debe tener como xxx" }));
             return
         }
         const callback = () => {
@@ -222,6 +238,11 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
         }
     }, [register]);
 
+    useEffect(() => {
+        const total = getValues("products").filter(item => item.status !== "ELIMINADO").reduce((acc, item) => acc + item.subtotal, 0)
+        setTotalOrder(total)
+    }, [getValues("products")])
+
     return (
         <div style={{ width: "100%" }}>
             <form onSubmit={onSubmit}>
@@ -253,6 +274,12 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                         )}
                     </div>
                 </div>
+                <div style={{ fontSize: 20, fontWeight: "bold" }}>
+                    <div style={{ display: "flex", gap: 8 }}>
+                        <div>Total</div>
+                        <div>S/ {totalOrder.toFixed(2)}</div>
+                    </div>
+                </div>
                 <Tabs
                     value={pageSelected}
                     indicatorColor="primary"
@@ -264,89 +291,177 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                     <AntTab label={"Informacion"} />
                     <AntTab label="Productos" />
                 </Tabs>
-
                 {pageSelected === 0 && (
-                    <div className={classes.containerDetail}>
-                        <div className="row-zyx">
-                            <FieldEdit
-                                label={"N° Orden de venta"}
-                                className="col-6"
-                                valueDefault={getValues("bill_number")}
-                                onChange={(value) => setValue("bill_number", value)}
-                                error={errors?.bill_number?.message}
-                                disabled={true}
-                            />
-                            <FieldEdit
-                                label={"Fecha de la orden de venta"}
-                                type="date"
-                                className="col-6"
-                                valueDefault={getValues("bill_entry_date")}
-                                onChange={(value) => setValue("bill_entry_date", value)}
-                                error={errors?.bill_entry_date?.message}
-                                disabled={lock}
-                            />
+                    <>
+                        <div className={classes.containerDetail}>
+                            <div className="row-zyx">
+                                <FieldEdit
+                                    label={"N° Orden de venta"}
+                                    className="col-6"
+                                    valueDefault={getValues("bill_number")}
+                                    onChange={(value) => setValue("bill_number", value)}
+                                    error={errors?.bill_number?.message}
+                                    disabled={true}
+                                />
+                                <FieldEdit
+                                    label={"Fecha de la orden de venta"}
+                                    type="date"
+                                    className="col-6"
+                                    valueDefault={getValues("bill_entry_date")}
+                                    onChange={(value) => setValue("bill_entry_date", value)}
+                                    error={errors?.bill_entry_date?.message}
+                                    disabled={lock}
+                                />
+                            </div>
+                            <div className="row-zyx">
+                                <FieldSelect
+                                    loading={multiData.loading}
+                                    label={"Tipo comprobante"}
+                                    className="col-6"
+                                    valueDefault={getValues('document_type')}
+                                    onChange={(value) => setValue('document_type', value?.domainvalue || "")}
+                                    error={errors?.document_type?.message}
+                                    data={dataExtra.docType}
+                                    disabled={lock}
+                                    optionDesc="domaindesc"
+                                    optionValue="domainvalue"
+                                />
+                                <FieldEdit
+                                    label={"N° comprobante"}
+                                    className="col-6"
+                                    valueDefault={getValues("document_number")}
+                                    onChange={(value) => setValue("document_number", value)}
+                                    error={errors?.document_number?.message}
+                                    disabled={lock}
+                                />
+                            </div>
+                            <div className="row-zyx">
+                                <FieldSelect
+                                    loading={multiData.loading}
+                                    label={t(langKeys.customer)}
+                                    className="col-6"
+                                    valueDefault={getValues('customerid')}
+                                    onChange={(value) => setValue('customerid', value ? value.customerid : 0)}
+                                    error={errors?.customerid?.message}
+                                    data={dataExtra.customers}
+                                    optionDesc="description"
+                                    disabled={lock}
+                                    optionValue="customerid"
+                                />
+                                <FieldSelect
+                                    loading={multiData.loading}
+                                    label={"Almacen"}
+                                    className="col-6"
+                                    valueDefault={getValues('warehouseid')}
+                                    onChange={(value) => setValue('warehouseid', value ? value.warehouseid : 0)}
+                                    error={errors?.warehouseid?.message}
+                                    data={dataExtra.warehouses}
+                                    optionDesc="description"
+                                    disabled={lock}
+                                    optionValue="warehouseid"
+                                />
+                            </div>
+                            <div className="row-zyx" style={{ display: "none" }}>
+                                <FieldEditMulti
+                                    label={"Observación"}
+                                    type="date"
+                                    rows={3}
+                                    className="col-12"
+                                    disabled={lock}
+                                    valueDefault={getValues("observations")}
+                                    onChange={(value) => setValue("observations", value)}
+                                    error={errors?.observations?.message}
+                                />
+                            </div>
                         </div>
-                        <div className="row-zyx">
-                            <FieldSelect
-                                loading={multiData.loading}
-                                label={"Tipo comprobante"}
-                                className="col-6"
-                                valueDefault={getValues('document_type')}
-                                onChange={(value) => setValue('document_type', value?.domainvalue || "")}
-                                error={errors?.document_type?.message}
-                                data={dataExtra.docType}
-                                disabled={lock}
-                                optionDesc="domaindesc"
-                                optionValue="domainvalue"
-                            />
-                            <FieldEdit
-                                label={"N° comprobante"}
-                                className="col-6"
-                                valueDefault={getValues("document_number")}
-                                onChange={(value) => setValue("document_number", value)}
-                                error={errors?.document_number?.message}
-                                disabled={lock}
-                            />
+                        <div className={classes.containerDetail}>
+                            <div style={{ fontWeight: 500 }}>
+                                MÉTODOS DE PAGO
+                            </div>
+                            <TableContainer>
+                                <Table size="small">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => {
+                                                        const tt = getValues("payments").reduce((acc, x) => acc + x.amount, 0)
+                                                        paymentAppend({ method: "EFECTIVO", amount: totalOrder - tt })
+                                                    }}
+                                                >
+                                                    <AddIcon />
+                                                </IconButton>
+                                            </TableCell>
+                                            <TableCell>Modo</TableCell>
+                                            <TableCell>Monto</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody style={{ marginTop: 5 }}>
+                                        {fieldsPayment.map((item, i: number) =>
+                                            <TableRow key={item.id}>
+                                                <TableCell width={20}>
+                                                    {!lock && (
+                                                        <div style={{ display: 'flex' }}>
+                                                            <IconButton
+                                                                size="small"
+                                                                onClick={() => { paymentRemove(i) }}
+                                                            >
+                                                                <DeleteIcon style={{ color: '#777777' }} />
+                                                            </IconButton>
+                                                        </div>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell width={200}>
+                                                    <FieldSelect
+                                                        label={""}
+                                                        className="col-6"
+                                                        valueDefault={getValues(`payments.${i}.method`)}
+                                                        onChange={(value) => setValue(`payments.${i}.method`, value.unit)}
+                                                        disableClearable={true}
+                                                        error={errors?.payments?.[i]?.method?.message}
+                                                        data={dataExtra.payments}
+                                                        fregister={{
+                                                            ...register(`payments.${i}.method`, { validate: (value) => (!!value) || "Debe ingresar una cantidad correcta" }),
+                                                        }}
+                                                        optionDesc="domainvalue"
+                                                        disabled={lock}
+                                                        optionValue="domainvalue"
+                                                    />
+                                                </TableCell>
+                                                <TableCell width={180}>
+                                                    <FieldEditArray
+                                                        fregister={{
+                                                            ...register(`payments.${i}.amount`, { validate: (value) => (value >= 0) || "Debe ingresar una cantidad correcta" }),
+                                                        }}
+                                                        inputProps={{ min: 0, style: { textAlign: 'right' } }} // the change is here
+                                                        type={"number"}
+                                                        valueDefault={getValues(`payments.${i}.amount`)}
+                                                        disabled={lock}
+                                                        error={errors?.payments?.[i]?.amount?.message}
+                                                        onChange={(value) => setValue(`payments.${i}.amount`, parseFloat(value || "0"))}
+                                                    />
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                    <TableFooter>
+                                        <TableRow>
+                                            <TableCell></TableCell>
+                                            <TableCell>Total</TableCell>
+                                            <TableCell style={{
+                                                fontWeight: "bold",
+                                                color: "black",
+                                                textAlign: "right",
+                                            }}>
+                                                {getValues("payments").reduce((acc, x) => acc + x.amount, 0).toFixed(2)}
+                                            </TableCell>
+                                        </TableRow>
+                                    </TableFooter>
+                                </Table>
+                            </TableContainer>
                         </div>
-                        <div className="row-zyx">
-                            <FieldSelect
-                                loading={multiData.loading}
-                                label={t(langKeys.customer)}
-                                className="col-6"
-                                valueDefault={getValues('customerid')}
-                                onChange={(value) => setValue('customerid', value ? value.customerid : 0)}
-                                error={errors?.customerid?.message}
-                                data={dataExtra.customers}
-                                optionDesc="description"
-                                disabled={lock}
-                                optionValue="customerid"
-                            />
-                            <FieldSelect
-                                loading={multiData.loading}
-                                label={"Almacen"}
-                                className="col-6"
-                                valueDefault={getValues('warehouseid')}
-                                onChange={(value) => setValue('warehouseid', value ? value.warehouseid : 0)}
-                                error={errors?.warehouseid?.message}
-                                data={dataExtra.warehouses}
-                                optionDesc="description"
-                                disabled={lock}
-                                optionValue="warehouseid"
-                            />
-                        </div>
-                        <div className="row-zyx">
-                            <FieldEditMulti
-                                label={"Observación"}
-                                type="date"
-                                rows={3}
-                                className="col-12"
-                                disabled={lock}
-                                valueDefault={getValues("observations")}
-                                onChange={(value) => setValue("observations", value)}
-                                error={errors?.observations?.message}
-                            />
-                        </div>
-                    </div>
+                    </>
                 )}
                 {pageSelected === 1 && (
                     <div className={classes.containerDetail}>
@@ -465,7 +580,6 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                                     error={errors?.products?.[i]?.price?.message}
                                                     disabled={lock}
                                                     onChange={(value) => {
-                                                        console.log("value", value)
                                                         setValue(`products.${i}.price`, value);
                                                         const quantity = getValues(`products.${i}.quantity`);
                                                         const n_bottles = getValues(`products.${i}.n_bottles`);

@@ -46,6 +46,7 @@ const Sales: FC = () => {
             getCustomerList(),
             getWareHouse(),
             getValuesFromDomain("TIPOCOMPROBANTE", "DOMAIN-TIPOCOMPROBANTE"),
+            getValuesFromDomain("METODOPAGO", "DOMAIN-METODOPAGO"),
         ]));
         return () => {
             dispatch(resetAllMain());
