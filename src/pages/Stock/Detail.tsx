@@ -1,22 +1,23 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, makeStyles } from "@material-ui/core";
+import { Button, Chip, makeStyles, Paper, Typography } from "@material-ui/core";
 import { DetailModule, Dictionary } from "@types";
-import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
+import { DateRangePicker, TemplateBreadcrumbs, TitleDetail } from "components";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
 import React, { useEffect, useState } from "react"; // we need this to make JSX compile
-import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
-import ClearIcon from "@material-ui/icons/Clear";
-import SaveIcon from "@material-ui/icons/Save";
-import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
-import { execute } from "store/main/actions";
-import { insCorp } from "common/helpers";
+import { showBackdrop, showSnackbar } from "store/popus/actions";
+import { getCollectionAux } from "store/main/actions";
+import { getDateCleaned, getKardexSel } from "common/helpers";
+import TableZyx from "components/fields/table-simple";
+import { Range } from "react-date-range";
+import { CalendarIcon } from "icons";
+import { ArrowBack } from "@material-ui/icons";
 
 const arrayBread = [
-    { id: "view-1", name: "Corporation" },
-    { id: "view-2", name: "Corporation detail" },
+    { id: "view-1", name: "Stock" },
+    { id: "view-2", name: "Kardex" },
 ];
 
 const useStyles = makeStyles((theme) => ({
@@ -31,13 +32,46 @@ const useStyles = makeStyles((theme) => ({
         fontSize: "14px",
         textTransform: "initial",
     },
+    containerHeader: {
+        marginBottom: 0,
+        display: "flex",
+        gap: 8,
+        flexWrap: "wrap",
+        justifyContent: "space-between",
+        alignItems: "center",
+        [theme.breakpoints.up("sm")]: {
+            display: "flex",
+        },
+        "& > div": {
+            display: "flex",
+            gap: 8,
+        },
+    },
+    itemDate: {
+        minHeight: 40,
+        height: 40,
+        border: "1px solid #bfbfc0",
+        borderRadius: 4,
+        color: "rgb(143, 146, 161)",
+    },
 }));
 
-const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
+const initialRange = {
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
+    endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+    key: "selection",
+};
+
+const DetailStock: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
     const classes = useStyles();
     const [waitSave, setWaitSave] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
     const multiData = useSelector((state) => state.main.multiData);
+    const detailRes = useSelector((state) => state.main.mainAux);
+    const [openDateRangeModal, setOpenDateRangeModal] = useState(false);
+    const [dateRange, setDateRange] = useState<Range>(initialRange);
+    const [dataDetail, setDataDetail] = useState<Dictionary[]>([]);
+    const [dataDetailToShow, setDataDetailToShow] = useState<Dictionary[]>([]);
     const [dataExtra, setDataExtra] = useState<{ status: Dictionary[]; type: Dictionary[] }>({ status: [], type: [] });
     const dispatch = useDispatch();
     const { t } = useTranslation();
@@ -54,6 +88,25 @@ const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetch
             }
         }
     }, [multiData]);
+
+    const search = () => {
+        dispatch(
+            getCollectionAux(
+                getKardexSel({
+                    stockid: row?.stockid,
+                    startdate: dateRange.startDate,
+                    finishdate: dateRange.endDate,
+                })
+            )
+        );
+    };
+
+    useEffect(() => {
+        if (!detailRes.loading && !detailRes.error) {
+            setDataDetail(detailRes.data);
+            setDataDetailToShow(detailRes.data);
+        }
+    }, [detailRes]);
 
     useEffect(() => {
         if (waitSave) {
@@ -79,115 +132,143 @@ const DetailCorporation: React.FC<DetailModule> = ({ row, setViewSelected, fetch
         }
     }, [executeResult, waitSave]);
 
-    const {
-        register,
-        handleSubmit,
-        setValue,
-        getValues,
-        formState: { errors },
-    } = useForm({
-        defaultValues: {
-            id: row?.corpid || 0,
-            description: row?.description || "",
-            type: row?.type || "NINGUNO",
-            status: row?.status || "ACTIVO",
-            logo: row?.logo || "",
-            logotype: row?.logotype || "",
-            operation: row ? "UPDATE" : "INSERT",
-        },
-    });
+    useEffect(() => {
+        if (!openDateRangeModal) search();
+    }, [openDateRangeModal]);
 
-    const onSubmit = handleSubmit((data) => {
-        const callback = () => {
-            dispatch(showBackdrop(true));
-            dispatch(execute(insCorp(data)));
-            setWaitSave(true);
-        };
-
-        dispatch(
-            manageConfirmation({
-                visible: true,
-                question: t(langKeys.confirmation_save),
-                callback,
-            })
-        );
-    });
-
-    React.useEffect(() => {
-        register("description", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register("type", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register("status", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-    }, [register]);
+    const columns = React.useMemo(
+        () => [
+            {
+                Header: "TIPO",
+                accessor: "tipo",
+                NoFilter: true,
+                Cell: (props: any) => {
+                    const type = props.cell.row.original.in_out;
+                    return (
+                        <div>
+                            <Chip
+                                label={type == "in" ? "Entrada" : "Salida"}
+                                style={{
+                                    color: type == "in" ? "#28c76f" : "#ff9f43",
+                                    backgroundColor: type == "in" ? "rgba(40,199,111,.12)" : "rgba(255,159,67,.12)",
+                                    fontWeight: 600,
+                                }}
+                            />
+                        </div>
+                    );
+                },
+            },
+            {
+                Header: "Almacen",
+                accessor: "brand",
+                NoFilter: true,
+                Cell: (props: any) => {
+                    return row?.warehouse_name;
+                },
+            },
+            {
+                Header: "Producto",
+                accessor: "product",
+                NoFilter: true,
+                Cell: (props: any) => {
+                    return row?.product_name;
+                },
+            },
+            {
+                Header: "Documento",
+                accessor: "u_description",
+                NoFilter: true,
+                Cell: (props: any) => {
+                    const data = props.cell.row.original;
+                    return `${data.doc_type} # ${data.doc_num}`.toUpperCase();
+                },
+            },
+            {
+                Header: "Cantidad",
+                accessor: "quantity",
+                NoFilter: true,
+            },
+            {
+                Header: "Saldo",
+                accessor: "balance",
+                NoFilter: true,
+            },
+            {
+                Header: "Estado",
+                accessor: "status",
+                NoFilter: true,
+            },
+            {
+                Header: "Fecha Registro",
+                accessor: "createdate",
+                NoFilter: true,
+                Cell: (props: any) => {
+                    const date = props.cell.row.original.createdate;
+                    return date.split(".")[0].split(" ")[0];
+                },
+            },
+        ],
+        []
+    );
 
     return (
         <div style={{ width: "100%" }}>
-            <form onSubmit={onSubmit}>
-                <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
-                <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-                    <TitleDetail title={row ? `${row.description}` : t(langKeys.newcorporation)} />
-                    <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                        <Button
-                            variant="contained"
-                            type="button"
-                            color="primary"
-                            startIcon={<ClearIcon color="secondary" />}
-                            style={{ backgroundColor: "#FB5F5F" }}
-                            onClick={() => setViewSelected("view-1")}
-                        >
-                            {t(langKeys.back)}
-                        </Button>
-                        <Button
-                            className={classes.button}
-                            variant="contained"
-                            color="primary"
-                            type="submit"
-                            startIcon={<SaveIcon color="secondary" />}
-                            style={{ backgroundColor: "#55BD84" }}
-                        >
-                            {t(langKeys.save)}
-                        </Button>
-                    </div>
+            <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
+            <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
+                <TitleDetail title={row ? `${row.warehouse_name} - ${row.product_name}` : ""} />
+                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                    <Button
+                        variant="contained"
+                        type="button"
+                        color="primary"
+                        startIcon={<ArrowBack color="secondary" />}
+                        style={{ backgroundColor: "#55BD84" }}
+                        onClick={() => setViewSelected("view-1")}
+                    >
+                        {t(langKeys.back)}
+                    </Button>
                 </div>
-                <div className={classes.containerDetail}>
-                    <div className="row-zyx">
-                        <FieldEdit
-                            label={t(langKeys.corporation)}
-                            className="col-6"
-                            valueDefault={getValues("description")}
-                            onChange={(value) => setValue("description", value)}
-                            error={errors?.description?.message}
-                        />
-                        <FieldSelect
-                            label={t(langKeys.type)}
-                            className="col-6"
-                            valueDefault={getValues("type")}
-                            onChange={(value) => setValue("type", value?.domainvalue)}
-                            error={errors?.type?.message}
-                            data={dataExtra.type}
-                            uset={true}
-                            prefixTranslation="type_corp_"
-                            optionDesc="domainvalue"
-                            optionValue="domainvalue"
-                        />
+            </div>
+            <div className={classes.containerDetail}>
+                <Paper elevation={0}>
+                    <div className="row-zyx" style={{ justifyContent: "space-between" }}>
+                        <div className="col-12" style={{ marginRight: "20px" }}>
+                            <Typography style={{ fontSize: "20px", marginBottom: "22px" }}>Kardex</Typography>
+
+                            <TableZyx
+                                columns={columns}
+                                data={dataDetailToShow}
+                                download={true}
+                                loading={detailRes.loading}
+                                filterGeneral={false}
+                                register={false}
+                                ButtonsElement={() => (
+                                    <div className={classes.containerHeader}>
+                                        <DateRangePicker
+                                            open={openDateRangeModal}
+                                            setOpen={setOpenDateRangeModal}
+                                            range={dateRange}
+                                            onSelect={setDateRange}
+                                        >
+                                            <Button
+                                                className={classes.itemDate}
+                                                startIcon={<CalendarIcon />}
+                                                onClick={() => setOpenDateRangeModal(!openDateRangeModal)}
+                                            >
+                                                {getDateCleaned(dateRange.startDate!) +
+                                                    " - " +
+                                                    getDateCleaned(dateRange.endDate!)}
+                                            </Button>
+                                        </DateRangePicker>
+                                    </div>
+                                )}
+                            />
+                        </div>
                     </div>
-                    <div className="row-zyx">
-                        <FieldSelect
-                            label={t(langKeys.status)}
-                            className="col-6"
-                            valueDefault={getValues("status")}
-                            onChange={(value) => setValue("status", value?.domainvalue)}
-                            error={errors?.status?.message}
-                            data={dataExtra.status}
-                            uset={true}
-                            prefixTranslation="status_"
-                            optionDesc="domainvalue"
-                            optionValue="domainvalue"
-                        />
-                    </div>
-                </div>
-            </form>
+                </Paper>
+            </div>
         </div>
     );
 };
 
-export default DetailCorporation;
+export default DetailStock;

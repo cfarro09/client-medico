@@ -60,6 +60,12 @@ export const getStockSel = (parameters: Dictionary): IRequestBody => ({
     parameters: { ...parameters }
 });
 
+export const getKardexSel = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_KARDEX_SEL",
+    key: "UFN_KARDEX_SEL",
+    parameters: { ...parameters }
+});
+
 export const getSupplierSel = (id: number): IRequestBody => ({
     method: "UFN_SUPPLIER_SEL",
     key: "UFN_SUPPLIER_SEL",

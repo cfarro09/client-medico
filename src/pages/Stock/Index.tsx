@@ -162,6 +162,11 @@ const Stock: FC = () => {
         []
     );
 
+    const handleEdit = (row: Dictionary) => {
+        setViewSelected("view-2");
+        setRowSelected(row);
+    };
+
     if (viewSelected === "view-1") {
         return (
             <div className={classes.container}>
@@ -177,7 +182,7 @@ const Stock: FC = () => {
                     data={dataView}
                     titlemodule={""}
                     download={!!pagePermissions.download}
-                    // onClickRow={handleEdit}
+                    onClickRow={handleEdit}
                     loading={mainResult.loading}
                     register={false}
                     filterGeneral={false}
