@@ -1,7 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getProductList, getPurchases, getSupplierList, getValuesFromDomain, getWareHouse, insPurchase } from "common/helpers";
-import { TemplateIcons } from "components";
+import {
+    getDateCleaned,
+    getProductList,
+    getPurchases,
+    getSupplierList,
+    getValuesFromDomain,
+    getWareHouse,
+    insPurchase,
+} from "common/helpers";
+import { DateRangePicker, TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
@@ -11,9 +19,58 @@ import { useDispatch } from "react-redux";
 import { execute, getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
-import SystemUpdateAltIcon from '@material-ui/icons/SystemUpdateAlt';
+import SystemUpdateAltIcon from "@material-ui/icons/SystemUpdateAlt";
+import { Button, makeStyles, Typography } from "@material-ui/core";
+import { Range } from "react-date-range";
+import { CalendarIcon } from "icons";
+
+const useStyles = makeStyles((theme) => ({
+    container: {
+        width: "100%",
+    },
+    containerDetail: {
+        marginTop: theme.spacing(2),
+        padding: theme.spacing(2),
+        background: "#fff",
+    },
+    button: {
+        padding: 12,
+        fontWeight: 500,
+        fontSize: "14px",
+        textTransform: "initial",
+    },
+    containerHeader: {
+        marginBottom: 0,
+        display: "flex",
+        gap: 8,
+        flexWrap: "wrap",
+        justifyContent: "space-between",
+        alignItems: "center",
+        [theme.breakpoints.up("sm")]: {
+            display: "flex",
+        },
+        "& > div": {
+            display: "flex",
+            gap: 8,
+        },
+    },
+    itemDate: {
+        minHeight: 40,
+        height: 40,
+        border: "1px solid #bfbfc0",
+        borderRadius: 4,
+        color: "rgb(143, 146, 161)",
+    },
+}));
+
+const initialRange = {
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+    key: "selection",
+};
 
 const Purchase: FC = () => {
+    const classes = useStyles();
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainResult = useSelector((state) => state.main.mainData);
@@ -24,34 +81,42 @@ const Purchase: FC = () => {
     const applications = useSelector((state) => state.login?.validateToken?.user?.menu);
     const [pagePermissions, setPagePermissions] = useState<Dictionary>({});
     const executeResult = useSelector((state) => state.main.execute);
-    const [merchantEntry, setMerchantEntry] = useState(false)
+    const [merchantEntry, setMerchantEntry] = useState(false);
+    const [openDateRangeModal, setOpenDateRangeModal] = useState(false);
+    const [dateRange, setDateRange] = useState<Range>(initialRange);
 
     useEffect(() => {
         if (applications) {
             setPagePermissions({
-                "view": applications["/purchases"][0],
-                "modify": applications["/purchases"][1],
-                "insert": applications["/purchases"][2],
-                "delete": applications["/purchases"][3],
-                "download": applications["/purchases"][4],
+                view: applications["/purchases"][0],
+                modify: applications["/purchases"][1],
+                insert: applications["/purchases"][2],
+                delete: applications["/purchases"][3],
+                download: applications["/purchases"][4],
             });
         }
     }, [applications]);
 
-    const fetchData = () => dispatch(getCollection(getPurchases()));
+    const fetchData = () => dispatch(getCollection(getPurchases({ startdate: dateRange.startDate, finishdate: dateRange.endDate })));
 
     useEffect(() => {
-        fetchData();
-        dispatch(getMultiCollection([
-            getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
-            getProductList(),
-            getSupplierList(),
-            getWareHouse(),
-        ]));
+        // fetchData();
+        dispatch(
+            getMultiCollection([
+                getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
+                getProductList(),
+                getSupplierList(),
+                getWareHouse(),
+            ])
+        );
         return () => {
             dispatch(resetAllMain());
         };
     }, []);
+
+    useEffect(() => {
+        if (!openDateRangeModal) fetchData();
+    }, [openDateRangeModal]);
 
     useEffect(() => {
         if (!mainResult.loading && !mainResult.error && mainResult.key === "UNF_PURCHASE_ORDER_SEL") {
@@ -87,13 +152,13 @@ const Purchase: FC = () => {
                 Cell: (props: any) => {
                     const row = props.cell.row.original;
                     if (row.status === "ENTREGADO") {
-                        return null
+                        return null;
                     }
                     return (
                         <TemplateIcons
                             deleteFunction={() => handleDelete(row)}
                             extraOption={"Entrada de mercaderia"}
-                            ExtraICon={() => <SystemUpdateAltIcon width={18} style={{ fill: '#7721AD' }} />}
+                            ExtraICon={() => <SystemUpdateAltIcon width={18} style={{ fill: "#7721AD" }} />}
                             extraFunction={() => {
                                 setMerchantEntry(true);
                                 setViewSelected("view-2");
@@ -130,7 +195,7 @@ const Purchase: FC = () => {
                 accessor: "total",
                 Cell: (props: any) => {
                     const { total } = props.cell.row.original;
-                    return parseFloat(total).toFixed(2)
+                    return parseFloat(total).toFixed(2);
                 },
             },
         ],
@@ -144,14 +209,18 @@ const Purchase: FC = () => {
     };
 
     const handleEdit = (row: Dictionary) => {
-        setMerchantEntry(false)
+        setMerchantEntry(false);
         setViewSelected("view-2");
         setRowSelected(row);
     };
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(execute(insPurchase({ ...row, operation: "DELETE", status: "ELIMINADO", purchaseid: row.purchaseorderid })));
+            dispatch(
+                execute(
+                    insPurchase({ ...row, operation: "DELETE", status: "ELIMINADO", purchaseid: row.purchaseorderid })
+                )
+            );
             dispatch(showBackdrop(true));
             setWaitSave(true);
         };
@@ -167,16 +236,44 @@ const Purchase: FC = () => {
 
     if (viewSelected === "view-1") {
         return (
-            <TableZyx
-                columns={columns}
-                data={dataView}
-                titlemodule={"Ordenes de compra"}
-                download={!!pagePermissions.download}
-                onClickRow={handleEdit}
-                loading={mainResult.loading}
-                register={!!pagePermissions.insert}
-                handleRegister={handleRegister}
-            />
+            <div className={classes.container}>
+                <div style={{ height: 10 }}></div>
+                <div>
+                    <Typography variant="h5" component="div">
+                    Ordenes de compra
+                    </Typography>
+                </div>
+                <br />
+                <TableZyx
+                    columns={columns}
+                    data={dataView}
+                    titlemodule={""}
+                    download={!!pagePermissions.download}
+                    onClickRow={handleEdit}
+                    loading={mainResult.loading}
+                    register={!!pagePermissions.insert}
+                    handleRegister={handleRegister}
+                    filterGeneral={false}
+                    ButtonsElement={() => (
+                        <div className={classes.containerHeader}>
+                            <DateRangePicker
+                                open={openDateRangeModal}
+                                setOpen={setOpenDateRangeModal}
+                                range={dateRange}
+                                onSelect={setDateRange}
+                            >
+                                <Button
+                                    className={classes.itemDate}
+                                    startIcon={<CalendarIcon />}
+                                    onClick={() => setOpenDateRangeModal(!openDateRangeModal)}
+                                >
+                                    {getDateCleaned(dateRange.startDate!) + " - " + getDateCleaned(dateRange.endDate!)}
+                                </Button>
+                            </DateRangePicker>
+                        </div>
+                    )}
+                />
+            </div>
         );
     } else {
         return (

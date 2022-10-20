@@ -27,16 +27,16 @@ export const getSupplierList = (): IRequestBody => ({
     parameters: {}
 })
 
-export const getPurchases = (): IRequestBody => ({
+export const getPurchases = (parameters: Dictionary): IRequestBody => ({
     method: "UNF_PURCHASE_ORDER_SEL",
     key: "UNF_PURCHASE_ORDER_SEL",
-    parameters: {}
+    parameters: { ...parameters }
 })
 
-export const getSales = (): IRequestBody => ({
+export const getSales = (parameters: Dictionary): IRequestBody => ({
     method: "UFN_SALE_ORDER_SEL",
     key: "UFN_SALE_ORDER_SEL",
-    parameters: {}
+    parameters: { ...parameters }
 })
 
 export const getWarehouseSel = ({ shopid, id }: Dictionary): IRequestBody => ({
