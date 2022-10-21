@@ -212,6 +212,17 @@ export const getDetailSale = (saleorderid: number): IRequestBody => ({
     }
 })
 
+export const paymentIns = (amount: number, payment_method: string): IRequestBody => ({
+    method: "UFN_PAYMENT_INS",
+    key: "UFN_PAYMENT_INS",
+    parameters: {
+        id: 0, 
+        payment_method, 
+        amount, 
+        operation: "INSERT"
+    }
+})
+
 export const insPurchaseDetail = ({ status, operation, delivered_quantity, purchasedetailid, productid, price, quantity, subtotal: total }: Dictionary): IRequestBody => ({
     method: "UFN_PURCHASE_DETAIL_INS",
     key: "UFN_PURCHASE_DETAIL_INS",
@@ -229,7 +240,7 @@ export const insPurchaseDetail = ({ status, operation, delivered_quantity, purch
     }
 })
 
-export const insOrderSale = ({ saleorderid, customerid, warehouseid, status, document_type, document_number, operation }: Dictionary): IRequestBody => ({
+export const insOrderSale = ({ saleorderid, customerid, warehouseid, bill_sale_date, status, document_type, document_number, operation, total }: Dictionary): IRequestBody => ({
     method: "UFN_SALE_ORDER_INS",
     key: "UFN_SALE_ORDER_INS",
     parameters: {
@@ -237,6 +248,8 @@ export const insOrderSale = ({ saleorderid, customerid, warehouseid, status, doc
         customerid,
         warehouseid,
         order_number: "",
+        total,
+        bill_sale_date,
         status,
         document_type,
         document_number,

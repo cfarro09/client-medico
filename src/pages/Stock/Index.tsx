@@ -136,10 +136,12 @@ const Stock: FC = () => {
             {
                 Header: "Cantidad",
                 accessor: "quantity",
+                type: "number"
             },
             {
                 Header: "Balance",
                 accessor: "balance",
+                type: "number"
             },
             {
                 Header: "Lote",
@@ -170,17 +172,17 @@ const Stock: FC = () => {
     if (viewSelected === "view-1") {
         return (
             <div className={classes.container}>
-                <div style={{ height: 10 }}></div>
+                {/* <div style={{ height: 10 }}></div>
                 <div className={classes.contentHeader}>
                     <Typography variant="h5" component="div">
                         Inventario
                     </Typography>
                 </div>
-                <br />
+                <br /> */}
                 <TableZyx
                     columns={columns}
                     data={dataView}
-                    titlemodule={""}
+                    titlemodule={"Inventario"}
                     download={!!pagePermissions.download}
                     onClickRow={handleEdit}
                     loading={mainResult.loading}

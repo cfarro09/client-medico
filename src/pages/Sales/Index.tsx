@@ -226,17 +226,10 @@ const Sales: FC = () => {
     if (viewSelected === "view-1") {
         return (
             <div className={classes.container}>
-                <div style={{ height: 10 }}></div>
-                <div>
-                    <Typography variant="h5" component="div">
-                        Ventas
-                    </Typography>
-                </div>
-                <br />
                 <TableZyx
                     columns={columns}
                     data={dataView}
-                    titlemodule={""}
+                    titlemodule={"Ventas"}
                     download={!!pagePermissions.download}
                     onClickRow={handleEdit}
                     loading={mainResult.loading}

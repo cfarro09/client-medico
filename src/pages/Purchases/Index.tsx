@@ -237,17 +237,17 @@ const Purchase: FC = () => {
     if (viewSelected === "view-1") {
         return (
             <div className={classes.container}>
-                <div style={{ height: 10 }}></div>
+                {/* <div style={{ height: 10 }}></div>
                 <div>
                     <Typography variant="h5" component="div">
                     Ordenes de compra
                     </Typography>
                 </div>
-                <br />
+                <br /> */}
                 <TableZyx
                     columns={columns}
                     data={dataView}
-                    titlemodule={""}
+                    titlemodule={"Ordenes de compra"}
                     download={!!pagePermissions.download}
                     onClickRow={handleEdit}
                     loading={mainResult.loading}

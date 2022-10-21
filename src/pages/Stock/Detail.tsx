@@ -13,7 +13,7 @@ import { getDateCleaned, getKardexSel } from "common/helpers";
 import TableZyx from "components/fields/table-simple";
 import { Range } from "react-date-range";
 import { CalendarIcon } from "icons";
-import { ArrowBack } from "@material-ui/icons";
+import ClearIcon from "@material-ui/icons/Clear";
 
 const arrayBread = [
     { id: "view-1", name: "Stock" },
@@ -187,11 +187,13 @@ const DetailStock: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }
                 Header: "Cantidad",
                 accessor: "quantity",
                 NoFilter: true,
+                type: "number"
             },
             {
                 Header: "Saldo",
                 accessor: "balance",
                 NoFilter: true,
+                type: "number"
             },
             {
                 Header: "Estado",
@@ -221,8 +223,8 @@ const DetailStock: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }
                         variant="contained"
                         type="button"
                         color="primary"
-                        startIcon={<ArrowBack color="secondary" />}
-                        style={{ backgroundColor: "#55BD84" }}
+                        startIcon={<ClearIcon color="secondary" />}
+                        style={{ backgroundColor: "#FB5F5F" }}
                         onClick={() => setViewSelected("view-1")}
                     >
                         {t(langKeys.back)}
@@ -233,13 +235,13 @@ const DetailStock: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }
                 <Paper elevation={0}>
                     <div className="row-zyx" style={{ justifyContent: "space-between" }}>
                         <div className="col-12" style={{ marginRight: "20px" }}>
-                            <Typography style={{ fontSize: "20px", marginBottom: "22px" }}>Kardex</Typography>
-
+                            {/* <Typography style={{ fontSize: "20px", marginBottom: "22px" }}>Kardex</Typography> */}
                             <TableZyx
                                 columns={columns}
                                 data={dataDetailToShow}
                                 download={true}
                                 loading={detailRes.loading}
+                                titlemodule="Kardex"
                                 filterGeneral={false}
                                 register={false}
                                 ButtonsElement={() => (

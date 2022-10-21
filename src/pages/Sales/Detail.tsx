@@ -11,7 +11,7 @@ import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import { execute, getCollectionAux, resetMainAux } from "store/main/actions";
-import { getDetailSale, insOrderSale, insSaleDetail } from "common/helpers";
+import { getDetailSale, insOrderSale, insSaleDetail, paymentIns } from "common/helpers";
 import { Button, makeStyles, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableFooter } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Tabs from '@material-ui/core/Tabs';
@@ -51,7 +51,7 @@ type FormFields = {
     document_type: string,
     document_number: string,
     status: string,
-    bill_entry_date: string,
+    bill_sale_date: string,
 }
 
 const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
@@ -92,7 +92,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
             document_type: row?.document_type || "",
             document_number: row?.document_number || "",
             status: row?.status || "PENDIENTE",
-            bill_entry_date: row?.bill_entry_date || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
+            bill_sale_date: row?.bill_sale_date || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
             products: [],
             payments: [],
         },
@@ -178,12 +178,15 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                     status: "ACTIVO",
                     total
                 }),
-                detail: data.products.map(x => insSaleDetail({
-                    ...x,
-                    operation: x.saleorderdetailid > 0 ? (x.status === "ELIMINADO" ? "DELETE" : "UPDATE") : "INSERT",
-                    status: 'ACTIVO',
-                    quantity: x.n_bottles * x.quantity
-                }))
+                detail: [
+                    ...data.products.map(x => insSaleDetail({
+                        ...x,
+                        operation: x.saleorderdetailid > 0 ? (x.status === "ELIMINADO" ? "DELETE" : "UPDATE") : "INSERT",
+                        status: 'ACTIVO',
+                        quantity: x.n_bottles * x.quantity
+                    })),
+                    ...data.payments.map(x => paymentIns(x.amount, x.method)),
+                ]
             }, true));
             setWaitSave(true)
         }
@@ -230,7 +233,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
         register("document_number", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
         register("observations");
         register("bill_number");
-        register("bill_entry_date", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
+        register("bill_sale_date", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
 
         if (row?.saleorderid) {
             setLock(true)
@@ -307,9 +310,9 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                     label={"Fecha de la orden de venta"}
                                     type="date"
                                     className="col-6"
-                                    valueDefault={getValues("bill_entry_date")}
-                                    onChange={(value) => setValue("bill_entry_date", value)}
-                                    error={errors?.bill_entry_date?.message}
+                                    valueDefault={getValues("bill_sale_date")}
+                                    onChange={(value) => setValue("bill_sale_date", value)}
+                                    error={errors?.bill_sale_date?.message}
                                     disabled={lock}
                                 />
                             </div>
