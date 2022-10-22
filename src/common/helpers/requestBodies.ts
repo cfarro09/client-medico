@@ -223,6 +223,14 @@ export const paymentIns = (amount: number, payment_method: string): IRequestBody
     }
 })
 
+export const getPaymentByOrder = (saleorderid: number): IRequestBody => ({
+    method: "UFN_PAYMENT_SEL",
+    key: "UFN_PAYMENT_SEL",
+    parameters: {
+        saleorderid, 
+    }
+})
+
 export const insPurchaseDetail = ({ status, operation, delivered_quantity, purchasedetailid, productid, price, quantity, subtotal: total }: Dictionary): IRequestBody => ({
     method: "UFN_PURCHASE_DETAIL_INS",
     key: "UFN_PURCHASE_DETAIL_INS",

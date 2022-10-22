@@ -104,16 +104,16 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
     useEffect(() => {
         if (!multiData.error && !multiData.loading) {
             const dataStatus = multiData.data.find((x) => x.key === "DOMAIN-ESTADOGENERICO");
-            const dataTypes = multiData.data.find((x) => x.key === "DOMAIN-TIPOCORP");
+            // const dataTypes = multiData.data.find((x) => x.key === "DOMAIN-TIPOCORP");
             const products = multiData.data.find((x) => x.key === "UFN_PRODUCT_LST");
             const suppliers = multiData.data.find((x) => x.key === "UFN_SUPPLIER_LST");
             const warehouses = multiData.data.find((x) => x.key === "UFN_WAREHOUSE_LST");
 
-            if (dataStatus && dataTypes && products && suppliers && warehouses) {
+            if (dataStatus && products && suppliers && warehouses) {
                 setProductsToShow(products.data)
                 setDataExtra({
                     status: dataStatus.data,
-                    type: dataTypes.data,
+                    type: [],
                     products: products.data,
                     suppliers: suppliers.data,
                     warehouses: warehouses.data,
