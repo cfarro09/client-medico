@@ -69,6 +69,21 @@ export const resetExportMainDynamic = (): IActionCall => ({ type: actionTypes.DA
 
 
 
+export const exportReportPDF = (body: { parameters: Dictionary, dataonparameters?: boolean, reportname: string, template: string, method: string }): IActionCall => ({
+    callAPI: () => CommonService.reportPdf(body),
+    types: {
+        loading: actionTypes.EXPORT_PDF,
+        success: actionTypes.EXPORT_PDF_SUCCESS,
+        failure: actionTypes.EXPORT_PDF_FAILURE,
+    },
+    type: null,
+});
+
+export const resetExportReportPDF = (): IActionCall => ({ type: actionTypes.EXPORT_PDF_RESET });
+
+
+
+
 export const uploadFile = (data: FormData): IActionCall => ({
     callAPI: () => CommonService.uploadFile(data),
     types: {

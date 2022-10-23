@@ -1,5 +1,5 @@
 {
-  "name": "client-laraigo",
+  "name": "client-minierp",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -36,20 +36,20 @@
     "react-table": "^7.7.0",
     "react-window": "^1.8.6",
     "redux-thunk": "^2.3.0",
+    "source-map-explorer": "^2.5.3",
     "typescript": "^4.3.5",
     "web-vitals": "^1.1.2",
     "xlsx": "^0.17.0"
   },
   "scripts": {
     "start": "react-scripts start",
-    "starthttps": "set HTTPS=true react-scripts start",
-    "starthttpss": "HTTPS=true SSL_CRT_FILE=./.cert/cert.pem SSL_KEY_FILE=./.cert/key.pem react-scripts start",
     "build": "react-scripts build",
     "build_no_ci": "set CI=false && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "prede  ploy": "npm run build",
     "deploy": "gh-pages -d build",
+    "analyze": "source-map-explorer 'build/static/js/*.js'",
     "dp": "git pull && npm run build && cp -R build app-deploy/"
   },
   "eslintConfig": {

@@ -3,7 +3,6 @@ const paths = {
     REPORTS: '/reports',
     DOMAINS: '/domain',
     USERS: '/user',
-    
     CORPORATIONS: '/corporations',
     SHOPS: '/shop',
     CUSTOMERS: '/customer',

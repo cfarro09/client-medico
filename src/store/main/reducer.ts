@@ -51,6 +51,7 @@ export interface IState {
     exportData: IUpload;
     exportDynamicData: IUpload;
     memoryTable: IMemoryTable;
+    exportReportPDF: IUpload;
 }
 
 export const initialState: IState = {
@@ -67,6 +68,7 @@ export const initialState: IState = {
     uploadFile: { ...initialCommon },
     exportData: { ...initialCommon },
     exportDynamicData: { ...initialCommon },
+    exportReportPDF: { ...initialCommon },
     memoryTable: {
         id: "",
         page: -1,
@@ -90,6 +92,11 @@ export default createReducer<IState>(initialState, {
     [actionTypes.EXECUTE_MAIN_SUCCESS]: caseFunctions.executeSuccess,
     [actionTypes.EXECUTE_MAIN_FAILURE]: caseFunctions.executeFailure,
     [actionTypes.EXECUTE_MAIN_RESET]: caseFunctions.executeReset,
+    
+    [actionTypes.EXPORT_PDF]: caseFunctions.exportReportPDF,
+    [actionTypes.EXPORT_PDF_SUCCESS]: caseFunctions.exportReportPDFSuccess,
+    [actionTypes.EXPORT_PDF_FAILURE]: caseFunctions.exportReportPDFFailure,
+    [actionTypes.EXPORT_PDF_RESET]: caseFunctions.exportReportPDFReset,
 
 
     [actionTypes.UPLOAD_DATA]: caseFunctions.uploadData,

@@ -371,6 +371,45 @@ export const uploadDataReset = (state: IState): IState => ({
 
 
 
+export const exportReportPDF = (state: IState): IState => ({
+    ...state,
+    exportReportPDF: { ...state.exportReportPDF, loading: true, error: false }
+});
+
+export const exportReportPDFSuccess = (state: IState, action: IAction): IState => {
+    return {
+        ...state,
+        exportReportPDF: {
+            url: action.payload.url,
+            loading: false,
+            code: undefined,
+            error: false,
+            message: undefined,
+        }
+    }
+};
+
+export const exportReportPDFFailure = (state: IState, action: IAction): IState => {
+    return {
+        ...state,
+        exportReportPDF: {
+            ...state.exportReportPDF,
+            loading: false,
+            error: true,
+            code: action.payload.code ? "error_" + action.payload.code.toString().toLowerCase() : 'error_unexpected_error',
+            message: action.payload.message || 'error_unexpected_error',
+        }
+    }
+};
+
+export const exportReportPDFReset = (state: IState): IState => ({
+    ...state,
+    exportReportPDF: initialState.exportReportPDF,
+});
+
+
+
+
 
 export const processData = (state: IState): IState => ({
     ...state,

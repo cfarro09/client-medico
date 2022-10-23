@@ -1,5 +1,4 @@
 import { Dictionary } from "@types";
-import * as XLSX from 'xlsx';
 
 export function uuidv4(): string {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -170,24 +169,6 @@ export function uploadCSV(file: any, owner: any = {}) {
                 res(lines);
             }
             res(null);
-        };
-    });
-}
-
-export function uploadExcel(file: any, owner: any = {}) {
-    var reader = new FileReader();
-    reader.readAsBinaryString(file);
-    return new Promise((res, rej) => {
-        reader.onload = (event: any) => {
-            var data = event.target.result;
-            let workbook = XLSX.read(data, { type: 'binary' });
-            const wsname = workbook.SheetNames[0];
-            // const ws = workbook.Sheets[wsname];
-            // sheet_to_row_object_array
-            let rowsx = XLSX.utils.sheet_to_json(
-                workbook.Sheets[wsname]
-            );
-            res(rowsx)
         };
     });
 }

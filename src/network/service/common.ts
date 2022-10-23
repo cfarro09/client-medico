@@ -56,6 +56,10 @@ export function mainDynamicExport(requestBody: IRequestBodyDynamic) {
     return APIManager.post(apiUrls.MAIN_DYNAMIC_EXPORT, { data: requestBody }, true);
 }
 
+export function reportPdf(request: any) {
+    return APIManager.post(apiUrls.REPORTPDF, { data: request }, true);
+}
+
 export function getTickets(page: number, pageSize: number) {
     const data = { page, pageSize, sort: 'DESC', query: [] };
     return APIManager.post(apiUrls.TICKET_URL, { data }, false);

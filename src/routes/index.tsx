@@ -1,12 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { FC } from "react";
+import React, { FC, lazy } from "react";
 import Layout from 'components/layout/Layout';
 import Popus from 'components/layout/Popus';
-import {
-	Users, SignIn, NotFound, Forbidden, InternalServererror,
-	Shops, Purachases, Sales, Stock, Supplier, Corporation, Products, Domains, Customer, Dashboard
-} from 'pages';
-
 import { BrowserRouter as Router, Switch, Route, RouteProps, useLocation } from 'react-router-dom';
 import paths from "common/constants/paths";
 import { makeStyles } from "@material-ui/core";
@@ -17,6 +12,22 @@ import { getAccessToken } from 'common/helpers';
 import { Redirect } from 'react-router-dom';
 import { validateToken } from 'store/login/actions';
 import { useDispatch } from 'react-redux';
+
+const Users = lazy(() => import('pages/User/Index'));
+const SignIn = lazy(() => import('pages/SignIn'));
+const NotFound = lazy(() => import('pages/NotFound'));
+const Forbidden = lazy(() => import('pages/Forbidden'));
+const InternalServererror = lazy(() => import('pages/InternalServerError'));
+const Shops = lazy(() => import('pages/Shop/Index'));
+const Purachases = lazy(() => import('pages/Purchases/Index'));
+const Sales = lazy(() => import('pages/Sales/Index'));
+const Stock = lazy(() => import('pages/Stock/Index'));
+const Supplier = lazy(() => import('pages/Supplier/Index'));
+const Corporation = lazy(() => import('pages/Corporation/Index'));
+const Products = lazy(() => import('pages/Product/Index'));
+const Domains = lazy(() => import('pages/Domain/Index'));
+const Customer = lazy(() => import('pages/Customer/Index'));
+const Dashboard = lazy(() => import('pages/Dashboard/Index'));
 
 const useStyles = makeStyles((theme) => ({
 	main: {

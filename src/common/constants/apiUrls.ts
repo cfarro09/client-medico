@@ -101,4 +101,5 @@ export const apiUrls = {
     CULQI:  `${BASE_URL}/payment`,
 
     CHATFLOW: `${CHATFLOW_URL}`,
+    REPORTPDF: `${BASE_URL}/drawpdf`,
 };
