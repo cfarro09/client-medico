@@ -94,58 +94,64 @@ const RouterApp: FC = () => {
 
 	return (
 		<Router basename={process.env.PUBLIC_URL}>
-			<Switch>
-				<ProtectRoute exact path="/" />
-				<Route exact path={paths.SIGNIN} component={SignIn} />
+			<React.Suspense fallback={(
+				<Backdrop style={{ zIndex: 999999999, color: '#fff', }} open={true}>
+					<CircularProgress color="inherit" />
+				</Backdrop>
+			)}>
+				<Switch>
+					<ProtectRoute exact path="/" />
+					<Route exact path={paths.SIGNIN} component={SignIn} />
 
-				<ProtectRoute exact path={paths.USERS}>
-					<Layout mainClasses={classes.main}><Users /></Layout>
-				</ProtectRoute>
+					<ProtectRoute exact path={paths.USERS}>
+						<Layout mainClasses={classes.main}><Users /></Layout>
+					</ProtectRoute>
 
-				<ProtectRoute exact path={paths.DASHBOARD}>
-					<Layout mainClasses={classes.main}><Dashboard /></Layout>
-				</ProtectRoute>
-				<ProtectRoute exact path={paths.CORPORATIONS}>
-					<Layout mainClasses={classes.main}><Corporation /></Layout>
-				</ProtectRoute>
-				<ProtectRoute exact path={paths.DOMAINS}>
-					<Layout mainClasses={classes.main}><Domains /></Layout>
-				</ProtectRoute>
-				<ProtectRoute exact path={paths.SHOPS}>
-					<Layout mainClasses={classes.main}><Shops /></Layout>
-				</ProtectRoute>
-				<ProtectRoute exact path={paths.CUSTOMERS}>
-					<Layout mainClasses={classes.main}><Customer /></Layout>
-				</ProtectRoute>
-				<ProtectRoute exact path={paths.PURCHASES}>
-					<Layout mainClasses={classes.main}><Purachases /></Layout>
-				</ProtectRoute>
-				<ProtectRoute exact path={paths.SALES}>
-					<Layout mainClasses={classes.main}><Sales /></Layout>
-				</ProtectRoute>
-				<ProtectRoute exact path={paths.STOCK}>
-					<Layout mainClasses={classes.main}><Stock /></Layout>
-				</ProtectRoute>
-				<ProtectRoute exact path={paths.SUPPLIER}>
-					<Layout mainClasses={classes.main}><Supplier /></Layout>
-				</ProtectRoute>
-				<ProtectRoute exact path={paths.PRODUCTS}>
-					<Layout mainClasses={classes.main}><Products /></Layout>
-				</ProtectRoute>
+					<ProtectRoute exact path={paths.DASHBOARD}>
+						<Layout mainClasses={classes.main}><Dashboard /></Layout>
+					</ProtectRoute>
+					<ProtectRoute exact path={paths.CORPORATIONS}>
+						<Layout mainClasses={classes.main}><Corporation /></Layout>
+					</ProtectRoute>
+					<ProtectRoute exact path={paths.DOMAINS}>
+						<Layout mainClasses={classes.main}><Domains /></Layout>
+					</ProtectRoute>
+					<ProtectRoute exact path={paths.SHOPS}>
+						<Layout mainClasses={classes.main}><Shops /></Layout>
+					</ProtectRoute>
+					<ProtectRoute exact path={paths.CUSTOMERS}>
+						<Layout mainClasses={classes.main}><Customer /></Layout>
+					</ProtectRoute>
+					<ProtectRoute exact path={paths.PURCHASES}>
+						<Layout mainClasses={classes.main}><Purachases /></Layout>
+					</ProtectRoute>
+					<ProtectRoute exact path={paths.SALES}>
+						<Layout mainClasses={classes.main}><Sales /></Layout>
+					</ProtectRoute>
+					<ProtectRoute exact path={paths.STOCK}>
+						<Layout mainClasses={classes.main}><Stock /></Layout>
+					</ProtectRoute>
+					<ProtectRoute exact path={paths.SUPPLIER}>
+						<Layout mainClasses={classes.main}><Supplier /></Layout>
+					</ProtectRoute>
+					<ProtectRoute exact path={paths.PRODUCTS}>
+						<Layout mainClasses={classes.main}><Products /></Layout>
+					</ProtectRoute>
 
 
 
-				<Route exact path="/403">
-					<Forbidden />
-				</Route>
-				<Route exact path="/500">
-					<InternalServererror />
-				</Route>
-				<Route>
-					<NotFound />
-				</Route>
-				<Popus />
-			</Switch >
+					<Route exact path="/403">
+						<Forbidden />
+					</Route>
+					<Route exact path="/500">
+						<InternalServererror />
+					</Route>
+					<Route>
+						<NotFound />
+					</Route>
+					<Popus />
+				</Switch >
+			</React.Suspense>
 		</Router >
 	);
 };

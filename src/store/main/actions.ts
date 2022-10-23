@@ -68,8 +68,7 @@ export const resetExportMainDynamic = (): IActionCall => ({ type: actionTypes.DA
 
 
 
-
-export const exportReportPDF = (body: { parameters: Dictionary, dataonparameters?: boolean, reportname: string, template: string, method: string }): IActionCall => ({
+export const exportReportPDF = (body: { parameters: Dictionary, dataonparameters?: boolean, reportname: string, template: string, method: string, key: string }): IActionCall => ({
     callAPI: () => CommonService.reportPdf(body),
     types: {
         loading: actionTypes.EXPORT_PDF,

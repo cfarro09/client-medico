@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, makeStyles, Typography } from "@material-ui/core";
+import { Button, makeStyles } from "@material-ui/core";
 import { Dictionary } from "@types";
 import {
     getCustomerList,
@@ -19,9 +19,10 @@ import React, { FC, useEffect, useState } from "react"; // we need this to make 
 import { Range } from "react-date-range";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
-import { execute, getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
+import { execute, exportReportPDF, getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
+import ReceiptIcon from '@material-ui/icons/Receipt';
 
 const useStyles = makeStyles((theme) => ({
     container: {
@@ -79,7 +80,7 @@ const Sales: FC = () => {
     const [dataView, setDataView] = useState<Dictionary[]>([]);
     const applications = useSelector((state) => state.login?.validateToken?.user?.menu);
     const [pagePermissions, setPagePermissions] = useState<Dictionary>({});
-    const executeResult = useSelector((state) => state.main.execute);
+    const executeResult = useSelector((state) => state.main.exportReportPDF);
     const [openDateRangeModal, setOpenDateRangeModal] = useState(false);
     const [dateRange, setDateRange] = useState<Range>(initialRange);
 
@@ -128,10 +129,8 @@ const Sales: FC = () => {
     useEffect(() => {
         if (waitSave) {
             if (!executeResult.loading && !executeResult.error) {
-                dispatch(showSnackbar({ show: true, success: true, message: t(langKeys.successful_delete) }));
-                fetchData();
-                dispatch(showBackdrop(false));
                 setWaitSave(false);
+                window.open(executeResult.url, '_blank')
             } else if (executeResult.error) {
                 const errormessage = t(executeResult.code || "error_unexpected_error", {
                     module: t(langKeys.corporation_plural).toLocaleLowerCase(),
@@ -152,10 +151,25 @@ const Sales: FC = () => {
                 width: "1%",
                 Cell: (props: any) => {
                     const row = props.cell.row.original;
-                    if (row.status === "ENTREGADO") {
-                        return null;
-                    }
-                    return <TemplateIcons deleteFunction={() => handleDelete(row)} />;
+
+                    return <TemplateIcons
+                        // deleteFunction={() => handleDelete(row)}
+                        extraOption={"Descargar comprobante"}
+                        ExtraICon={() => <ReceiptIcon width={18} style={{ fill: "#7721AD" }} />}
+                        extraFunction={() => {
+                            dispatch(exportReportPDF({
+                                "method": "UFN_SALEORDER_INVOICE_SEL",
+                                "parameters": {
+                                    "saleorderid": row.saleorderid
+                                },
+                                "dataonparameters": false,
+                                "template": "sale_order_invoice.html",
+                                "reportname": "sale_order_invoice",
+                                "key": "sale_order_invoice"
+                            }))
+                            setWaitSave(true)
+                        }}
+                    />;
                 },
             },
             {
@@ -203,24 +217,6 @@ const Sales: FC = () => {
     const handleEdit = (row: Dictionary) => {
         setViewSelected("view-2");
         setRowSelected(row);
-    };
-
-    const handleDelete = (row: Dictionary) => {
-        const callback = () => {
-            dispatch(
-                execute(insPurchase({ ...row, operation: "DELETE", status: "ELIMINADO", purchaseid: row.saleorderid }))
-            );
-            dispatch(showBackdrop(true));
-            setWaitSave(true);
-        };
-
-        dispatch(
-            manageConfirmation({
-                visible: true,
-                question: t(langKeys.confirmation_delete),
-                callback,
-            })
-        );
     };
 
     if (viewSelected === "view-1") {
