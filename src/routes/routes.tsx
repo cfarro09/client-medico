@@ -8,20 +8,20 @@ import { langKeys } from "lang/keys";
 import { Trans } from "react-i18next";
 
 export const routes: RouteConfig[] = [
-    {
-        key: paths.DASHBOARD,
-        description: <Trans i18nKey={langKeys.dashboard} />,
-        tooltip: <Trans i18nKey={langKeys.dashboard} />,
-        path: paths.DASHBOARD,
-        icon: (className) => <DashboardIcon style={{ width: 22, height: 22 }} className={className} />,
-    },
-    {
-        key: paths.CORPORATIONS,
-        description: <Trans i18nKey={langKeys.corporation_plural} count={2} />,
-        tooltip: <Trans i18nKey={langKeys.corporation_plural} />,
-        path: paths.CORPORATIONS,
-        icon: (color) => <Apartment stroke={color} fill={color} />,
-    },
+    // {
+    //     key: paths.DASHBOARD,
+    //     description: <Trans i18nKey={langKeys.dashboard} />,
+    //     tooltip: <Trans i18nKey={langKeys.dashboard} />,
+    //     path: paths.DASHBOARD,
+    //     icon: (className) => <DashboardIcon style={{ width: 22, height: 22 }} className={className} />,
+    // },
+    // {
+    //     key: paths.CORPORATIONS,
+    //     description: <Trans i18nKey={langKeys.corporation_plural} count={2} />,
+    //     tooltip: <Trans i18nKey={langKeys.corporation_plural} />,
+    //     path: paths.CORPORATIONS,
+    //     icon: (color) => <Apartment stroke={color} fill={color} />,
+    // },
     {
         key: paths.REPORTS,
         description: <Trans i18nKey={langKeys.report} count={2} />, // prop:count for plural purposes
@@ -43,13 +43,13 @@ export const routes: RouteConfig[] = [
         path: paths.DOMAINS,
         icon: (color) => <Domain stroke={color} fill={color} />,
     },
-    {
-        key: paths.SHOPS,
-        description: "Shops",
-        tooltip: "Shops",
-        path: paths.SHOPS,
-        icon: (color) => <Store stroke={color} fill={color} />,
-    },
+    // {
+    //     key: paths.SHOPS,
+    //     description: "Shops",
+    //     tooltip: "Shops",
+    //     path: paths.SHOPS,
+    //     icon: (color) => <Store stroke={color} fill={color} />,
+    // },
     {
         key: paths.CUSTOMERS,
         description: <Trans i18nKey={langKeys.customer} count={2} />,
