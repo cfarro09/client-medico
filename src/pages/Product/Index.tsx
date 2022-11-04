@@ -44,7 +44,8 @@ const Product: FC = () => {
             getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
             getValuesFromDomain("CATEGORIAPRODUCTO", "DOMAIN-CATEGORIAPRODUCTO"),
             getValuesFromDomain("TIPOEMPAQUE", "DOMAIN-TIPOEMPAQUE"),
-            getValuesFromDomain("UNIDADMEDIDAPRODUCTO", "DOMAIN-UNIDADMEDIDAPRODUCTO")
+            getValuesFromDomain("UNIDADMEDIDAPRODUCTO", "DOMAIN-UNIDADMEDIDAPRODUCTO"),
+            getValuesFromDomain("MARCAPRODUCTO", "DOMAIN-MARCAPRODUCTO")
         ]));
         return () => {
             dispatch(resetAllMain());
@@ -94,54 +95,42 @@ const Product: FC = () => {
             {
                 Header: 'Nombre',
                 accessor: 'product_name',
-            },
-            {
-                Header: 'Codigo',
-                accessor: 'product_code',
-            },
-            {
-                Header: 'Descripcion',
-                accessor: 'product_description',
-            },
-            {
-                Header: 'Unidad de Medida',
-                accessor: 'unit',
-            },
-            {
-                Header: 'Precio unit',
-                accessor: 'price_1',
-            },
-            {
-                Header: 'Precio mayor',
-                accessor: 'price_2',
-            },
-            {
-                Header: 'Precio Compra',
-                accessor: 'purchase_price',
-            },
-            {
-                Header: 'Marca',
-                accessor: 'product_brand',
+                NoFilter: true,
             },
             {
                 Header: 'Categoria',
                 accessor: 'category',
+                NoFilter: true,
             },
             {
-                Header: 'Tipo Empaque',
-                accessor: 'types_packaging',
+                Header: 'Marca',
+                accessor: 'product_brand',
+                NoFilter: true,
             },
             {
-                Header: 'Color',
-                accessor: 'color',
+                Header: 'Descripcion',
+                accessor: 'product_description',
+                NoFilter: true,
             },
             {
-                Header: 'n_bottles',
-                accessor: 'n_bottles',
+                Header: 'Unidad de Medida',
+                accessor: 'unit',
+                NoFilter: true,
+            },
+            {
+                Header: 'Precio unit',
+                accessor: 'price_1',
+                NoFilter: true,
+            },
+            {
+                Header: 'Precio costo',
+                accessor: 'purchase_price',
+                NoFilter: true,
             },
             {
                 Header: t(langKeys.status),
                 accessor: "status",
+                NoFilter: true,
                 prefixTranslation: "status_",
                 Cell: (props: any) => {
                     const { status } = props.cell.row.original;

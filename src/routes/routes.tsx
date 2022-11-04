@@ -57,13 +57,13 @@ export const routes: RouteConfig[] = [
         path: paths.CUSTOMERS,
         icon: (color) => <AssignmentInd stroke={color} fill={color} />,
     },
-    {
-        key: paths.SUPPLIER,
-        description: <Trans i18nKey={langKeys.supplier} count={2} />,
-        tooltip: <Trans i18nKey={langKeys.supplier} />,
-        path: paths.SUPPLIER,
-        icon: (color) => <Store stroke={color} fill={color} />,
-    },
+    // {
+    //     key: paths.SUPPLIER,
+    //     description: <Trans i18nKey={langKeys.supplier} count={2} />,
+    //     tooltip: <Trans i18nKey={langKeys.supplier} />,
+    //     path: paths.SUPPLIER,
+    //     icon: (color) => <Store stroke={color} fill={color} />,
+    // },
     {
         key: paths.VEHICLES,
         description: 'Vehiculos',
