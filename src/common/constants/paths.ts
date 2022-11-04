@@ -12,6 +12,7 @@ const paths = {
     STOCK: '/stock',
     SIGNIN: '/sign-in',
     PRODUCTS: '/products',
+    VEHICLES: '/vehicles',
 };
 
 export default paths;

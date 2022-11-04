@@ -130,7 +130,7 @@ const SignIn = () => {
     return (
         <Container component="main" maxWidth="xs" className={classes.containerLogin}>
             <div className={classes.childContainer}>
-                <img src="./logo.png" alt="titledev" width="350" style={{marginLeft: 'auto', marginRight: 'auto'}} />
+                <img src="./nevygas_logo.jpg" alt="titledev" width="350" style={{marginLeft: 'auto', marginRight: 'auto'}} />
                 <div className={classes.paper}>
                     {resLogin.error && (
                         <Alert className={classes.alertheader} variant="filled" severity="error">
@@ -184,6 +184,7 @@ const SignIn = () => {
                                     fullWidth
                                     variant="contained"
                                     color="primary"
+                                    style={{background: '#4bb44d'}}
                                     className={classes.submit}>
                                     <Trans i18nKey={langKeys.logIn} />
                                 </Button>

@@ -137,7 +137,9 @@ const RouterApp: FC = () => {
 					<ProtectRoute exact path={paths.PRODUCTS}>
 						<Layout mainClasses={classes.main}><Products /></Layout>
 					</ProtectRoute>
-
+					<ProtectRoute exact path={paths.VEHICLES}>
+						<Layout mainClasses={classes.main}><Products /></Layout>
+					</ProtectRoute>
 
 
 					<Route exact path="/403">

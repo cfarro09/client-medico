@@ -62,6 +62,13 @@ export const routes: RouteConfig[] = [
         description: <Trans i18nKey={langKeys.supplier} count={2} />,
         tooltip: <Trans i18nKey={langKeys.supplier} />,
         path: paths.SUPPLIER,
+        icon: (color) => <Store stroke={color} fill={color} />,
+    },
+    {
+        key: paths.VEHICLES,
+        description: 'Vehiculos',
+        tooltip: 'Vehiculos',
+        path: paths.VEHICLES,
         icon: (color) => <LocalShipping stroke={color} fill={color} />,
     },
     {

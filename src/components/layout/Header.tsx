@@ -45,7 +45,7 @@ const Header = ({ classes }: IProps) => {
                     <Menu />
                 </IconButton>
                 <img
-                    src="./logo.png"
+                    src="./nevygas_logo.jpg"
                     style={{ height: 37 }}
                     alt="logo"
                 />
