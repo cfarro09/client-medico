@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getCustomerSel, getValuesFromDomain, insCostumer } from "common/helpers";
+import { getCustomerSel, getProductList, getValuesFromDomain, insCostumer } from "common/helpers";
 import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -42,7 +42,9 @@ const Customer: FC = () => {
         fetchData();
         dispatch(getMultiCollection([
             getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
-            getValuesFromDomain("TIPODOCUMENTO", "DOMAIN-TIPODOCUMENTO")
+            getValuesFromDomain("TIPODOCUMENTO", "DOMAIN-TIPODOCUMENTO"),
+            getValuesFromDomain("TIPOBONIFICACION", "DOMAIN-TIPOBONIFICACION"),
+            getProductList(),
         ]));
         return () => {
             dispatch(resetAllMain());

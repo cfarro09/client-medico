@@ -204,6 +204,14 @@ export const getDetailPurchase = (purchaseorderid: number): IRequestBody => ({
     }
 })
 
+export const getCustomerProductsSel = (customerid: number): IRequestBody => ({
+    method: "UFN_CUSTOMER_PRODUCT_SEL",
+    key: "UFN_CUSTOMER_PRODUCT_SEL",
+    parameters: {
+        customerid
+    }
+})
+
 export const getDetailSale = (saleorderid: number): IRequestBody => ({
     method: "UFN_SALE_ORDER_DETAIL_SEL",
     key: "UFN_SALE_ORDER_DETAIL_SEL",
@@ -308,6 +316,12 @@ export const insSupplier = (parameters: Dictionary): IRequestBody => ({
 export const insCostumer = (parameters: Dictionary): IRequestBody => ({
     method: "UFN_CUSTOMER_INS",
     key: "UFN_CUSTOMER_INS",
+    parameters: { ...parameters }
+});
+
+export const insCustomerProduct = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_CUSTOMER_PRODUCT_INS",
+    key: "UFN_CUSTOMER_PRODUCT_INS",
     parameters: { ...parameters }
 });
 

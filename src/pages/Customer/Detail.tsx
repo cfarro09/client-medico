@@ -1,18 +1,44 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, makeStyles } from "@material-ui/core";
+import {
+    Button,
+    IconButton,
+    makeStyles,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+} from "@material-ui/core";
 import { DetailModule, Dictionary } from "@types";
-import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
+import { FieldEdit, FieldEditArray, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
 import React, { useEffect, useState } from "react"; // we need this to make JSX compile
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
-import { execute } from "store/main/actions";
-import { insCostumer } from "common/helpers";
+import { execute, getCollectionAux, resetMainAux } from "store/main/actions";
+import { getCustomerProductsSel, insCostumer, insPurchase, insCustomerProduct } from "common/helpers";
+import DeleteIcon from "@material-ui/icons/Delete";
+
+type FormFields = {
+    id: number;
+    description: string;
+    doc_type: string;
+    doc_num: string;
+    contact_name: string;
+    contact_email: string;
+    contact_phone: string;
+    address: string;
+    status: string;
+    type: string;
+    operation: string;
+    products: Dictionary[];
+};
 
 const arrayBread = [
     { id: "view-1", name: "Customers" },
@@ -38,7 +64,13 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
     const [waitSave, setWaitSave] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
     const multiData = useSelector((state) => state.main.multiData);
-    const [dataExtra, setDataExtra] = useState<{ status: Dictionary[]; type: Dictionary[] }>({ status: [], type: [] });
+    const mainAux = useSelector((state) => state.main.mainAux);
+    const [dataExtra, setDataExtra] = useState<{ status: Dictionary[]; type: Dictionary[]; bonif: Dictionary[] }>({
+        status: [],
+        type: [],
+        bonif: [],
+    });
+    const [productsToShow, setProductsToShow] = useState<Dictionary[]>([]);
     const dispatch = useDispatch();
     const { t } = useTranslation();
 
@@ -46,10 +78,14 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
         if (!multiData.error && !multiData.loading) {
             const dataStatus = multiData.data.find((x) => x.key === "DOMAIN-ESTADOGENERICO");
             const dataTypes = multiData.data.find((x) => x.key === "DOMAIN-TIPODOCUMENTO");
-            if (dataStatus && dataTypes) {
+            const dataBonif = multiData.data.find((x) => x.key === "DOMAIN-TIPOBONIFICACION");
+            const products = multiData.data.find((x) => x.key === "UFN_PRODUCT_LST");
+            if (dataStatus && dataTypes && products && dataBonif) {
+                setProductsToShow(products.data);
                 setDataExtra({
                     status: dataStatus.data,
                     type: dataTypes.data,
+                    bonif: dataBonif.data,
                 });
             }
         }
@@ -81,11 +117,13 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
 
     const {
         register,
+        control,
         handleSubmit,
         setValue,
         getValues,
         formState: { errors },
-    } = useForm({
+        trigger,
+    } = useForm<FormFields>({
         defaultValues: {
             id: row?.customerid || 0,
             description: row?.description || "",
@@ -98,26 +136,37 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
             status: row?.status || "ACTIVO",
             type: row?.type || "NINGUNO",
             operation: row ? "UPDATE" : "INSERT",
+            products: [],
         },
     });
 
-    React.useEffect(() => {
-        register("description", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register("status", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register("doc_type", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register("doc_num", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register("contact_name");
-        register("contact_email");
-        register("contact_phone");
-        register("address");
-    }, [register]);
+    const {
+        fields: fieldsProduct,
+        append: productAppend,
+        remove: productRemove,
+    } = useFieldArray({
+        control,
+        name: "products",
+    });
 
-    const onSubmit = handleSubmit((data) => {
+    const processTransaction = (data: FormFields, status: string = "") => {
+        if (data.products.filter(item => item.status !== "ELIMINADO").length === 0) {
+            dispatch(showSnackbar({ show: true, success: false, message: "Debe tener como minimo un producto registrado" }));
+            return
+        }
         const callback = () => {
             dispatch(showBackdrop(true));
-            dispatch(execute(insCostumer(data)));
-            setWaitSave(true);
-        };
+            dispatch(execute({
+                header: insCostumer(data),
+                detail: data.products.map(x => insCustomerProduct({
+                    ...x,
+                    id: x.customerproductid,
+                    operation: x.customerproductid > 0 ? (x.status === "ELIMINADO" ? "DELETE" : "UPDATE") : "INSERT",
+                    status: 'ACTIVO',
+                }))
+            }, true));
+            setWaitSave(true)
+        }
 
         dispatch(
             manageConfirmation({
@@ -126,14 +175,74 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                 callback,
             })
         );
-    });
+    }
+
+    const onSubmit = handleSubmit((data) => processTransaction(data));
+
+    useEffect(() => {
+        if (!mainAux.loading && !mainAux.error) {
+            if (mainAux.key === "UFN_CUSTOMER_PRODUCT_SEL") {
+                setValue("products", mainAux.data.map(x => ({
+                    customerproductid: x.customerproductid,
+                    productid: x.productid,
+                    type_bonification: x.type_bonification,
+                    bonification: x.bonification,
+                    min_bonification: x.min_bonification,
+                    product_description: x.product_name,
+                    price: parseFloat((x.price || "0")),
+                })));
+                trigger("products")
+            }
+        }
+        return () => {
+            dispatch(resetMainAux())
+        }
+    }, [mainAux])
+
+    React.useEffect(() => {
+        register("description", {
+            validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required),
+        });
+        register("status", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
+        register("doc_type", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
+        register("doc_num", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
+        register("contact_name");
+        register("contact_email");
+        register("contact_phone");
+        register("address");
+
+        if (row) {
+            // if (row.status === "ENTREGADO" || merchantEntry) {
+            //     setLock(true)
+            // }
+            dispatch(getCollectionAux(getCustomerProductsSel(row?.customerid)))
+        }
+    }, [register]);
+
+    // const onSubmit = handleSubmit((data) => {
+    //     console.log("data", data);
+    //     return;
+    //     const callback = () => {
+    //         dispatch(showBackdrop(true));
+    //         dispatch(execute(insCostumer(data)));
+    //         setWaitSave(true);
+    //     };
+
+    //     dispatch(
+    //         manageConfirmation({
+    //             visible: true,
+    //             question: t(langKeys.confirmation_save),
+    //             callback,
+    //         })
+    //     );
+    // });
 
     return (
         <div style={{ width: "100%" }}>
             <form onSubmit={onSubmit}>
                 <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
                 <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-                    <TitleDetail title={row ? `${row.description}` : 'Nuevo Cliente'} />
+                    <TitleDetail title={row ? `${row.description}` : "Nuevo Cliente"} />
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                         <Button
                             variant="contained"
@@ -160,7 +269,7 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                 <div className={classes.containerDetail}>
                     <div className="row-zyx">
                         <FieldEdit
-                            label={'Descripcion'}
+                            label={"Descripcion"}
                             className="col-6"
                             valueDefault={getValues("description")}
                             onChange={(value) => setValue("description", value)}
@@ -184,9 +293,9 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                             className="col-6"
                             valueDefault={getValues("doc_num")}
                             onChange={(value) => setValue("doc_num", value)}
-                            type='number'
+                            type="number"
                             error={errors?.doc_num?.message}
-                            InputProps={{ inputProps: { min: "0", max: '99999999999' } }}
+                            InputProps={{ inputProps: { min: "0", max: "99999999999" } }}
                         />
                         <FieldEdit
                             label={"Nombre Contacto"}
@@ -202,7 +311,7 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                             className="col-6"
                             valueDefault={getValues("contact_email")}
                             onChange={(value) => setValue("contact_email", value)}
-                            type='email'
+                            type="email"
                             error={errors?.contact_email?.message}
                         />
                         <FieldEdit
@@ -211,8 +320,8 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                             valueDefault={getValues("contact_phone")}
                             onChange={(value) => setValue("contact_phone", value)}
                             error={errors?.contact_phone?.message}
-                            type='number'
-                            InputProps={{ inputProps: { min: "0", max: '999999999' } }}
+                            type="number"
+                            InputProps={{ inputProps: { min: "0", max: "999999999" } }}
                         />
                     </div>
                     <div className="row-zyx">
@@ -236,6 +345,143 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                             optionValue="domainvalue"
                         />
                     </div>
+                </div>
+                <div className={classes.containerDetail}>
+                    <FieldSelect
+                        label={"Product"}
+                        variant="outlined"
+                        optionDesc="description"
+                        optionValue="productid"
+                        data={productsToShow}
+                        onChange={(value) => {
+                            setProductsToShow(productsToShow.filter((x) => x.productid !== value.productid));
+                            productAppend({
+                                customerproductid: fieldsProduct.length * -1,
+                                productid: value.productid,
+                                // stockid: value.stockid,
+                                product_description: value.description,
+                                price: 0,
+                                type_bonification: "",
+                                bonification: 0,
+                                min_bonification: 0,
+                            });
+                        }}
+                    />
+                    <TableContainer>
+                        <Table size="small">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell></TableCell>
+                                    <TableCell>Producto</TableCell>
+                                    <TableCell style={{}}>Precio</TableCell>
+                                    <TableCell style={{}}>Tipo Bonif.</TableCell>
+                                    <TableCell style={{}}>Bonificacion</TableCell>
+                                    <TableCell style={{}}>Min. Req (Bonif)</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody style={{ marginTop: 5 }}>
+                                {fieldsProduct.map((item, i: number) => (
+                                    <TableRow key={item.id}>
+                                        <TableCell>
+                                            <div style={{ display: "flex" }}>
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => {
+                                                        productRemove(i);
+                                                    }}
+                                                >
+                                                    <DeleteIcon style={{ color: "#777777" }} />
+                                                </IconButton>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div>{getValues(`products.${i}.product_description`)}</div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <FieldEditArray
+                                                fregister={{
+                                                    ...register(`products.${i}.price`, {
+                                                        validate: (value) =>
+                                                            value > 0 || "" + t(langKeys.field_required),
+                                                    }),
+                                                }}
+                                                inputProps={{ min: 0, style: { textAlign: "right" } }} // the change is here
+                                                type={"number"}
+                                                valueDefault={getValues(`products.${i}.price`)}
+                                                // disabled={lock}
+                                                error={errors?.products?.[i]?.price?.message}
+                                                onChange={(value) => {
+                                                    setValue(`products.${i}.price`, value);
+                                                    const price = getValues(`products.${i}.price`);
+                                                    // const n_bottles = getValues(`products.${i}.n_bottles`);
+                                                    setValue(`products.${i}.subtotal`, price * value);
+                                                    trigger(`products.${i}.subtotal`);
+                                                }}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <FieldSelect
+                                                fregister={{
+                                                    ...register(`products.${i}.type_bonification`, {
+                                                        validate: (value) =>
+                                                            (value && value.length > 0) ||
+                                                            "" + t(langKeys.field_required),
+                                                    }),
+                                                }}
+                                                label={""}
+                                                // className="col-6"
+                                                valueDefault={getValues(`products.${i}.type_bonification`)}
+                                                onChange={(value) => {
+                                                    setValue(`products.${i}.type_bonification`, value?.domainvalue);
+                                                }}
+                                                error={errors?.products?.[i]?.type_bonification?.message}
+                                                data={dataExtra.bonif}
+                                                uset={true}
+                                                optionDesc="domainvalue"
+                                                optionValue="domainvalue"
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <FieldEditArray
+                                                fregister={{
+                                                    ...register(`products.${i}.bonification`, {
+                                                        validate: (value) =>
+                                                            value > 0 || "" + t(langKeys.field_required),
+                                                    }),
+                                                }}
+                                                inputProps={{ min: 0, style: { textAlign: "right" } }} // the change is here
+                                                type={"number"}
+                                                valueDefault={getValues(`products.${i}.bonification`)}
+                                                // disabled={lock}
+                                                error={errors?.products?.[i]?.bonification?.message}
+                                                onChange={(value) => {
+                                                    setValue(`products.${i}.bonification`, value);
+                                                }}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <FieldEditArray
+                                                fregister={{
+                                                    ...register(`products.${i}.min_bonification`, {
+                                                        validate: (value) =>
+                                                            value > 0 || "" + t(langKeys.field_required),
+                                                    }),
+                                                }}
+                                                inputProps={{ min: 0, style: { textAlign: "right" } }} // the change is here
+                                                type={"number"}
+                                                valueDefault={getValues(`products.${i}.min_bonification`)}
+                                                // disabled={lock}
+                                                error={errors?.products?.[i]?.min_bonification?.message}
+                                                onChange={(value) => {
+                                                    setValue(`products.${i}.min_bonification`, value);
+                                                }}
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
                 </div>
             </form>
         </div>
