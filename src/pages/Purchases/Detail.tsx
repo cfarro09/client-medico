@@ -15,6 +15,12 @@ import { getDetailPurchase, insPurchase, insPurchaseDetail, processOC } from "co
 import { Button, makeStyles, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableFooter } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Tabs from '@material-ui/core/Tabs';
+import Accordion from '@material-ui/core/Accordion';
+import AccordionDetails from '@material-ui/core/AccordionDetails';
+import AccordionSummary from '@material-ui/core/AccordionSummary';
+import Typography from '@material-ui/core/Typography';
+import { ExpandMore } from "@material-ui/icons";
+import AddIcon from '@material-ui/icons/Add';
 
 const arrayBread = [
     { id: "view-1", name: "Purchase" },
@@ -26,11 +32,16 @@ const statusList = [
     { value: "ENTREGADO" },
 ]
 
+const purchaseType = [
+    { value: "GLP" },
+    { value: "INSUMO" },
+]
+
 const useStyles = makeStyles((theme) => ({
     containerDetail: {
-        marginTop: theme.spacing(2),
-        padding: theme.spacing(2),
+        // padding: theme.spacing(2),
         background: "#fff",
+        width: "100%"
     },
     button: {
         padding: 12,
@@ -41,18 +52,28 @@ const useStyles = makeStyles((theme) => ({
     title: {
         fontSize: '22px',
         color: theme.palette.text.primary,
-    }
+    },
+    heading: {
+        fontSize: theme.typography.pxToRem(15),
+        flexBasis: '33.33%',
+        flexShrink: 0,
+    },
+    secondaryHeading: {
+        fontSize: theme.typography.pxToRem(15),
+        color: theme.palette.text.secondary,
+    },
 }));
 
 type FormFields = {
     purchaseorderid: number,
     products: Dictionary[],
+    payments: Dictionary[],
     supplierid: number,
     warehouseid: number,
     purchasecreatedate: string,
     purchase_order_number: string,
     observations: string,
-    status: string,
+    category: string,
     bill_entry_date: string,
     bill_number: string
 }
@@ -66,16 +87,20 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
     const [productsToShow, setProductsToShow] = useState<Dictionary[]>([])
     const [pageSelected, setPageSelected] = useState(0)
     const [lock, setLock] = useState(false)
+    const [totalOrder, setTotalOrder] = useState(0);
+    const [expanded, setExpanded] = React.useState<string | false>("panel0");
     const [dataExtra, setDataExtra] = useState<{
         status: Dictionary[];
         type: Dictionary[],
         products: Dictionary[],
         suppliers: Dictionary[],
+        payments: Dictionary[],
         warehouses: Dictionary[],
     }>({
         status: [],
         type: [],
         products: [],
+        payments: [],
         suppliers: [],
         warehouses: [],
     });
@@ -90,12 +115,19 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
             purchasecreatedate: row?.purchasecreatedate || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
             purchase_order_number: row?.purchase_order_number || "",
             observations: row?.observations || "",
-            status: row?.status || "PENDIENTE",
+            category: row?.status || "GLP",
             bill_entry_date: row?.bill_entry_date || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
             bill_number: row?.bill_number || "",
-            products: []
+            products: [],
+            payments: [],
         },
     });
+
+    const { fields: fieldsPayment, append: paymentAppend, remove: paymentRemove } = useFieldArray({
+        control,
+        name: 'payments',
+    });
+
     const { fields: fieldsProduct, append: productAppend, remove: productRemove } = useFieldArray({
         control,
         name: 'products',
@@ -104,19 +136,20 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
     useEffect(() => {
         if (!multiData.error && !multiData.loading) {
             const dataStatus = multiData.data.find((x) => x.key === "DOMAIN-ESTADOGENERICO");
-            // const dataTypes = multiData.data.find((x) => x.key === "DOMAIN-TIPOCORP");
+            const payments = multiData.data.find(x => x.key === "DOMAIN-METODOPAGO");
             const products = multiData.data.find((x) => x.key === "UFN_PRODUCT_LST");
             const suppliers = multiData.data.find((x) => x.key === "UFN_SUPPLIER_LST");
             const warehouses = multiData.data.find((x) => x.key === "UFN_WAREHOUSE_LST");
 
             if (dataStatus && products && suppliers && warehouses) {
-                setProductsToShow(products.data)
+                setProductsToShow(products.data.filter(x => x.category === (row?.category || "GLP")))
                 setDataExtra({
                     status: dataStatus.data,
                     type: [],
                     products: products.data,
                     suppliers: suppliers.data,
                     warehouses: warehouses.data,
+                    payments: payments?.data || []
                 });
 
                 setValue('supplierid', suppliers.data?.[0]?.supplierid || 0);
@@ -130,7 +163,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
     useEffect(() => {
         if (waitSave) {
             if (!executeResult.loading && !executeResult.error) {
-                if ((executeResult.key === "UFN_PURCHASE_ORDER_INS" && ((getValues("purchaseorderid") === 0 && getValues("status") === "ENTREGADO") || merchantEntry))) {
+                if ((executeResult.key === "UFN_PURCHASE_ORDER_INS" && ((getValues("purchaseorderid") === 0 && getValues("category") === "ENTREGADO") || merchantEntry))) {
                     dispatch(execute(processOC(executeResult.data?.[0]?.p_purchaseorderid)));
                 } else {
                     dispatch(
@@ -155,6 +188,11 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
         }
     }, [executeResult, waitSave]);
 
+    useEffect(() => {
+        const total = getValues("products").filter(item => item.status !== "ELIMINADO").reduce((acc, item) => acc + item.subtotal, 0)
+        setTotalOrder(total)
+    }, [getValues("products")])
+
     const processTransaction = (data: FormFields, status: string = "") => {
         if (data.products.filter(item => item.status !== "ELIMINADO").length === 0) {
             dispatch(showSnackbar({ show: true, success: false, message: "Debe tener como minimo un producto registrado" }));
@@ -167,14 +205,14 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                 header: insPurchase({
                     ...data,
                     operation: data.purchaseorderid ? "UPDATE" : "INSERT",
-                    status: merchantEntry ? status : data.status,
+                    status: merchantEntry ? status : data.category,
                     total
                 }),
                 detail: data.products.map(x => insPurchaseDetail({
                     ...x,
                     operation: x.purchasedetailid > 0 ? (x.status === "ELIMINADO" ? "DELETE" : "UPDATE") : "INSERT",
                     status: 'ACTIVO',
-                    delivered_quantity: merchantEntry ? x.delivered_quantity : (data.status === "ENTREGADO" ? x.quantity : 0),
+                    delivered_quantity: merchantEntry ? x.delivered_quantity : (data.category === "ENTREGADO" ? x.quantity : 0),
                     quantity: x.n_bottles * x.quantity,
                     price: x.price / x.n_bottles
                 }))
@@ -198,6 +236,10 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
             processTransaction(data, status)
         }
     }
+
+    const handleChangePanel = (panel: string) => (event: React.ChangeEvent<{}>, isExpanded: boolean) => {
+        setExpanded(isExpanded ? panel : false);
+    };
 
     const onSubmit = handleSubmit((data) => processTransaction(data));
 
@@ -227,7 +269,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
             dispatch(resetMainAux())
         }
     }, [mainAux])
-    
+
     React.useEffect(() => {
         register("purchaseorderid");
         register("supplierid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
@@ -301,309 +343,430 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                         )}
                     </div>
                 </div>
-                <Tabs
-                    value={pageSelected}
-                    indicatorColor="primary"
-                    variant="fullWidth"
-                    style={{ borderBottom: '1px solid #EBEAED', backgroundColor: '#FFF', marginTop: 8 }}
-                    textColor="primary"
-                    onChange={(_, value) => setPageSelected(value)}
-                >
-                    <AntTab label={"Informacion"} />
-                    <AntTab label="Productos" />
-                </Tabs>
 
-                {pageSelected === 0 && (
-                    <div className={classes.containerDetail}>
-                        <div className="row-zyx">
-                            <FieldEdit
-                                label={"N° Orden de compra"}
-                                className="col-6"
-                                valueDefault={getValues("purchase_order_number")}
-                                onChange={(value) => setValue("purchase_order_number", value)}
-                                error={errors?.purchase_order_number?.message}
-                                disabled={true}
-                            />
-                            <FieldEdit
-                                label={"Fecha de la orden de compra"}
-                                type="date"
-                                className="col-6"
-                                valueDefault={getValues("purchasecreatedate")}
-                                onChange={(value) => setValue("purchasecreatedate", value)}
-                                error={errors?.purchasecreatedate?.message}
-                                disabled={lock}
-                            />
-                        </div>
-
-                        <div className="row-zyx">
-                            <FieldSelect
-                                loading={multiData.loading}
-                                label={t(langKeys.provider)}
-                                className="col-6"
-                                valueDefault={getValues('supplierid')}
-                                onChange={(value) => setValue('supplierid', value ? value.supplierid : 0)}
-                                error={errors?.supplierid?.message}
-                                data={dataExtra.suppliers}
-                                optionDesc="description"
-                                disabled={lock}
-                                optionValue="supplierid"
-                            />
-                            <FieldSelect
-                                loading={multiData.loading}
-                                label={"Almacen"}
-                                className="col-6"
-                                valueDefault={getValues('warehouseid')}
-                                onChange={(value) => setValue('warehouseid', value ? value.warehouseid : 0)}
-                                error={errors?.warehouseid?.message}
-                                data={dataExtra.warehouses}
-                                optionDesc="description"
-                                disabled={lock}
-                                optionValue="warehouseid"
-                            />
-                        </div>
-                        {!merchantEntry && (
+                <Accordion expanded={expanded === 'panel0'} onChange={handleChangePanel('panel0')}>
+                    <AccordionSummary
+                        expandIcon={<ExpandMore />}
+                        aria-controls="panel0bh-content"
+                        id="panel0bh-header"
+                    >
+                        <Typography className={classes.heading}>Informacion general</Typography>
+                        <Typography className={classes.secondaryHeading}>Información de la orden de compra</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <div className={classes.containerDetail}>
                             <div className="row-zyx">
                                 <FieldSelect
                                     loading={multiData.loading}
-                                    label={t(langKeys.status)}
+                                    label={"Empresa"}
                                     className="col-6"
-                                    valueDefault={getValues('status')}
+                                    valueDefault={getValues('warehouseid')}
+                                    onChange={(value) => setValue('warehouseid', value ? value.warehouseid : 0)}
+                                    error={errors?.warehouseid?.message}
+                                    data={dataExtra.warehouses}
+                                    optionDesc="description"
+                                    disabled={lock}
+                                    optionValue="warehouseid"
+                                />
+                                <FieldSelect
+                                    loading={multiData.loading}
+                                    label={"Almacen (Vehiculo)"}
+                                    className="col-6"
+                                    valueDefault={getValues('supplierid')}
+                                    onChange={(value) => setValue('supplierid', value ? value.supplierid : 0)}
+                                    error={errors?.supplierid?.message}
+                                    data={dataExtra.suppliers}
+                                    optionDesc="description"
+                                    disabled={lock}
+                                    optionValue="supplierid"
+                                />
+                            </div>
+                            <div className="row-zyx">
+                                <FieldEdit
+                                    label={"N° Pedido"}
+                                    className="col-6"
+                                    valueDefault={getValues("purchase_order_number")}
+                                    onChange={(value) => setValue("purchase_order_number", value)}
+                                    error={errors?.purchase_order_number?.message}
+                                />
+                                <FieldEdit
+                                    label={"N° SCOPE"}
+                                    className="col-6"
+                                    valueDefault={getValues("purchase_order_number")}
+                                    onChange={(value) => setValue("purchase_order_number", value)}
+                                    error={errors?.purchase_order_number?.message}
+                                />
+                            </div>
+                            <div className="row-zyx">
+                                <FieldSelect
+                                    loading={multiData.loading}
+                                    label={"Tipo"}
+                                    className="col-6"
+                                    valueDefault={getValues('category')}
                                     onChange={(value) => {
-                                        setValue('status', value ? value.value : 0);
-                                        trigger('status')
+                                        setValue('category', value ? value.value : 0);
+                                        trigger('category')
                                     }}
-                                    error={errors?.status?.message}
-                                    data={statusList}
+                                    error={errors?.category?.message}
+                                    data={purchaseType}
                                     optionDesc="value"
                                     disabled={lock || getValues("purchaseorderid") !== 0}
                                     optionValue="value"
                                 />
                             </div>
-                        )}
-                        {getValues("status") === "ENTREGADO" && (
+                            {/* {!merchantEntry && (
+                                <div className="row-zyx">
+                                    <FieldSelect
+                                        loading={multiData.loading}
+                                        label={t(langKeys.status)}
+                                        className="col-6"
+                                        valueDefault={getValues('status')}
+                                        onChange={(value) => {
+                                            setValue('status', value ? value.value : 0);
+                                            trigger('status')
+                                        }}
+                                        error={errors?.status?.message}
+                                        data={statusList}
+                                        optionDesc="value"
+                                        disabled={lock || getValues("purchaseorderid") !== 0}
+                                        optionValue="value"
+                                    />
+                                </div>
+                            )} */}
+                            {getValues("category") === "ENTREGADO" && (
+                                <div className="row-zyx">
+                                    <FieldEdit
+                                        label={"N° Factura"}
+                                        className="col-6"
+                                        valueDefault={getValues("bill_number")}
+                                        onChange={(value) => setValue("bill_number", value)}
+                                        error={errors?.bill_number?.message}
+                                        disabled={lock}
+                                    />
+                                    <FieldEdit
+                                        label={"Fecha de la factura"}
+                                        type="date"
+                                        className="col-6"
+                                        disabled={lock}
+                                        valueDefault={getValues("bill_entry_date")}
+                                        onChange={(value) => setValue("bill_entry_date", value)}
+                                        error={errors?.bill_entry_date?.message}
+                                    />
+                                </div>
+                            )}
                             <div className="row-zyx">
-                                <FieldEdit
-                                    label={"N° Factura"}
-                                    className="col-6"
-                                    valueDefault={getValues("bill_number")}
-                                    onChange={(value) => setValue("bill_number", value)}
-                                    error={errors?.bill_number?.message}
-                                    disabled={lock}
-                                />
-                                <FieldEdit
-                                    label={"Fecha de la factura"}
+                                <FieldEditMulti
+                                    label={"Observación"}
                                     type="date"
-                                    className="col-6"
-                                    disabled={lock}
-                                    valueDefault={getValues("bill_entry_date")}
-                                    onChange={(value) => setValue("bill_entry_date", value)}
-                                    error={errors?.bill_entry_date?.message}
+                                    rows={3}
+                                    className="col-12"
+                                    disabled={lock && !merchantEntry}
+                                    valueDefault={getValues("observations")}
+                                    onChange={(value) => setValue("observations", value)}
+                                    error={errors?.observations?.message}
                                 />
                             </div>
-                        )}
-                        <div className="row-zyx">
-                            <FieldEditMulti
-                                label={"Observación"}
-                                type="date"
-                                rows={3}
-                                className="col-12"
-                                disabled={lock && !merchantEntry}
-                                valueDefault={getValues("observations")}
-                                onChange={(value) => setValue("observations", value)}
-                                error={errors?.observations?.message}
-                            />
                         </div>
-                    </div>
-                )}
-                {pageSelected === 1 && (
-                    <div className={classes.containerDetail}>
-                        {!lock && (
-                            <FieldSelect
-                                label={"Product"}
-                                variant='outlined'
-                                onChange={(value) => {
-                                    if (value) {
-                                        setProductsToShow(productsToShow.filter(x => x.productid !== value.productid))
-                                        productAppend({
-                                            purchasedetailid: fieldsProduct.length * -1,
-                                            productid: value.productid,
-                                            product_description: value.description,
-                                            price: parseFloat((value?.purchase_price || "0")),
-                                            quantity: 0,
-                                            delivered_quantity: 0,
-                                            subtotal: 0.0,
-                                            list_unit: [
-                                                { unit: value.unit, unit_desc: `${value.unit} (1)`, quantity: 1 },
-                                                ...(value.n_bottles > 0 ? [{ unit: value.types_packaging, quantity: value.n_bottles, unit_desc: `${value.types_packaging} (${value.n_bottles})` }] : [])
-                                            ],
-                                            unit_selected: value.unit,
-                                            n_bottles: 1,
-                                        })
-                                    }
-                                }}
-                                data={productsToShow}
-                                optionDesc="description"
-                                optionValue="productid"
-                            />
-                        )}
-                        <TableContainer>
-                            <Table size="small">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>
-                                        </TableCell>
-                                        <TableCell>Producto</TableCell>
-                                        <TableCell style={{ textAlign: 'right' }}>Unidad</TableCell>
-                                        <TableCell style={{ textAlign: 'right' }}>Cantidad</TableCell>
-                                        {merchantEntry && (
-                                            <>
-                                                <TableCell style={{ textAlign: 'right' }}>Cantidad restante</TableCell>
-                                                <TableCell style={{ textAlign: 'right' }}>Cantidad a entregar</TableCell>
-                                            </>
-                                        )}
-                                        <TableCell style={{ textAlign: 'right' }}>Precio</TableCell>
-                                        <TableCell style={{ textAlign: 'right' }}>Subtotal</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody style={{ marginTop: 5 }}>
-                                    {fieldsProduct.map((item, i: number) =>
-                                        <TableRow key={item.id}>
-                                            <TableCell width={30}>
-                                                {!lock && (
-                                                    <div style={{ display: 'flex' }}>
-                                                        <IconButton
-                                                            size="small"
-                                                            onClick={() => { productRemove(i) }}
-                                                        >
-                                                            <DeleteIcon style={{ color: '#777777' }} />
-                                                        </IconButton>
-                                                    </div>
-                                                )}
+                    </AccordionDetails>
+                </Accordion>
+                <Accordion expanded={expanded === 'panel1'} onChange={handleChangePanel('panel1')}>
+                    <AccordionSummary
+                        expandIcon={<ExpandMore />}
+                        aria-controls="panel1bh-content"
+                        id="panel1bh-header"
+                    >
+                        <Typography className={classes.heading}>Productos</Typography>
+                        <Typography className={classes.secondaryHeading}>Elegir productos de la compra</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <div className={classes.containerDetail}>
+                            {!lock && (
+                                <FieldSelect
+                                    label={"Product"}
+                                    variant='outlined'
+                                    onChange={(value) => {
+                                        if (value) {
+                                            setProductsToShow(productsToShow.filter(x => x.productid !== value.productid))
+                                            productAppend({
+                                                purchasedetailid: fieldsProduct.length * -1,
+                                                productid: value.productid,
+                                                product_description: value.description,
+                                                price: parseFloat((value?.purchase_price || "0")),
+                                                quantity: 0,
+                                                delivered_quantity: 0,
+                                                subtotal: 0.0,
+                                                list_unit: [
+                                                    { unit: value.unit, unit_desc: `${value.unit} (1)`, quantity: 1 },
+                                                    ...(value.n_bottles > 0 ? [{ unit: value.types_packaging, quantity: value.n_bottles, unit_desc: `${value.types_packaging} (${value.n_bottles})` }] : [])
+                                                ],
+                                                unit_selected: value.unit,
+                                                n_bottles: 1,
+                                            })
+                                        }
+                                    }}
+                                    data={productsToShow}
+                                    optionDesc="description"
+                                    optionValue="productid"
+                                />
+                            )}
+                            <TableContainer>
+                                <Table size="small">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>
                                             </TableCell>
-                                            <TableCell >
-                                                <div>
-                                                    {getValues(`products.${i}.product_description`)}
-                                                </div>
-                                            </TableCell>
-
-                                            <TableCell width={200}>
-                                                <FieldSelect
-                                                    label={""}
-                                                    variant='outlined'
-                                                    valueDefault={getValues(`products.${i}.unit_selected`)}
-                                                    onChange={(value) => {
-                                                        setValue(`products.${i}.unit_selected`, value.unit)
-                                                        setValue(`products.${i}.n_bottles`, value.quantity)
-
-                                                        const quantity = getValues(`products.${i}.quantity`);
-                                                        const price = getValues(`products.${i}.price`);
-                                                        // const n_bottles = getValues(`products.${i}.n_bottles`);
-                                                        setValue(`products.${i}.subtotal`, price * quantity);
-                                                        trigger(`products.${i}.subtotal`);
-                                                    }}
-                                                    disableClearable={true}
-                                                    data={item.list_unit}
-                                                    disabled={lock}
-                                                    optionDesc="unit_desc"
-                                                    optionValue="unit"
-                                                />
-                                            </TableCell>
+                                            <TableCell>Producto</TableCell>
+                                            <TableCell style={{ textAlign: 'right' }}>Unidad</TableCell>
+                                            <TableCell style={{ textAlign: 'right' }}>Cantidad</TableCell>
                                             {merchantEntry && (
-                                                <TableCell width={100}>
-                                                    <div style={{ textAlign: "right" }}>
-                                                        {getValues(`products.${i}.requested_quantity`)}
+                                                <>
+                                                    <TableCell style={{ textAlign: 'right' }}>Cantidad restante</TableCell>
+                                                    <TableCell style={{ textAlign: 'right' }}>Cantidad a entregar</TableCell>
+                                                </>
+                                            )}
+                                            <TableCell style={{ textAlign: 'right' }}>Precio</TableCell>
+                                            <TableCell style={{ textAlign: 'right' }}>Subtotal</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody style={{ marginTop: 5 }}>
+                                        {fieldsProduct.map((item, i: number) =>
+                                            <TableRow key={item.id}>
+                                                <TableCell width={30}>
+                                                    {!lock && (
+                                                        <div style={{ display: 'flex' }}>
+                                                            <IconButton
+                                                                size="small"
+                                                                onClick={() => { productRemove(i) }}
+                                                            >
+                                                                <DeleteIcon style={{ color: '#777777' }} />
+                                                            </IconButton>
+                                                        </div>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell >
+                                                    <div>
+                                                        {getValues(`products.${i}.product_description`)}
                                                     </div>
                                                 </TableCell>
-                                            )}
-                                            <TableCell width={180}>
-                                                <FieldEditArray
-                                                    fregister={{
-                                                        ...register(`products.${i}.quantity`, { validate: (value) => (value > 0) || "" + t(langKeys.field_required) }),
-                                                    }}
-                                                    inputProps={{ min: 0, style: { textAlign: 'right' } }} // the change is here
-                                                    type={"number"}
-                                                    valueDefault={getValues(`products.${i}.quantity`)}
-                                                    disabled={lock}
-                                                    error={errors?.products?.[i]?.quantity?.message}
-                                                    onChange={(value) => {
-                                                        setValue(`products.${i}.quantity`, value)
-                                                        const price = getValues(`products.${i}.price`);
-                                                        // const n_bottles = getValues(`products.${i}.n_bottles`);
-                                                        setValue(`products.${i}.subtotal`, price * value);
-                                                        trigger(`products.${i}.subtotal`);
-                                                    }}
-                                                />
-                                            </TableCell>
-                                            {merchantEntry && (
+
+                                                <TableCell width={200}>
+                                                    <FieldSelect
+                                                        label={""}
+                                                        variant='outlined'
+                                                        valueDefault={getValues(`products.${i}.unit_selected`)}
+                                                        onChange={(value) => {
+                                                            setValue(`products.${i}.unit_selected`, value.unit)
+                                                            setValue(`products.${i}.n_bottles`, value.quantity)
+
+                                                            const quantity = getValues(`products.${i}.quantity`);
+                                                            const price = getValues(`products.${i}.price`);
+                                                            // const n_bottles = getValues(`products.${i}.n_bottles`);
+                                                            setValue(`products.${i}.subtotal`, price * quantity);
+                                                            trigger(`products.${i}.subtotal`);
+                                                        }}
+                                                        disableClearable={true}
+                                                        data={item.list_unit}
+                                                        disabled={lock}
+                                                        optionDesc="unit_desc"
+                                                        optionValue="unit"
+                                                    />
+                                                </TableCell>
+                                                {merchantEntry && (
+                                                    <TableCell width={100}>
+                                                        <div style={{ textAlign: "right" }}>
+                                                            {getValues(`products.${i}.requested_quantity`)}
+                                                        </div>
+                                                    </TableCell>
+                                                )}
                                                 <TableCell width={180}>
                                                     <FieldEditArray
                                                         fregister={{
-                                                            ...register(`products.${i}.delivered_quantity`, { validate: (value) => (value >= 0 && value <= getValues(`products.${i}.quantity`)) || "Debe ingresar una cantidad correcta" }),
+                                                            ...register(`products.${i}.quantity`, { validate: (value) => (value > 0) || "" + t(langKeys.field_required) }),
                                                         }}
-                                                        inputProps={{ min: 0, max: getValues(`products.${i}.quantity`), style: { textAlign: 'right' } }} // the change is here
+                                                        inputProps={{ min: 0, style: { textAlign: 'right' } }} // the change is here
                                                         type={"number"}
-                                                        valueDefault={getValues(`products.${i}.delivered_quantity`)}
-                                                        error={errors?.products?.[i]?.delivered_quantity?.message}
+                                                        valueDefault={getValues(`products.${i}.quantity`)}
+                                                        disabled={lock}
+                                                        error={errors?.products?.[i]?.quantity?.message}
                                                         onChange={(value) => {
-                                                            setValue(`products.${i}.delivered_quantity`, parseFloat(value || "0"))
+                                                            setValue(`products.${i}.quantity`, value)
+                                                            const price = getValues(`products.${i}.price`);
+                                                            // const n_bottles = getValues(`products.${i}.n_bottles`);
+                                                            setValue(`products.${i}.subtotal`, price * value);
+                                                            trigger(`products.${i}.subtotal`);
                                                         }}
                                                     />
                                                 </TableCell>
+                                                {merchantEntry && (
+                                                    <TableCell width={180}>
+                                                        <FieldEditArray
+                                                            fregister={{
+                                                                ...register(`products.${i}.delivered_quantity`, { validate: (value) => (value >= 0 && value <= getValues(`products.${i}.quantity`)) || "Debe ingresar una cantidad correcta" }),
+                                                            }}
+                                                            inputProps={{ min: 0, max: getValues(`products.${i}.quantity`), style: { textAlign: 'right' } }} // the change is here
+                                                            type={"number"}
+                                                            valueDefault={getValues(`products.${i}.delivered_quantity`)}
+                                                            error={errors?.products?.[i]?.delivered_quantity?.message}
+                                                            onChange={(value) => {
+                                                                setValue(`products.${i}.delivered_quantity`, parseFloat(value || "0"))
+                                                            }}
+                                                        />
+                                                    </TableCell>
+                                                )}
+                                                <TableCell width={180}>
+                                                    <FieldEditArray
+                                                        fregister={{
+                                                            ...register(`products.${i}.price`, { validate: (value) => (value > 0) || "" + t(langKeys.field_required) }),
+                                                        }}
+                                                        inputProps={{ min: 0, style: { textAlign: 'right' } }} // the change is here
+                                                        type={"number"}
+                                                        valueDefault={getValues(`products.${i}.price`)}
+                                                        error={errors?.products?.[i]?.price?.message}
+                                                        disabled={lock}
+                                                        onChange={(value) => {
+                                                            setValue(`products.${i}.price`, value);
+                                                            const quantity = getValues(`products.${i}.quantity`);
+                                                            // const n_bottles = getValues(`products.${i}.n_bottles`);
+                                                            setValue(`products.${i}.subtotal`, quantity * value);
+                                                            trigger(`products.${i}.subtotal`)
+                                                        }}
+                                                    />
+                                                </TableCell>
+                                                <TableCell width={180}>
+                                                    <div style={{ textAlign: 'right' }}>
+                                                        {getValues(`products.${i}.subtotal`).toFixed(2)}
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                    <TableFooter>
+                                        <TableRow>
+                                            <TableCell></TableCell>
+                                            <TableCell></TableCell>
+                                            <TableCell></TableCell>
+                                            <TableCell></TableCell>
+                                            {merchantEntry && (
+                                                <>
+                                                    <TableCell></TableCell>
+                                                    <TableCell></TableCell>
+                                                </>
                                             )}
-                                            <TableCell width={180}>
-                                                <FieldEditArray
-                                                    fregister={{
-                                                        ...register(`products.${i}.price`, { validate: (value) => (value > 0) || "" + t(langKeys.field_required) }),
-                                                    }}
-                                                    inputProps={{ min: 0, style: { textAlign: 'right' } }} // the change is here
-                                                    type={"number"}
-                                                    valueDefault={getValues(`products.${i}.price`)}
-                                                    error={errors?.products?.[i]?.price?.message}
-                                                    disabled={lock}
-                                                    onChange={(value) => {
-                                                        setValue(`products.${i}.price`, value);
-                                                        const quantity = getValues(`products.${i}.quantity`);
-                                                        // const n_bottles = getValues(`products.${i}.n_bottles`);
-                                                        setValue(`products.${i}.subtotal`, quantity * value);
-                                                        trigger(`products.${i}.subtotal`)
-                                                    }}
-                                                />
-                                            </TableCell>
-                                            <TableCell width={180}>
-                                                <div style={{ textAlign: 'right' }}>
-                                                    {getValues(`products.${i}.subtotal`).toFixed(2)}
-                                                </div>
+                                            <TableCell>Total</TableCell>
+                                            <TableCell style={{
+                                                fontWeight: "bold",
+                                                color: "black",
+                                                textAlign: "right",
+                                            }}>
+                                                {getValues("products").reduce((acc, x) => acc + x.subtotal, 0).toFixed(2)}
                                             </TableCell>
                                         </TableRow>
-                                    )}
-                                </TableBody>
-                                <TableFooter>
-                                    <TableRow>
-                                        <TableCell></TableCell>
-                                        <TableCell></TableCell>
-                                        <TableCell></TableCell>
-                                        <TableCell></TableCell>
-                                        {merchantEntry && (
-                                            <>
-                                                <TableCell></TableCell>
-                                                <TableCell></TableCell>
-                                            </>
-                                        )}
-                                        <TableCell>Total</TableCell>
-                                        <TableCell style={{
-                                            fontWeight: "bold",
-                                            color: "black",
-                                            textAlign: "right",
-                                        }}>
-                                            {getValues("products").reduce((acc, x) => acc + x.subtotal, 0).toFixed(2)}
-                                        </TableCell>
-                                    </TableRow>
-                                </TableFooter>
-                            </Table>
-                        </TableContainer>
-                    </div>
-                )}
-
+                                    </TableFooter>
+                                </Table>
+                            </TableContainer>
+                        </div>
+                    </AccordionDetails>
+                </Accordion>
+                <Accordion expanded={expanded === 'panel2'} onChange={handleChangePanel('panel2')}>
+                        <AccordionSummary
+                            expandIcon={<ExpandMore />}
+                            aria-controls="panel2bh-content"
+                            id="panel2bh-header"
+                        >
+                            <Typography className={classes.heading}>Método de pago</Typography>
+                            <Typography className={classes.secondaryHeading}>Los métodos de pago para la orden</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <div className={classes.containerDetail}>
+                                <TableContainer>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow>
+                                                {!lock && (
+                                                    <TableCell>
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => {
+                                                                const tt = getValues("payments").reduce((acc, x) => acc + x.amount, 0)
+                                                                paymentAppend({ method: "EFECTIVO", amount: totalOrder - tt })
+                                                            }}
+                                                        >
+                                                            <AddIcon />
+                                                        </IconButton>
+                                                    </TableCell>
+                                                )}
+                                                <TableCell>Modo de pago</TableCell>
+                                                <TableCell>Monto a pagar</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody style={{ marginTop: 5 }}>
+                                            {fieldsPayment.map((item, i: number) =>
+                                                <TableRow key={item.id}>
+                                                    {!lock && (
+                                                        <TableCell width={20}>
+                                                            <div style={{ display: 'flex' }}>
+                                                                <IconButton
+                                                                    size="small"
+                                                                    onClick={() => { paymentRemove(i) }}
+                                                                >
+                                                                    <DeleteIcon style={{ color: '#777777' }} />
+                                                                </IconButton>
+                                                            </div>
+                                                        </TableCell>
+                                                    )}
+                                                    <TableCell width={200}>
+                                                        <FieldSelect
+                                                            label={""}
+                                                            className="col-6"
+                                                            valueDefault={getValues(`payments.${i}.method`)}
+                                                            onChange={(value) => setValue(`payments.${i}.method`, value.unit)}
+                                                            disableClearable={true}
+                                                            error={errors?.payments?.[i]?.method?.message}
+                                                            data={dataExtra.payments}
+                                                            fregister={{
+                                                                ...register(`payments.${i}.method`, { validate: (value) => (!!value) || "Debe ingresar una cantidad correcta" }),
+                                                            }}
+                                                            optionDesc="domainvalue"
+                                                            disabled={lock}
+                                                            optionValue="domainvalue"
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell width={180}>
+                                                        <FieldEditArray
+                                                            fregister={{
+                                                                ...register(`payments.${i}.amount`, { validate: (value) => (value >= 0) || "Debe ingresar una cantidad correcta" }),
+                                                            }}
+                                                            inputProps={{ min: 0, style: { textAlign: 'right' } }} // the change is here
+                                                            type={"number"}
+                                                            valueDefault={getValues(`payments.${i}.amount`)}
+                                                            disabled={lock}
+                                                            error={errors?.payments?.[i]?.amount?.message}
+                                                            onChange={(value) => setValue(`payments.${i}.amount`, parseFloat(value || "0"))}
+                                                        />
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                        <TableFooter>
+                                            <TableRow>
+                                                {!lock && (
+                                                    <TableCell></TableCell>
+                                                )}
+                                                <TableCell>Total</TableCell>
+                                                <TableCell style={{
+                                                    fontWeight: "bold",
+                                                    color: "black",
+                                                    textAlign: "right",
+                                                }}>
+                                                    {getValues("payments").reduce((acc, x) => acc + x.amount, 0).toFixed(2)}
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableFooter>
+                                    </Table>
+                                </TableContainer>
+                            </div>
+                        </AccordionDetails>
+                    </Accordion>
             </form>
         </div>
     );

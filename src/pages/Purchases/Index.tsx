@@ -107,6 +107,7 @@ const Purchase: FC = () => {
                 getProductList(),
                 getSupplierList(),
                 getWareHouse(),
+                getValuesFromDomain("METODOPAGO", "DOMAIN-METODOPAGO"),
             ])
         );
         return () => {
