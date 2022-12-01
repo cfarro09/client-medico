@@ -39,6 +39,27 @@ export const getSales = (parameters: Dictionary): IRequestBody => ({
     parameters: { ...parameters }
 })
 
+export const getRoutes = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_ROUTES_SEL",
+    key: "UFN_ROUTES_SEL",
+    parameters: { ...parameters }
+})
+export const getDrivers = (): IRequestBody => ({
+    method: "UFN_DRIVER_USERS_SEL",
+    key: "UFN_DRIVER_USERS_SEL",
+    parameters: { }
+})
+export const getVehicles = (): IRequestBody => ({
+    method: "UFN_AVAILABLE_VEHICLE_LST",
+    key: "UFN_AVAILABLE_VEHICLE_LST",
+    parameters: { }
+})
+export const insRoute = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_ROUTES_INS",
+    key: "UFN_ROUTES_INS",
+    parameters: { ...parameters }
+})
+
 export const getWarehouseSel = ({ shopid, id }: Dictionary): IRequestBody => ({
     method: "UFN_WAREHOUSE_SEL",
     key: "UFN_WAREHOUSE_SEL",

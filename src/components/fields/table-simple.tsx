@@ -753,7 +753,7 @@ const TableZyx = React.memo(({
                     {helperText !== "" ? <Tooltip title={<div style={{ fontSize: 12 }}>{helperText}</div>} arrow placement="top" >
                         <InfoRoundedIcon color="action" className={classes.iconHelpText} />
                     </Tooltip> : ""}
-                </span> : (<div style={{ flexGrow: 1 }}>
+                </span> : (<div >
                     {ButtonsElement && <ButtonsElement />}
                 </div>)}
                 <span className={classes.containerButtons}>

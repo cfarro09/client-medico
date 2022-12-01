@@ -24,6 +24,9 @@ const translation: LangKeys = {
     report_distribution: 'Reporte de distribución',
     tracking: 'Tracking',
     templates: 'Plantilla',
+    routes: 'Rutas',
+    driver: 'Chofer',
+    helpers: 'Ayudantes',
 
     english: 'Inglés',
     spanish: 'Español',

@@ -27,6 +27,9 @@ const translation: LangKeys = {
     report_distribution: 'Report Distribution',
     tracking: 'Tracking',
     templates: 'Templates',
+    routes: 'Routes',
+    driver: 'Driver',
+    helpers: 'Helpers',
 
 
     dashboard: 'Dashboard',

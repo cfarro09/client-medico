@@ -8,6 +8,8 @@ const paths = {
     CUSTOMERS: '/customer',
     SUPPLIER: '/supplier',
     SALES: '/sales',
+    FORWARD: '/forward',
+    BILL: '/bill',
     PURCHASES: '/purchases',
     STOCK: '/stock',
     SIGNIN: '/sign-in',

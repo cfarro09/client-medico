@@ -28,6 +28,8 @@ const Products = lazy(() => import('pages/Product/Index'));
 const Domains = lazy(() => import('pages/Domain/Index'));
 const Customer = lazy(() => import('pages/Customer/Index'));
 const Dashboard = lazy(() => import('pages/Dashboard/Index'));
+const Forward = lazy(() => import('pages/Forward/Index'));
+const Bill = lazy(() => import('pages/Bill/Index'));
 
 const useStyles = makeStyles((theme) => ({
 	main: {
@@ -127,6 +129,12 @@ const RouterApp: FC = () => {
 					</ProtectRoute>
 					<ProtectRoute exact path={paths.SALES}>
 						<Layout mainClasses={classes.main}><Sales /></Layout>
+					</ProtectRoute>
+					<ProtectRoute exact path={paths.FORWARD}>
+						<Layout mainClasses={classes.main}><Forward /></Layout>
+					</ProtectRoute>
+					<ProtectRoute exact path={paths.BILL}>
+						<Layout mainClasses={classes.main}><Bill /></Layout>
 					</ProtectRoute>
 					<ProtectRoute exact path={paths.STOCK}>
 						<Layout mainClasses={classes.main}><Stock /></Layout>
