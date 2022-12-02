@@ -2,18 +2,13 @@
 import { Button, makeStyles } from "@material-ui/core";
 import { Dictionary } from "@types";
 import {
-    getCustomerList,
     getDateCleaned,
     getDrivers,
-    getProductsWithStock,
     getRoutes,
-    getUserSel,
     getValuesFromDomain,
     getVehicles,
-    getWareHouse,
-    insPurchase,
 } from "common/helpers";
-import { DateRangePicker, FieldSelect, TemplateIcons } from "components";
+import { DateRangePicker, FieldSelect } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
 import { CalendarIcon, SearchIcon } from "icons";
@@ -22,10 +17,9 @@ import React, { FC, useEffect, useState } from "react"; // we need this to make 
 import { Range } from "react-date-range";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
-import { execute, exportReportPDF, getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
-import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
+import { getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
+import { showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
-import ReceiptIcon from '@material-ui/icons/Receipt';
 
 const useStyles = makeStyles((theme) => ({
     container: {

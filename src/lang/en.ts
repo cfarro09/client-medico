@@ -29,6 +29,7 @@ const translation: LangKeys = {
     templates: 'Templates',
     routes: 'Routes',
     driver: 'Driver',
+    bill: "Bill",
     helpers: 'Helpers',
 
 

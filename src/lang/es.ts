@@ -27,6 +27,7 @@ const translation: LangKeys = {
     routes: 'Rutas',
     driver: 'Chofer',
     helpers: 'Ayudantes',
+    bill: "Cuenta",
 
     english: 'Inglés',
     spanish: 'Español',

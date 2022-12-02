@@ -36,6 +36,7 @@ export const langKeys = {
     report_distribution: 'report_distribution',
     tracking: 'tracking',
     templates: 'templates',
+    bill: "bill",
 
     highestTMO: "highestTMO",
     currency: "currency",

@@ -1,4 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+import { Button, makeStyles } from "@material-ui/core";
 import { Dictionary } from "@types";
 import { getRoles, getShops, getUserSel, getValuesFromDomain, getWareHouse, insUser } from "common/helpers";
 import { TemplateIcons } from "components";
@@ -12,7 +13,26 @@ import { execute, getCollection, getMultiCollection, resetAllMain } from "store/
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
 
-const User: FC = () => {
+const useStyles = makeStyles((theme) => ({
+    containerHeader: {
+        marginBottom: 0,
+        display: "flex",
+        width: "100%",
+        gap: 8,
+        flexWrap: "wrap",
+        justifyContent: "space-between",
+        alignItems: "center",
+        [theme.breakpoints.up("sm")]: {
+            display: "flex",
+        },
+        "& > div": {
+            display: "flex",
+            gap: 8,
+        },
+    },
+}));
+
+const Bill: FC = () => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainResult = useSelector((state) => state.main.mainData);
@@ -23,6 +43,7 @@ const User: FC = () => {
     const applications = useSelector((state) => state.login?.validateToken?.user?.menu);
     const [pagePermissions, setPagePermissions] = useState<Dictionary>({});
     const executeResult = useSelector((state) => state.main.execute);
+    const classes = useStyles();
     
     useEffect(() => {
         if (applications) {
@@ -32,6 +53,11 @@ const User: FC = () => {
                 "insert": applications["/user"][2],
                 "delete": applications["/user"][3],
                 "download": applications["/user"][4],
+                //"view": applications["/bill"][0],
+                //"modify": applications["/bill"][1],
+                //"insert": applications["/bill"][2],
+                //"delete": applications["/bill"][3],
+                //"download": applications["/bill"][4],
             });
         }
     }, [applications]);
@@ -79,7 +105,7 @@ const User: FC = () => {
     const columns = React.useMemo(
         () => [
             {
-                accessor: 'userid',
+                accessor: 'billid',
                 NoFilter: true,
                 isComponent: true,
                 minWidth: 60,
@@ -94,28 +120,24 @@ const User: FC = () => {
                 }
             },
             {
-                Header: t(langKeys.user),
-                accessor: 'usr',
+                Header: t(langKeys.description),
+                accessor: 'description',
+                NoFilter: true,
             },
             {
-                Header: t(langKeys.fullname),
-                accessor: 'full_name',
-            },
-            {
-                Header: "N° doc",
-                accessor: 'doc_number',
-            },
-            {
-                Header: t(langKeys.email),
-                accessor: 'email',
-            },
-            {
-                Header: t(langKeys.role),
-                accessor: 'roles',
+                Header: t(langKeys.amount),
+                accessor: 'amount',
+                NoFilter: true,
             },
             {
                 Header: t(langKeys.status),
                 accessor: 'status',
+                NoFilter: true,
+            },
+            {
+                Header: t(langKeys.lastUpdate),
+                accessor: 'lastupdate',
+                NoFilter: true,
             },
         ],
         []
@@ -156,13 +178,27 @@ const User: FC = () => {
         return (
             <TableZyx
                 columns={columns}
-                titlemodule={t(langKeys.user, { count: 2 })}
+                titlemodule={`${t(langKeys.bill)}s`}
                 data={dataView}
-                download={!!pagePermissions.download}
+                download={false}
                 loading={mainResult.loading}
                 onClickRow={handleEdit}
-                register={!!pagePermissions.insert}
+                register={false}
                 hoverShadow={true}
+                
+                ButtonsElement={() => (
+                    <div className={classes.containerHeader}>
+                        <Button
+                            disabled={mainResult.loading}
+                            variant="contained"
+                            color="primary"
+                            style={{ width: 120, backgroundColor: "#55BD84" }}
+                            onClick={() => fetchData()}
+                        >
+                            {t(langKeys.search)}
+                        </Button>
+                    </div>
+                )}
                 handleRegister={handleRegister}
             />
         )
@@ -177,4 +213,4 @@ const User: FC = () => {
         )
     }
 };
-export default User;
+export default Bill;
