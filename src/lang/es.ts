@@ -20,6 +20,7 @@ const translation: LangKeys = {
     zone: 'Zona',
     kpis: 'KPIS',
     newmarket: 'Nuevo Mercado',
+    createnewbill: "Crear nueva cuenta",
     evidences: 'Evidencias',
     report_distribution: 'Reporte de distribución',
     tracking: 'Tracking',
@@ -30,9 +31,13 @@ const translation: LangKeys = {
     bill: "Cuenta",
 
     english: 'Inglés',
+    observations: 'Observaciones',
     spanish: 'Español',
+    initialamount: 'Importe inicial',
+    transfer: 'Transferencia',
 
     dashboard: 'Dashboard',
+    createbill: 'Crear cuenta',
     dashboard_plural: 'Dashboards',
 
     organization: "Organización",

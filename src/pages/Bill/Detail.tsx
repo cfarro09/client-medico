@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Button, IconButton, InputAdornment, makeStyles } from "@material-ui/core";
-import { DetailModule, Dictionary } from "@types";
+import { Dictionary } from "@types";
 import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TitleDetail, DialogZyx, TemplateSwitch, FieldMultiSelect } from "components";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
@@ -17,6 +17,17 @@ import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
 import LockOpenIcon from '@material-ui/icons/LockOpen';
 import { CircularProgress } from '@material-ui/core';
+
+
+export interface CustomDetailModule {
+    row: Dictionary | null;
+    setViewSelected: (view: string) => void;
+    fetchData: () => void;
+    newBillDialog: boolean;
+    setNewBillDialog: (view: boolean) => void;
+    transferDialog: boolean;
+    setTransferDialog: (view: boolean) => void;
+}
 
 const arrayBread = [
     { id: "view-1", name: "User" },
@@ -50,14 +61,79 @@ type FormFields = {
     shops: Dictionary[],
 }
 
-interface ModalPasswordProps {
+interface ModalProps {
     openModal: boolean;
     setOpenModal: (value: boolean) => any;
     data: any;
     parentSetValue: (...param: any) => any;
 }
 
-const ModalPassword: React.FC<ModalPasswordProps> = ({ openModal, setOpenModal, data, parentSetValue }) => {
+const ModalBill: React.FC<ModalProps> = ({ openModal, setOpenModal, data, parentSetValue }) => {
+    const { t } = useTranslation();
+
+    const { register, handleSubmit, setValue, getValues, formState: { errors }, clearErrors } = useForm({
+        defaultValues: {
+            name: '',
+            initialamount: '',
+            observations: '',
+        }
+    });
+
+    useEffect(() => {
+        register('name', { validate: (value: any) => (value && value.length) || t(langKeys.field_required) });
+        register('initialamount', { validate: (value: any) => (value && value.length) || t(langKeys.field_required) });
+    }, [getValues, register, t])
+
+    const handleCancelModal = () => {
+        setOpenModal(false);
+        setValue('name', "");
+        setValue('initialamount', "");
+        setValue('observations', "");
+        clearErrors();
+    }
+
+    const onSubmitPassword = handleSubmit((data) => {
+        //enviar la data
+        setOpenModal(false);
+    });
+
+    return (
+        <DialogZyx
+            open={openModal}
+            title={t(langKeys.createnewbill)}
+            buttonText1={t(langKeys.cancel)}
+            buttonText2={t(langKeys.save)}
+            handleClickButton1={handleCancelModal}
+            handleClickButton2={onSubmitPassword}
+        >
+            <div className="row-zyx">
+                <FieldEdit
+                    label={t(langKeys.name)}
+                    className="col-12"
+                    valueDefault={getValues('name')}
+                    onChange={(value) => setValue('name', value)}
+                    error={errors?.name?.message}
+                />
+                <FieldEdit
+                    label={t(langKeys.initialamount)}
+                    className="col-12"
+                    type="number"
+                    valueDefault={getValues('initialamount')}
+                    onChange={(value) => setValue('initialamount', value)}
+                    error={errors?.initialamount?.message}
+                />
+                <FieldEdit
+                    label={t(langKeys.observations)}
+                    className="col-12"
+                    valueDefault={getValues('observations')}
+                    onChange={(value) => setValue('observations', value)}
+                    error={errors?.observations?.message}
+                />
+            </div>
+        </DialogZyx>
+    )
+}
+const ModalTransfer: React.FC<ModalProps> = ({ openModal, setOpenModal, data, parentSetValue }) => {
     const { t } = useTranslation();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -153,202 +229,11 @@ const ModalPassword: React.FC<ModalPasswordProps> = ({ openModal, setOpenModal, 
     )
 }
 
-const DetailShop: React.FC<{
-    i: number,
-    register: any,
-    item: Dictionary,
-    errors: any,
-    getValues: (param: any) => any,
-    trigger: (param: any) => void,
-    shopRemove: (param: any) => void,
-    setValue: (param: any, param1: any) => void,
-    dataExtra: Dictionary,
-}> = ({ i, item, errors, getValues, setValue, register, dataExtra: data, trigger, shopRemove }) => {
-    const dispatch = useDispatch();
-    const classes = useStyles();
-    const { t } = useTranslation();
-    const mainAux = useSelector((state) => state.main.mainAux);
-    const [dataExtra, setDataExtra] = useState<{
-        warehouse: Dictionary[],
-        application: Dictionary[],
-    }>({
-        application: [],
-        warehouse: [],
-    })
-
-    const onChangeShop = (shop: Dictionary | null, i: number) => {
-        setValue(`shops.${i}.shopid`, shop?.shopid || 0);
-        setValue(`shops.${i}.warehouses`, "")
-        if (shop) {
-            dispatch(getCollectionAux(getWareHouse(shop.shopid, item.shopuserid)))
-        } else {
-            setDataExtra({
-                ...dataExtra,
-                warehouse: []
-            })
-        }
-    }
-
-    const onChangeRole = (shop: Dictionary | null, i: number) => {
-        setValue(`shops.${i}.roleid`, shop?.roleid || 0);
-        setValue(`shops.${i}.redirect`, "")
-        if (shop) {
-            dispatch(getCollectionAux(getApplicationByRole(shop.roleid, item.shopuserid)))
-        } else {
-            setDataExtra({
-                ...dataExtra,
-                application: []
-            })
-        }
-    }
-
-    useEffect(() => {
-        if (item?.shopid) {
-            dispatch(getCollectionAux(getWareHouse(item.shopid, item.shopuserid)))
-            dispatch(getCollectionAux(getApplicationByRole(item.roleid, item.shopuserid)))
-        }
-    }, [])
-
-    useEffect(() => {
-        if (!mainAux.error && !mainAux.loading) {
-            if (mainAux.key === `UFN_WAREHOUSE_LST${item.shopuserid}`) {
-                setDataExtra(prev => ({
-                    ...prev,
-                    warehouse: mainAux.data
-                }))
-            } else if (mainAux.key === `UFN_APPLICATIONROLE_SEL${item.shopuserid}`) {
-                setDataExtra(prev => ({
-                    ...prev,
-                    application: mainAux.data
-                }))
-            }
-        }
-    }, [mainAux, setValue])
-
-    if (getValues(`shops.${i}.status`) === "ELIMINADO") {
-        return null
-    }
-    return (
-        <div className={classes.containerDetail}>
-            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
-                <TemplateSwitch
-                    label={t(langKeys.bydefault)}
-                    valueDefault={getValues(`shops.${i}.bydefault`)}
-                    mb={0}
-                    onChange={(value) => setValue(`shops.${i}.bydefault`, value)}
-                />
-                <Button
-                    variant="contained"
-                    type="button"
-                    color="primary"
-                    startIcon={<ClearIcon color="secondary" />}
-                    style={{ backgroundColor: "#FB5F5F" }}
-                    onClick={() => {
-                        if (item.shopuserid < 0) {
-                            shopRemove(i)
-                        } else {
-                            setValue(`shops.${i}.status`, "ELIMINADO")
-                            trigger(`shops.${i}.status`)
-                        }
-                    }}
-                >{t(langKeys.delete)}</Button>
-            </div>
-            <div className="row-zyx">
-                <FieldSelect
-                    label={"Shop"}
-                    className="col-6"
-                    valueDefault={getValues(`shops.${i}.shopid`)}
-                    fregister={{
-                        ...register(`shops.${i}.shopid`, {
-                            validate: {
-                                validate: (value: any) => (value && value > 0) || t(langKeys.field_required),
-                            }
-                        })
-                    }}
-                    onChange={(value) => onChangeShop(value, i)}
-                    error={errors?.shops?.[i]?.shopid?.message}
-                    data={data.shop}
-                    optionDesc="description"
-                    optionValue="shopid"
-                />
-                <FieldMultiSelect
-                    label={"WareHouse"}
-                    className="col-6"
-                    valueDefault={getValues(`shops.${i}.warehouses`)}
-                    fregister={{
-                        ...register(`shops.${i}.warehouses`)
-                    }}
-                    onChange={(value) => setValue(`shops.${i}.warehouses`, (value?.map((o: Dictionary) => o.warehouseid) || []).join())}
-                    error={errors?.shops?.[i]?.warehouses?.message}
-                    data={dataExtra.warehouse}
-                    optionDesc="description"
-                    optionValue="warehouseid"
-                />
-            </div>
-            <div className="row-zyx">
-                <FieldSelect
-                    label={t(langKeys.role)}
-                    className="col-6"
-                    valueDefault={getValues(`shops.${i}.roleid`)}
-                    fregister={{
-                        ...register(`shops.${i}.roleid`, {
-                            validate: {
-                                validate: (value: any) => (value && value > 0) || t(langKeys.field_required),
-                            }
-                        })
-                    }}
-                    onChange={(value) => onChangeRole(value, i)}
-                    error={errors?.shops?.[i]?.roleid?.message}
-                    data={data.role}
-                    optionDesc="description"
-                    optionValue="roleid"
-                />
-                <FieldSelect
-                    label={t(langKeys.default_application)}
-                    className="col-6"
-                    valueDefault={getValues(`shops.${i}.redirect`)}
-                    fregister={{
-                        ...register(`shops.${i}.redirect`, {
-                            validate: {
-                                validate: (value: any) => (value && value.length) || t(langKeys.field_required),
-                            }
-                        })
-                    }}
-                    onChange={(value) => {
-                        setValue(`shops.${i}.redirect`, value?.path || "");
-                        trigger(`shops.${i}.redirect`)
-                    }}
-                    error={errors?.shops?.[i]?.redirect?.message}
-                    data={dataExtra.application}
-                    optionDesc="description"
-                    optionValue="path"
-                />
-            </div>
-        </div>
-    )
-}
-
-const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
-    const classes = useStyles();
+const Detail: React.FC<CustomDetailModule> = ({ row, setViewSelected, fetchData, newBillDialog, setNewBillDialog, transferDialog, setTransferDialog }) => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
-    const multiData = useSelector((state) => state.main.multiData);
-    const [loadingShop, setloadingShop] = useState(false)
-    const mainAux = useSelector((state) => state.main.mainAux);
-    const [dataExtra, setDataExtra] = useState<{
-        status: Dictionary[],
-        docType: Dictionary[],
-        role: Dictionary[],
-        shop: Dictionary[],
-    }>({
-        status: [],
-        docType: [],
-        role: [],
-        shop: [],
-    })
     const [waitSave, setWaitSave] = useState(false);
     const executeRes = useSelector(state => state.main.execute);
-    const [openDialogPassword, setOpenDialogPassword] = useState(false);
 
     const { control, register, handleSubmit, setValue, trigger, getValues, formState: { errors } } = useForm<FormFields>({
         defaultValues: {
@@ -363,46 +248,6 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
             status: row?.status || 'ACTIVO',
         }
     });
-
-    const { fields: fieldsShop, append: shopAppend, remove: shopRemove } = useFieldArray({
-        control,
-        name: 'shops',
-    });
-
-    useEffect(() => {
-        if (!multiData.error && !multiData.loading) {
-            const status = multiData.data.find(x => x.key === "DOMAIN-ESTADOGENERICO")
-            const docType = multiData.data.find(x => x.key === "DOMAIN-TIPODOCUMENTO")
-            const role = multiData.data.find(x => x.key === "UFN_ROLE_LST")
-            const shop = multiData.data.find(x => x.key === "UFN_SHOP_LST")
-
-            if (status && docType && role && shop) {
-                const dd = {
-                    status: status.data,
-                    docType: docType.data,
-                    role: role.data,
-                    shop: shop.data,
-                }
-                setDataExtra(dd)
-
-                if (row) {
-                    setloadingShop(true)
-                    dispatch(getCollectionAux(getShopsByUserid(row.userid)));
-                } else {
-                    shopAppend({ bydefault: true, shopuserid: fieldsShop.length * -1, shopid: dd.shop[0]?.shopid || 0, roleid: dd.role[0]?.roleid || 0 })
-                }
-            }
-        }
-    }, [multiData])
-
-    useEffect(() => {
-        if (!mainAux.error && !mainAux.loading) {
-            if (mainAux.key === "UFN_SHOPUSER_SEL") {
-                setValue("shops", mainAux.data)
-                setloadingShop(false)
-            }
-        }
-    }, [mainAux, setValue])
 
     useEffect(() => {
         if (waitSave) {
@@ -431,174 +276,22 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
         register('doc_number', { validate: (value) => (value && !!value.length) || "" + t(langKeys.field_required) });
     }, [register, t]);
 
-    console.log("dataExtra", dataExtra)
-
-    const onSubmit = handleSubmit((data) => {
-        if (!row && !data.password) {
-            dispatch(showSnackbar({ show: true, success: false, message: t(langKeys.password_required) }));
-            return;
-        }
-        if (data.shops.filter(item => item.status !== "ELIMINADO").length === 0) {
-            dispatch(showSnackbar({ show: true, success: false, message: "Debe tener como minimo una tienda asignada" }));
-            return
-        }
-        if (data.shops.filter(item => item.status !== "ELIMINADO").filter(item => item.bydefault).length !== 1) {
-            dispatch(showSnackbar({ show: true, success: false, message: "Debe tener solo una tienda por defecto" }));
-            return
-        }
-        const callback = () => {
-            dispatch(showBackdrop(true));
-            dispatch(execute({
-                header: insUser({ ...data, operation: data.userid ? "UPDATE" : "INSERT" }),
-                detail: data.shops.map(x => shopUserIns({
-                    ...x,
-                    operation: x.shopuserid > 0 ? (x.status === "ELIMINADO" ? "DELETE" : "UPDATE") : "INSERT"
-                }))
-            }, true));
-            setWaitSave(true)
-        }
-
-        dispatch(manageConfirmation({
-            visible: true,
-            question: t(langKeys.confirmation_save),
-            callback
-        }))
-    });
 
     return (
-        <div style={{ width: '100%' }}>
-            <TemplateBreadcrumbs
-                breadcrumbs={arrayBread}
-                handleClick={setViewSelected}
-            />
-            <form onSubmit={onSubmit}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <TitleDetail
-                        title={row ? row.full_name : t(langKeys.newuser)}
-                    />
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <Button
-                            variant="contained"
-                            type="button"
-                            color="primary"
-                            startIcon={<ClearIcon color="secondary" />}
-                            style={{ backgroundColor: "#FB5F5F" }}
-                            onClick={() => setViewSelected("view-1")}
-                        >{t(langKeys.back)}</Button>
-                        <>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                type="button"
-                                startIcon={<LockOpenIcon color="secondary" />}
-                                onClick={() => setOpenDialogPassword(true)}
-                            >{t(row ? langKeys.changePassword : langKeys.setpassword)}</Button>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                type="submit"
-                                startIcon={<SaveIcon color="secondary" />}
-                                style={{ backgroundColor: "#55BD84" }}
-                            >{t(langKeys.save)}</Button>
-                        </>
-                    </div>
-                </div>
-                <div className={classes.containerDetail}>
-                    <div className="row-zyx">
-                        <FieldEdit
-                            className="col-6"
-                            label={t(langKeys.fullname)}
-                            valueDefault={row?.full_name || ""}
-                            onChange={(value) => setValue('full_name', value)}
-                            error={errors?.full_name?.message}
-                        />
-                        <FieldSelect
-                            label={t(langKeys.status)}
-                            className="col-6"
-                            loading={multiData.loading}
-                            valueDefault={getValues('status')}
-                            onChange={(value) => setValue('status', value ? value.domainvalue : '')}
-                            error={errors?.status?.message}
-                            data={dataExtra.status}
-                            optionDesc="domaindesc"
-                            optionValue="domainvalue"
-                        />
-                    </div>
-                    <div className="row-zyx">
-                        <FieldEdit
-                            label={t(langKeys.email)}
-                            className="col-6"
-                            valueDefault={getValues('email')}
-                            onChange={(value) => setValue('email', value)}
-                            error={errors?.email?.message}
-                        />
-                        <FieldEdit
-                            label={t(langKeys.user)}
-                            className="col-6"
-                            valueDefault={getValues('usr')}
-                            onChange={(value) => setValue('usr', value)}
-                            error={errors?.usr?.message}
-                        />
-                    </div>
-                    <div className="row-zyx">
-                        <FieldSelect
-                            loading={multiData.loading}
-                            label={t(langKeys.docType)}
-                            className="col-6"
-                            valueDefault={getValues('doc_type')}
-                            onChange={(value) => setValue('doc_type', value ? value.domainvalue : '')}
-                            error={errors?.doc_type?.message}
-                            data={dataExtra.docType}
-                            optionDesc="domaindesc"
-                            optionValue="domainvalue"
-                        />
-                        <FieldEdit
-                            label={t(langKeys.docNumber)}
-                            className="col-6"
-                            valueDefault={getValues('doc_number')}
-                            onChange={(value) => setValue('doc_number', value)}
-                            error={errors?.doc_number?.message}
-                        />
-                    </div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
-                    <div style={{ fontWeight: 'bold', fontSize: 20, display: 'flex', alignItems: 'center' }}>Tiendas</div>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<SaveIcon color="secondary" />}
-                        style={{ backgroundColor: "#55BD84" }}
-                        onClick={() => shopAppend({ shopuserid: fieldsShop.length * -1 })}
-                    >Agregar tienda</Button>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    {loadingShop ? (
-                        <div style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <CircularProgress />
-                        </div>
-                    ) : fieldsShop.map((item: Dictionary, i: number) => (
-                        <DetailShop
-                            key={item.id}
-                            item={item}
-                            i={i}
-                            register={register}
-                            errors={errors}
-                            getValues={getValues}
-                            trigger={trigger}
-                            shopRemove={shopRemove}
-                            setValue={setValue}
-                            dataExtra={dataExtra}
-                        />
-                    ))}
-                </div>
-            </form>
-            <ModalPassword
-                openModal={openDialogPassword}
-                setOpenModal={setOpenDialogPassword}
+        <>
+            <ModalBill
+                openModal={newBillDialog}
+                setOpenModal={setNewBillDialog}
                 data={row}
                 parentSetValue={setValue}
             />
-        </div>
+            <ModalTransfer
+                openModal={transferDialog}
+                setOpenModal={setTransferDialog}
+                data={row}
+                parentSetValue={setValue}
+            />
+        </>
     );
 }
 

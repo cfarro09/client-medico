@@ -12,6 +12,8 @@ import { useDispatch } from "react-redux";
 import { execute, getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
+import AutorenewIcon from '@material-ui/icons/Autorenew';
+import AddIcon from '@material-ui/icons/Add';
 
 const useStyles = makeStyles((theme) => ({
     containerHeader: {
@@ -39,6 +41,8 @@ const Bill: FC = () => {
     const [viewSelected, setViewSelected] = useState("view-1");
     const [rowSelected, setRowSelected] = useState<Dictionary | null>(null);
     const [waitSave, setWaitSave] = useState(false);
+    const [newBillDialog, setNewBillDialog] = useState(false);
+    const [transferDialog, setTransferDialog] = useState(false);
     const [dataView, setDataView] = useState<Dictionary[]>([]);
     const applications = useSelector((state) => state.login?.validateToken?.user?.menu);
     const [pagePermissions, setPagePermissions] = useState<Dictionary>({});
@@ -176,41 +180,57 @@ const Bill: FC = () => {
         }
 
         return (
-            <TableZyx
-                columns={columns}
-                titlemodule={`${t(langKeys.bill)}s`}
-                data={dataView}
-                download={false}
-                loading={mainResult.loading}
-                onClickRow={handleEdit}
-                register={false}
-                hoverShadow={true}
-                
-                ButtonsElement={() => (
-                    <div className={classes.containerHeader}>
-                        <Button
-                            disabled={mainResult.loading}
-                            variant="contained"
-                            color="primary"
-                            style={{ width: 120, backgroundColor: "#55BD84" }}
-                            onClick={() => fetchData()}
-                        >
-                            {t(langKeys.search)}
-                        </Button>
-                    </div>
-                )}
-                handleRegister={handleRegister}
-            />
+            <>
+                <TableZyx
+                    columns={columns}
+                    titlemodule={`${t(langKeys.bill)}s`}
+                    data={dataView}
+                    download={false}
+                    loading={mainResult.loading}
+                    onClickRow={handleEdit}
+                    register={false}
+                    hoverShadow={true}
+                    
+                    ButtonsElement={() => (
+                        <div className={classes.containerHeader}>
+                            <Button
+                                disabled={mainResult.loading}
+                                variant="contained"
+                                color="primary"
+                                startIcon={<AddIcon />}
+                                style={{ width: 150, backgroundColor: "#303f9f" }}
+                                onClick={() => setNewBillDialog(true)}
+                            >
+                                {t(langKeys.createbill)}
+                            </Button>
+                            <Button
+                                disabled={mainResult.loading}
+                                variant="contained"
+                                color="primary"
+                                startIcon={<AutorenewIcon />}
+                                style={{ width: 150, backgroundColor: "#55BD84" }}
+                                onClick={() => setTransferDialog(true)}
+                            >
+                                {t(langKeys.transfer)}
+                            </Button>
+                        </div>
+                    )}
+                    handleRegister={handleRegister}
+                />
+                <Detail
+                    row={rowSelected}
+                    setViewSelected={setViewSelected}
+                    fetchData={fetchData}
+                    newBillDialog = {newBillDialog}
+                    setNewBillDialog = {setNewBillDialog}
+                    transferDialog = {transferDialog}
+                    setTransferDialog = {setTransferDialog}
+                />
+            </>
         )
     }
     else {
-        return (
-            <Detail
-                row={rowSelected}
-                setViewSelected={setViewSelected}
-                fetchData={fetchData}
-            />
-        )
+        return (<></>)
     }
 };
 export default Bill;

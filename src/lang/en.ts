@@ -21,6 +21,7 @@ const translation: LangKeys = {
     assistancereport: 'Assistance Report',
     hourend: 'Hour end',
     zone: 'Zone',
+    createnewbill: "Create new bill",
     newmarket: 'New Market',
     kpis: 'Kpis',
     evidences: 'Evidences',
@@ -31,7 +32,11 @@ const translation: LangKeys = {
     driver: 'Driver',
     bill: "Bill",
     helpers: 'Helpers',
+    transfer: 'Transfer',
 
+    createbill: 'Create bill',
+    observations: 'Observations',
+    initialamount: 'Initial amount',
 
     dashboard: 'Dashboard',
     dashboard_plural: 'Dashboards',
