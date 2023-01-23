@@ -86,10 +86,17 @@ export const routes: RouteConfig[] = [
         icon: (color) => <Loyalty stroke={color} fill={color} />,
     },
     {
-        key: paths.BILL,
-        description: <Trans i18nKey={langKeys.routes} count={2} />,
-        tooltip: <Trans i18nKey={langKeys.routes} />,
-        path: paths.BILL,
+        key: paths.ACCOUNT,
+        description: 'Cuentas',
+        tooltip: 'Cuentas',
+        path: paths.ACCOUNT,
+        icon: (color) => <Loyalty stroke={color} fill={color} />,
+    },
+    {
+        key: paths.PAYMENT_METHODS,
+        description: 'Metodos de Pago',
+        tooltip: 'Metodos de Pago',
+        path: paths.PAYMENT_METHODS,
         icon: (color) => <Loyalty stroke={color} fill={color} />,
     },
     {

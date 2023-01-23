@@ -9,12 +9,13 @@ const paths = {
     SUPPLIER: '/supplier',
     SALES: '/sales',
     FORWARD: '/forward',
-    BILL: '/bill',
+    ACCOUNT: '/account',
     PURCHASES: '/purchases',
     STOCK: '/stock',
     SIGNIN: '/sign-in',
     PRODUCTS: '/products',
     VEHICLES: '/vehicles',
+    PAYMENT_METHODS: '/payment_methods'
 };
 
 export default paths;

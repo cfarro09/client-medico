@@ -1,6 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { DetailModule, Dictionary } from "@types";
-import { AntTab, FieldEdit, FieldEditArray, FieldEditMulti, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
+import {
+    AntTab,
+    FieldEdit,
+    FieldEditArray,
+    FieldEditMulti,
+    FieldSelect,
+    TemplateBreadcrumbs,
+    TitleDetail,
+} from "components";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
 import React, { useEffect, useState } from "react"; // we need this to make JSX compile
@@ -12,37 +20,42 @@ import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import { execute, getCollectionAux, resetMainAux } from "store/main/actions";
 import { getDetailPurchase, insPurchase, insPurchaseDetail, processOC } from "common/helpers";
-import { Button, makeStyles, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableFooter } from '@material-ui/core';
-import DeleteIcon from '@material-ui/icons/Delete';
-import Tabs from '@material-ui/core/Tabs';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import Typography from '@material-ui/core/Typography';
+import {
+    Button,
+    makeStyles,
+    IconButton,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    TableFooter,
+} from "@material-ui/core";
+import DeleteIcon from "@material-ui/icons/Delete";
+import Tabs from "@material-ui/core/Tabs";
+import Accordion from "@material-ui/core/Accordion";
+import AccordionDetails from "@material-ui/core/AccordionDetails";
+import AccordionSummary from "@material-ui/core/AccordionSummary";
+import Typography from "@material-ui/core/Typography";
 import { ExpandMore } from "@material-ui/icons";
-import AddIcon from '@material-ui/icons/Add';
+import AddIcon from "@material-ui/icons/Add";
 
 const arrayBread = [
     { id: "view-1", name: "Purchase" },
     { id: "view-2", name: "Purchase detail" },
 ];
 
-const statusList = [
-    { value: "PENDIENTE" },
-    { value: "ENTREGADO" },
-]
+const statusList = [{ value: "PENDIENTE" }, { value: "ENTREGADO" }];
 
-const purchaseType = [
-    { value: "GLP" },
-    { value: "INSUMO" },
-]
+const purchaseType = [{ value: "GLP" }, { value: "INSUMO" }];
 
 const useStyles = makeStyles((theme) => ({
     containerDetail: {
         marginTop: theme.spacing(2),
         padding: theme.spacing(2),
         background: "#fff",
-        width: "100%"
+        width: "100%",
     },
     button: {
         padding: 12,
@@ -51,12 +64,12 @@ const useStyles = makeStyles((theme) => ({
         textTransform: "initial",
     },
     title: {
-        fontSize: '22px',
+        fontSize: "22px",
         color: theme.palette.text.primary,
     },
     heading: {
         fontSize: theme.typography.pxToRem(15),
-        flexBasis: '33.33%',
+        flexBasis: "33.33%",
         flexShrink: 0,
     },
     secondaryHeading: {
@@ -66,37 +79,43 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 type FormFields = {
-    purchaseorderid: number,
-    products: Dictionary[],
-    payments: Dictionary[],
-    supplierid: number,
-    warehouseid: number,
-    purchasecreatedate: string,
-    purchase_order_number: string,
-    observations: string,
-    category: string,
-    bill_entry_date: string,
-    bill_number: string
-}
+    purchaseorderid: number;
+    products: Dictionary[];
+    payments: Dictionary[];
+    supplierid: number;
+    warehouseid: number;
+    purchasecreatedate: string;
+    purchase_order_number: string;
+    observations: string;
+    category: string;
+    bill_entry_date: string;
+    bill_number: string;
+};
 
-const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ row, setViewSelected, fetchData, merchantEntry }) => {
+const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({
+    row,
+    setViewSelected,
+    fetchData,
+    merchantEntry,
+}) => {
     const classes = useStyles();
     const [waitSave, setWaitSave] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
     const multiData = useSelector((state) => state.main.multiData);
     const mainAux = useSelector((state) => state.main.mainAux);
-    const [productsToShow, setProductsToShow] = useState<Dictionary[]>([])
-    const [pageSelected, setPageSelected] = useState(0)
-    const [lock, setLock] = useState(false)
+    const [productsToShow, setProductsToShow] = useState<Dictionary[]>([]);
+    const [pageSelected, setPageSelected] = useState(0);
+    const [lock, setLock] = useState(false);
     const [totalOrder, setTotalOrder] = useState(0);
     const [expanded, setExpanded] = React.useState<string | false>("panel0");
     const [dataExtra, setDataExtra] = useState<{
         status: Dictionary[];
-        type: Dictionary[],
-        products: Dictionary[],
-        suppliers: Dictionary[],
-        payments: Dictionary[],
-        warehouses: Dictionary[],
+        type: Dictionary[];
+        products: Dictionary[];
+        suppliers: Dictionary[];
+        payments: Dictionary[];
+        warehouses: Dictionary[];
+        payMethods: Dictionary[];
     }>({
         status: [],
         type: [],
@@ -104,16 +123,26 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
         payments: [],
         suppliers: [],
         warehouses: [],
+        payMethods: []
     });
     const dispatch = useDispatch();
     const { t } = useTranslation();
 
-    const { register, control, handleSubmit, setValue, getValues, formState: { errors }, trigger } = useForm<FormFields>({
+    const {
+        register,
+        control,
+        handleSubmit,
+        setValue,
+        getValues,
+        formState: { errors },
+        trigger,
+    } = useForm<FormFields>({
         defaultValues: {
             purchaseorderid: row?.purchaseorderid || 0,
             supplierid: row?.supplierid || 0,
             warehouseid: row?.warehouseid || 0,
-            purchasecreatedate: row?.purchasecreatedate || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
+            purchasecreatedate:
+                row?.purchasecreatedate || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
             purchase_order_number: row?.purchase_order_number || "",
             observations: row?.observations || "",
             category: row?.status || "GLP",
@@ -124,38 +153,70 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
         },
     });
 
-    const { fields: fieldsPayment, append: paymentAppend, remove: paymentRemove } = useFieldArray({
+    const {
+        fields: fieldsPayment,
+        append: paymentAppend,
+        remove: paymentRemove,
+    } = useFieldArray({
         control,
-        name: 'payments',
+        name: "payments",
     });
 
-    const { fields: fieldsProduct, append: productAppend, remove: productRemove } = useFieldArray({
+    const {
+        fields: fieldsProduct,
+        append: productAppend,
+        remove: productRemove,
+    } = useFieldArray({
         control,
-        name: 'products',
+        name: "products",
     });
 
     useEffect(() => {
         if (!multiData.error && !multiData.loading) {
             const dataStatus = multiData.data.find((x) => x.key === "DOMAIN-ESTADOGENERICO");
-            const payments = multiData.data.find(x => x.key === "DOMAIN-METODOPAGO");
+            const payments = multiData.data.find((x) => x.key === "DOMAIN-METODOPAGO");
             const products = multiData.data.find((x) => x.key === "UFN_PRODUCT_LST");
             const suppliers = multiData.data.find((x) => x.key === "UFN_SUPPLIER_LST");
             const warehouses = multiData.data.find((x) => x.key === "UFN_WAREHOUSE_LST");
+            const paymentMethods = multiData.data.find((x) => x.key === "UFN_PAYMENT_METHOD_LST");
 
             if (dataStatus && products && suppliers && warehouses) {
-                setProductsToShow(products.data.filter(x => x.category === (row?.category || "GLP")))
+                // setProductsToShow(products.data.filter(x => x.category === (row?.category || "GLP")).map())
+                setProductsToShow(
+                    products.data
+                        .filter((x) => x.category === "GLP")
+                        .reduce((acum, current) => {
+                            if (current.category === "GLP")
+                                acum.push(
+                                    {
+                                        ...current,
+                                        label: "CARGA " + current.product_name,
+                                        id: `carga-${current.productid}`,
+                                        product_type: "carga",
+                                    },
+                                    {
+                                        ...current,
+                                        label: "ENVASE " + current.product_name,
+                                        id: `envase-${current.productid}`,
+                                        product_type: "envase",
+                                    }
+                                );
+                            return acum as Dictionary;
+                        }, []) as Dictionary[]
+                );
                 setDataExtra({
                     status: dataStatus.data,
                     type: [],
                     products: products.data,
                     suppliers: suppliers.data,
                     warehouses: warehouses.data,
-                    payments: payments?.data || []
+                    payments: payments?.data || [],
+                    payMethods: paymentMethods?.data || []
                 });
 
-                setValue('supplierid', suppliers.data?.[0]?.supplierid || 0);
+                setValue("supplierid", suppliers.data?.[0]?.supplierid || 0);
                 trigger("supplierid");
-                setValue('warehouseid', warehouses.data?.[0]?.warehouseid || 0);
+                setValue("warehouseid", warehouses.data?.[0]?.warehouseid || 0);
                 trigger("warehouseid");
             }
         }
@@ -164,7 +225,10 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
     useEffect(() => {
         if (waitSave) {
             if (!executeResult.loading && !executeResult.error) {
-                if ((executeResult.key === "UFN_PURCHASE_ORDER_INS" && ((getValues("purchaseorderid") === 0 && getValues("category") === "ENTREGADO") || merchantEntry))) {
+                if (
+                    executeResult.key === "UFN_PURCHASE_ORDER_INS" &&
+                    ((getValues("purchaseorderid") === 0 && getValues("category") === "ENTREGADO") || merchantEntry)
+                ) {
                     dispatch(execute(processOC(executeResult.data?.[0]?.p_purchaseorderid)));
                 } else {
                     dispatch(
@@ -190,36 +254,58 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
     }, [executeResult, waitSave]);
 
     useEffect(() => {
-        const total = getValues("products").filter(item => item.status !== "ELIMINADO").reduce((acc, item) => acc + item.subtotal, 0)
-        setTotalOrder(total)
-    }, [getValues("products")])
+        const total = getValues("products")
+            .filter((item) => item.status !== "ELIMINADO")
+            .reduce((acc, item) => acc + item.subtotal, 0);
+        setTotalOrder(total);
+    }, [getValues("products")]);
 
     const processTransaction = (data: FormFields, status: string = "") => {
-        if (data.products.filter(item => item.status !== "ELIMINADO").length === 0) {
-            dispatch(showSnackbar({ show: true, success: false, message: "Debe tener como minimo un producto registrado" }));
-            return
+        if (data.products.filter((item) => item.status !== "ELIMINADO").length === 0) {
+            dispatch(
+                showSnackbar({ show: true, success: false, message: "Debe tener como minimo un producto registrado" })
+            );
+            return;
         }
         const callback = () => {
-            const total = data.products.filter(item => item.status !== "ELIMINADO").reduce((acc, item) => acc + item.subtotal, 0)
+            const total = data.products
+                .filter((item) => item.status !== "ELIMINADO")
+                .reduce((acc, item) => acc + item.subtotal, 0);
             dispatch(showBackdrop(true));
-            dispatch(execute({
-                header: insPurchase({
-                    ...data,
-                    operation: data.purchaseorderid ? "UPDATE" : "INSERT",
-                    status: merchantEntry ? status : data.category,
-                    total
-                }),
-                detail: data.products.map(x => insPurchaseDetail({
-                    ...x,
-                    operation: x.purchasedetailid > 0 ? (x.status === "ELIMINADO" ? "DELETE" : "UPDATE") : "INSERT",
-                    status: 'ACTIVO',
-                    delivered_quantity: merchantEntry ? x.delivered_quantity : (data.category === "ENTREGADO" ? x.quantity : 0),
-                    quantity: x.n_bottles * x.quantity,
-                    price: x.price / x.n_bottles
-                }))
-            }, true));
-            setWaitSave(true)
-        }
+            dispatch(
+                execute(
+                    {
+                        header: insPurchase({
+                            ...data,
+                            operation: data.purchaseorderid ? "UPDATE" : "INSERT",
+                            status: merchantEntry ? status : data.category,
+                            total,
+                        }),
+                        detail: data.products.map((x) =>
+                            insPurchaseDetail({
+                                ...x,
+                                operation:
+                                    x.purchasedetailid > 0
+                                        ? x.status === "ELIMINADO"
+                                            ? "DELETE"
+                                            : "UPDATE"
+                                        : "INSERT",
+                                status: "ACTIVO",
+                                delivered_quantity: merchantEntry
+                                    ? x.delivered_quantity
+                                    : data.category === "ENTREGADO"
+                                    ? x.quantity
+                                    : 0,
+                                quantity: x.n_bottles * x.quantity,
+                                price: x.price / x.n_bottles,
+                            })
+                        ),
+                    },
+                    true
+                )
+            );
+            setWaitSave(true);
+        };
 
         dispatch(
             manageConfirmation({
@@ -228,15 +314,15 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                 callback,
             })
         );
-    }
+    };
 
     const processEntryMerchant = async (status: string) => {
         const allOk = await trigger(); //para q valide el formulario
         if (allOk) {
             const data = getValues();
-            processTransaction(data, status)
+            processTransaction(data, status);
         }
-    }
+    };
 
     const handleChangePanel = (panel: string) => (event: React.ChangeEvent<{}>, isExpanded: boolean) => {
         setExpanded(isExpanded ? panel : false);
@@ -247,43 +333,56 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
     useEffect(() => {
         if (!mainAux.loading && !mainAux.error) {
             if (mainAux.key === "UFN_PURHCASE_ORDER_DETAIL_SEL") {
-                setValue("products", mainAux.data.map(x => ({
-                    purchasedetailid: x.purchaseorderdetailid,
-                    productid: x.productid,
-                    requested_quantity: x.requested_quantity,
-                    quantity: x.missing_quantity,
-                    delivered_quantity: 0,
-                    product_description: x.product_name,
-                    price: parseFloat((x.price || "0")),
-                    subtotal: parseFloat((x.total || "0")),
-                    list_unit: [
-                        { unit: x.unit, unit_desc: `${x.unit} (1)`, quantity: 1 },
-                        ...(x.n_bottles > 0 ? [{ unit: x.types_packaging, quantity: x.n_bottles, unit_desc: `${x.types_packaging} (${x.n_bottles})` }] : [])
-                    ],
-                    unit_selected: x.unit,
-                    n_bottles: 1
-                })));
-                trigger("products")
+                setValue(
+                    "products",
+                    mainAux.data.map((x) => ({
+                        purchasedetailid: x.purchaseorderdetailid,
+                        productid: x.productid,
+                        requested_quantity: x.requested_quantity,
+                        quantity: x.missing_quantity,
+                        delivered_quantity: 0,
+                        product_description: x.product_name,
+                        price: parseFloat(x.price || "0"),
+                        subtotal: parseFloat(x.total || "0"),
+                        list_unit: [
+                            { unit: x.unit, unit_desc: `${x.unit} (1)`, quantity: 1 },
+                            ...(x.n_bottles > 0
+                                ? [
+                                      {
+                                          unit: x.types_packaging,
+                                          quantity: x.n_bottles,
+                                          unit_desc: `${x.types_packaging} (${x.n_bottles})`,
+                                      },
+                                  ]
+                                : []),
+                        ],
+                        unit_selected: x.unit,
+                        n_bottles: 1,
+                    }))
+                );
+                trigger("products");
             }
         }
         return () => {
-            dispatch(resetMainAux())
-        }
-    }, [mainAux])
+            dispatch(resetMainAux());
+        };
+    }, [mainAux]);
 
     React.useEffect(() => {
         register("purchaseorderid");
-        register("supplierid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
-        register("warehouseid", { validate: (value) => (value > 0) || "" + t(langKeys.field_required) });
+        register("supplierid", { validate: (value) => value > 0 || "" + t(langKeys.field_required) });
+        register("warehouseid", { validate: (value) => value > 0 || "" + t(langKeys.field_required) });
         register("observations");
         register("purchase_order_number");
-        register("purchasecreatedate", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
+        register("purchasecreatedate", {
+            validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required),
+        });
 
         if (row?.purchaseorderid) {
             if (row.status === "ENTREGADO" || merchantEntry) {
-                setLock(true)
+                setLock(true);
             }
-            dispatch(getCollectionAux(getDetailPurchase(row?.purchaseorderid)))
+            dispatch(getCollectionAux(getDetailPurchase(row?.purchaseorderid)));
         }
     }, [register]);
 
@@ -292,7 +391,13 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
             <form onSubmit={onSubmit}>
                 <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
                 <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-                    <TitleDetail title={row ? (merchantEntry ? "Ingreso de mercaderia " : "") + `${row.purchase_order_number}` : "Nueva orden de compra"} />
+                    <TitleDetail
+                        title={
+                            row
+                                ? (merchantEntry ? "Ingreso de mercaderia " : "") + `${row.purchase_order_number}`
+                                : "Nueva orden de compra"
+                        }
+                    />
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                         <Button
                             variant="contained"
@@ -351,14 +456,16 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                     </div>
                 </div>
                 <div className={classes.containerDetail}>
-                    <Accordion expanded={expanded === 'panel0'} onChange={handleChangePanel('panel0')}>
+                    <Accordion expanded={expanded === "panel0"} onChange={handleChangePanel("panel0")}>
                         <AccordionSummary
                             expandIcon={<ExpandMore />}
                             aria-controls="panel0bh-content"
                             id="panel0bh-header"
                         >
                             <Typography className={classes.heading}>Informacion general</Typography>
-                            <Typography className={classes.secondaryHeading}>Información de la orden de compra</Typography>
+                            <Typography className={classes.secondaryHeading}>
+                                Información de la orden de compra
+                            </Typography>
                         </AccordionSummary>
                         <AccordionDetails>
                             <div className={classes.containerDetail}>
@@ -367,8 +474,8 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                         loading={multiData.loading}
                                         label={"Empresa"}
                                         className="col-6"
-                                        valueDefault={getValues('warehouseid')}
-                                        onChange={(value) => setValue('warehouseid', value ? value.warehouseid : 0)}
+                                        valueDefault={getValues("warehouseid")}
+                                        onChange={(value) => setValue("warehouseid", value ? value.warehouseid : 0)}
                                         error={errors?.warehouseid?.message}
                                         data={dataExtra.warehouses}
                                         optionDesc="description"
@@ -379,8 +486,8 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                         loading={multiData.loading}
                                         label={"Almacen (Vehiculo)"}
                                         className="col-6"
-                                        valueDefault={getValues('supplierid')}
-                                        onChange={(value) => setValue('supplierid', value ? value.supplierid : 0)}
+                                        valueDefault={getValues("supplierid")}
+                                        onChange={(value) => setValue("supplierid", value ? value.supplierid : 0)}
                                         error={errors?.supplierid?.message}
                                         data={dataExtra.suppliers}
                                         optionDesc="description"
@@ -409,10 +516,10 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                         loading={multiData.loading}
                                         label={"Tipo"}
                                         className="col-6"
-                                        valueDefault={getValues('category')}
+                                        valueDefault={getValues("category")}
                                         onChange={(value) => {
-                                            setValue('category', value ? value.value : 0);
-                                            trigger('category')
+                                            setValue("category", value ? value.value : 0);
+                                            trigger("category");
                                         }}
                                         error={errors?.category?.message}
                                         data={purchaseType}
@@ -476,7 +583,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                             </div>
                         </AccordionDetails>
                     </Accordion>
-                    <Accordion expanded={expanded === 'panel1'} onChange={handleChangePanel('panel1')}>
+                    <Accordion expanded={expanded === "panel1"} onChange={handleChangePanel("panel1")}>
                         <AccordionSummary
                             expandIcon={<ExpandMore />}
                             aria-controls="panel1bh-content"
@@ -490,80 +597,97 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                 {!lock && (
                                     <FieldSelect
                                         label={"Product"}
-                                        variant='outlined'
+                                        variant="outlined"
                                         onChange={(value) => {
                                             if (value) {
-                                                setProductsToShow(productsToShow.filter(x => x.productid !== value.productid))
+                                                setProductsToShow(productsToShow.filter((x) => x.id !== value.id));
                                                 productAppend({
+                                                    id: value.id,
                                                     purchasedetailid: fieldsProduct.length * -1,
                                                     productid: value.productid,
                                                     product_description: value.description,
-                                                    price: parseFloat((value?.purchase_price || "0")),
+                                                    label: value.label,
+                                                    price: parseFloat(value?.purchase_price || "0"),
                                                     quantity: 0,
                                                     delivered_quantity: 0,
                                                     subtotal: 0.0,
                                                     list_unit: [
-                                                        { unit: value.unit, unit_desc: `${value.unit} (1)`, quantity: 1 },
-                                                        ...(value.n_bottles > 0 ? [{ unit: value.types_packaging, quantity: value.n_bottles, unit_desc: `${value.types_packaging} (${value.n_bottles})` }] : [])
+                                                        {
+                                                            unit: value.unit,
+                                                            unit_desc: `${value.unit} (1)`,
+                                                            quantity: 1,
+                                                        },
+                                                        ...(value.n_bottles > 0
+                                                            ? [
+                                                                  {
+                                                                      unit: value.types_packaging,
+                                                                      quantity: value.n_bottles,
+                                                                      unit_desc: `${value.types_packaging} (${value.n_bottles})`,
+                                                                  },
+                                                              ]
+                                                            : []),
                                                     ],
                                                     unit_selected: value.unit,
                                                     n_bottles: 1,
-                                                })
+                                                });
                                             }
                                         }}
                                         data={productsToShow}
-                                        optionDesc="description"
-                                        optionValue="productid"
+                                        optionDesc="label"
+                                        optionValue="id"
                                     />
                                 )}
                                 <TableContainer>
                                     <Table size="small">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell>
-                                                </TableCell>
+                                                <TableCell></TableCell>
                                                 <TableCell>Producto</TableCell>
-                                                <TableCell style={{ textAlign: 'right' }}>Unidad</TableCell>
-                                                <TableCell style={{ textAlign: 'right' }}>Cantidad</TableCell>
+                                                <TableCell style={{ textAlign: "right" }}>Unidad</TableCell>
+                                                <TableCell style={{ textAlign: "right" }}>Cantidad</TableCell>
                                                 {merchantEntry && (
                                                     <>
-                                                        <TableCell style={{ textAlign: 'right' }}>Cantidad restante</TableCell>
-                                                        <TableCell style={{ textAlign: 'right' }}>Cantidad a entregar</TableCell>
+                                                        <TableCell style={{ textAlign: "right" }}>
+                                                            Cantidad restante
+                                                        </TableCell>
+                                                        <TableCell style={{ textAlign: "right" }}>
+                                                            Cantidad a entregar
+                                                        </TableCell>
                                                     </>
                                                 )}
-                                                <TableCell style={{ textAlign: 'right' }}>Precio</TableCell>
-                                                <TableCell style={{ textAlign: 'right' }}>Subtotal</TableCell>
+                                                <TableCell style={{ textAlign: "right" }}>Precio</TableCell>
+                                                <TableCell style={{ textAlign: "right" }}>Subtotal</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody style={{ marginTop: 5 }}>
-                                            {fieldsProduct.map((item, i: number) =>
+                                            {fieldsProduct.map((item, i: number) => (
                                                 <TableRow key={item.id}>
                                                     <TableCell width={30}>
                                                         {!lock && (
-                                                            <div style={{ display: 'flex' }}>
+                                                            <div style={{ display: "flex" }}>
                                                                 <IconButton
                                                                     size="small"
-                                                                    onClick={() => { productRemove(i) }}
+                                                                    onClick={() => {
+                                                                        productRemove(i);
+                                                                    }}
                                                                 >
-                                                                    <DeleteIcon style={{ color: '#777777' }} />
+                                                                    <DeleteIcon style={{ color: "#777777" }} />
                                                                 </IconButton>
                                                             </div>
                                                         )}
                                                     </TableCell>
-                                                    <TableCell >
-                                                        <div>
-                                                            {getValues(`products.${i}.product_description`)}
-                                                        </div>
+                                                    <TableCell>
+                                                        <div>{getValues(`products.${i}.label`)}</div>
                                                     </TableCell>
 
                                                     <TableCell width={200}>
                                                         <FieldSelect
                                                             label={""}
-                                                            variant='outlined'
+                                                            variant="outlined"
                                                             valueDefault={getValues(`products.${i}.unit_selected`)}
                                                             onChange={(value) => {
-                                                                setValue(`products.${i}.unit_selected`, value.unit)
-                                                                setValue(`products.${i}.n_bottles`, value.quantity)
+                                                                setValue(`products.${i}.unit_selected`, value.unit);
+                                                                setValue(`products.${i}.n_bottles`, value.quantity);
 
                                                                 const quantity = getValues(`products.${i}.quantity`);
                                                                 const price = getValues(`products.${i}.price`);
@@ -588,15 +712,18 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                     <TableCell width={180}>
                                                         <FieldEditArray
                                                             fregister={{
-                                                                ...register(`products.${i}.quantity`, { validate: (value) => (value > 0) || "" + t(langKeys.field_required) }),
+                                                                ...register(`products.${i}.quantity`, {
+                                                                    validate: (value) =>
+                                                                        value > 0 || "" + t(langKeys.field_required),
+                                                                }),
                                                             }}
-                                                            inputProps={{ min: 0, style: { textAlign: 'right' } }} // the change is here
+                                                            inputProps={{ min: 0, style: { textAlign: "right" } }} // the change is here
                                                             type={"number"}
                                                             valueDefault={getValues(`products.${i}.quantity`)}
                                                             disabled={lock}
                                                             error={errors?.products?.[i]?.quantity?.message}
                                                             onChange={(value) => {
-                                                                setValue(`products.${i}.quantity`, value)
+                                                                setValue(`products.${i}.quantity`, value);
                                                                 const price = getValues(`products.${i}.price`);
                                                                 // const n_bottles = getValues(`products.${i}.n_bottles`);
                                                                 setValue(`products.${i}.subtotal`, price * value);
@@ -608,14 +735,33 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                         <TableCell width={180}>
                                                             <FieldEditArray
                                                                 fregister={{
-                                                                    ...register(`products.${i}.delivered_quantity`, { validate: (value) => (value >= 0 && value <= getValues(`products.${i}.quantity`)) || "Debe ingresar una cantidad correcta" }),
+                                                                    ...register(`products.${i}.delivered_quantity`, {
+                                                                        validate: (value) =>
+                                                                            (value >= 0 &&
+                                                                                value <=
+                                                                                    getValues(
+                                                                                        `products.${i}.quantity`
+                                                                                    )) ||
+                                                                            "Debe ingresar una cantidad correcta",
+                                                                    }),
                                                                 }}
-                                                                inputProps={{ min: 0, max: getValues(`products.${i}.quantity`), style: { textAlign: 'right' } }} // the change is here
+                                                                inputProps={{
+                                                                    min: 0,
+                                                                    max: getValues(`products.${i}.quantity`),
+                                                                    style: { textAlign: "right" },
+                                                                }} // the change is here
                                                                 type={"number"}
-                                                                valueDefault={getValues(`products.${i}.delivered_quantity`)}
-                                                                error={errors?.products?.[i]?.delivered_quantity?.message}
+                                                                valueDefault={getValues(
+                                                                    `products.${i}.delivered_quantity`
+                                                                )}
+                                                                error={
+                                                                    errors?.products?.[i]?.delivered_quantity?.message
+                                                                }
                                                                 onChange={(value) => {
-                                                                    setValue(`products.${i}.delivered_quantity`, parseFloat(value || "0"))
+                                                                    setValue(
+                                                                        `products.${i}.delivered_quantity`,
+                                                                        parseFloat(value || "0")
+                                                                    );
                                                                 }}
                                                             />
                                                         </TableCell>
@@ -623,9 +769,12 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                     <TableCell width={180}>
                                                         <FieldEditArray
                                                             fregister={{
-                                                                ...register(`products.${i}.price`, { validate: (value) => (value > 0) || "" + t(langKeys.field_required) }),
+                                                                ...register(`products.${i}.price`, {
+                                                                    validate: (value) =>
+                                                                        value > 0 || "" + t(langKeys.field_required),
+                                                                }),
                                                             }}
-                                                            inputProps={{ min: 0, style: { textAlign: 'right' } }} // the change is here
+                                                            inputProps={{ min: 0, style: { textAlign: "right" } }} // the change is here
                                                             type={"number"}
                                                             valueDefault={getValues(`products.${i}.price`)}
                                                             error={errors?.products?.[i]?.price?.message}
@@ -635,17 +784,17 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                 const quantity = getValues(`products.${i}.quantity`);
                                                                 // const n_bottles = getValues(`products.${i}.n_bottles`);
                                                                 setValue(`products.${i}.subtotal`, quantity * value);
-                                                                trigger(`products.${i}.subtotal`)
+                                                                trigger(`products.${i}.subtotal`);
                                                             }}
                                                         />
                                                     </TableCell>
                                                     <TableCell width={180}>
-                                                        <div style={{ textAlign: 'right' }}>
+                                                        <div style={{ textAlign: "right" }}>
                                                             {getValues(`products.${i}.subtotal`).toFixed(2)}
                                                         </div>
                                                     </TableCell>
                                                 </TableRow>
-                                            )}
+                                            ))}
                                         </TableBody>
                                         <TableFooter>
                                             <TableRow>
@@ -660,12 +809,16 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                     </>
                                                 )}
                                                 <TableCell>Total</TableCell>
-                                                <TableCell style={{
-                                                    fontWeight: "bold",
-                                                    color: "black",
-                                                    textAlign: "right",
-                                                }}>
-                                                    {getValues("products").reduce((acc, x) => acc + x.subtotal, 0).toFixed(2)}
+                                                <TableCell
+                                                    style={{
+                                                        fontWeight: "bold",
+                                                        color: "black",
+                                                        textAlign: "right",
+                                                    }}
+                                                >
+                                                    {getValues("products")
+                                                        .reduce((acc, x) => acc + x.subtotal, 0)
+                                                        .toFixed(2)}
                                                 </TableCell>
                                             </TableRow>
                                         </TableFooter>
@@ -674,14 +827,16 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                             </div>
                         </AccordionDetails>
                     </Accordion>
-                    <Accordion expanded={expanded === 'panel2'} onChange={handleChangePanel('panel2')}>
+                    <Accordion expanded={expanded === "panel2"} onChange={handleChangePanel("panel2")}>
                         <AccordionSummary
                             expandIcon={<ExpandMore />}
                             aria-controls="panel2bh-content"
                             id="panel2bh-header"
                         >
                             <Typography className={classes.heading}>Método de pago</Typography>
-                            <Typography className={classes.secondaryHeading}>Los métodos de pago para la orden</Typography>
+                            <Typography className={classes.secondaryHeading}>
+                                Los métodos de pago para la orden
+                            </Typography>
                         </AccordionSummary>
                         <AccordionDetails>
                             <div className={classes.containerDetail}>
@@ -694,8 +849,14 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                         <IconButton
                                                             size="small"
                                                             onClick={() => {
-                                                                const tt = getValues("payments").reduce((acc, x) => acc + x.amount, 0)
-                                                                paymentAppend({ method: "EFECTIVO", amount: totalOrder - tt })
+                                                                const tt = getValues("payments").reduce(
+                                                                    (acc, x) => acc + x.amount,
+                                                                    0
+                                                                );
+                                                                paymentAppend({
+                                                                    method: "EFECTIVO",
+                                                                    amount: totalOrder - tt,
+                                                                });
                                                             }}
                                                         >
                                                             <AddIcon />
@@ -707,16 +868,18 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                             </TableRow>
                                         </TableHead>
                                         <TableBody style={{ marginTop: 5 }}>
-                                            {fieldsPayment.map((item, i: number) =>
+                                            {fieldsPayment.map((item, i: number) => (
                                                 <TableRow key={item.id}>
                                                     {!lock && (
                                                         <TableCell width={20}>
-                                                            <div style={{ display: 'flex' }}>
+                                                            <div style={{ display: "flex" }}>
                                                                 <IconButton
                                                                     size="small"
-                                                                    onClick={() => { paymentRemove(i) }}
+                                                                    onClick={() => {
+                                                                        paymentRemove(i);
+                                                                    }}
                                                                 >
-                                                                    <DeleteIcon style={{ color: '#777777' }} />
+                                                                    <DeleteIcon style={{ color: "#777777" }} />
                                                                 </IconButton>
                                                             </div>
                                                         </TableCell>
@@ -726,46 +889,63 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                             label={""}
                                                             className="col-6"
                                                             valueDefault={getValues(`payments.${i}.method`)}
-                                                            onChange={(value) => setValue(`payments.${i}.method`, value.unit)}
+                                                            onChange={(value) =>
+                                                                setValue(`payments.${i}.method`, value)
+                                                            }
                                                             disableClearable={true}
                                                             error={errors?.payments?.[i]?.method?.message}
-                                                            data={dataExtra.payments}
+                                                            data={dataExtra.payMethods}
                                                             fregister={{
-                                                                ...register(`payments.${i}.method`, { validate: (value) => (!!value) || "Debe ingresar una cantidad correcta" }),
+                                                                ...register(`payments.${i}.method`, {
+                                                                    validate: (value) =>
+                                                                        !!value ||
+                                                                        "Debe ingresar una cantidad correcta",
+                                                                }),
                                                             }}
-                                                            optionDesc="domainvalue"
+                                                            optionDesc="description"
                                                             disabled={lock}
-                                                            optionValue="domainvalue"
+                                                            optionValue="value"
                                                         />
                                                     </TableCell>
                                                     <TableCell width={180}>
                                                         <FieldEditArray
                                                             fregister={{
-                                                                ...register(`payments.${i}.amount`, { validate: (value) => (value >= 0) || "Debe ingresar una cantidad correcta" }),
+                                                                ...register(`payments.${i}.amount`, {
+                                                                    validate: (value) =>
+                                                                        value >= 0 ||
+                                                                        "Debe ingresar una cantidad correcta",
+                                                                }),
                                                             }}
-                                                            inputProps={{ min: 0, style: { textAlign: 'right' } }} // the change is here
+                                                            inputProps={{ min: 0, style: { textAlign: "right" } }} // the change is here
                                                             type={"number"}
                                                             valueDefault={getValues(`payments.${i}.amount`)}
                                                             disabled={lock}
                                                             error={errors?.payments?.[i]?.amount?.message}
-                                                            onChange={(value) => setValue(`payments.${i}.amount`, parseFloat(value || "0"))}
+                                                            onChange={(value) =>
+                                                                setValue(
+                                                                    `payments.${i}.amount`,
+                                                                    parseFloat(value || "0")
+                                                                )
+                                                            }
                                                         />
                                                     </TableCell>
                                                 </TableRow>
-                                            )}
+                                            ))}
                                         </TableBody>
                                         <TableFooter>
                                             <TableRow>
-                                                {!lock && (
-                                                    <TableCell></TableCell>
-                                                )}
+                                                {!lock && <TableCell></TableCell>}
                                                 <TableCell>Total</TableCell>
-                                                <TableCell style={{
-                                                    fontWeight: "bold",
-                                                    color: "black",
-                                                    textAlign: "right",
-                                                }}>
-                                                    {getValues("payments").reduce((acc, x) => acc + x.amount, 0).toFixed(2)}
+                                                <TableCell
+                                                    style={{
+                                                        fontWeight: "bold",
+                                                        color: "black",
+                                                        textAlign: "right",
+                                                    }}
+                                                >
+                                                    {getValues("payments")
+                                                        .reduce((acc, x) => acc + x.amount, 0)
+                                                        .toFixed(2)}
                                                 </TableCell>
                                             </TableRow>
                                         </TableFooter>

@@ -27,6 +27,12 @@ export const getSupplierList = (): IRequestBody => ({
     parameters: {}
 })
 
+export const getPaymentMethodList = (): IRequestBody => ({
+    method: "UFN_PAYMENT_METHOD_LST",
+    key: "UFN_PAYMENT_METHOD_LST",
+    parameters: {}
+})
+
 export const getPurchases = (parameters: Dictionary): IRequestBody => ({
     method: "UNF_PURCHASE_ORDER_SEL",
     key: "UNF_PURCHASE_ORDER_SEL",
@@ -69,6 +75,15 @@ export const getWarehouseSel = ({ shopid, id }: Dictionary): IRequestBody => ({
 export const getCorpSel = (id: number): IRequestBody => ({
     method: "UFN_CORPORATION_SEL",
     key: "UFN_CORPORATION_SEL",
+    parameters: {
+        id: id,
+        all: id === 0,
+    }
+});
+
+export const getPaymentMethodsSel = (id: number): IRequestBody => ({
+    method: "UFN_PAYMENT_METHODS_SEL",
+    key: "UFN_PAYMENT_METHODS_SEL",
     parameters: {
         id: id,
         all: id === 0,
@@ -128,6 +143,13 @@ export const getValuesFromDomain = (domainname: string, keytmp?: any, orgid?: nu
     }
 });
 
+export const getAccountLs = (): IRequestBody => ({
+    method: "UFN_ACCOUNT_LS",
+    key: "UFN_ACCOUNT_LS",
+    parameters: {
+    }
+})
+
 export const getRoles = (): IRequestBody => ({
     method: "UFN_ROLE_LST",
     key: "UFN_ROLE_LST",
@@ -139,6 +161,21 @@ export const getWareHouse = (shopid: number | null = null, key: string | null = 
     method: "UFN_WAREHOUSE_LST",
     key: `UFN_WAREHOUSE_LST${key}`,
     parameters: { shopid }
+})
+
+export const getAccountSel = (id: number): IRequestBody => ({
+    method: "UFN_ACCOUNT_SEL",
+    key: `UFN_ACCOUNT_SEL`,
+    parameters: {
+        id: id,
+        all: id === 0,
+    }
+})
+
+export const insAccount = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_ACCOUNT_INS",
+    key: `UFN_ACCOUNT_INS`,
+    parameters: { ... parameters }
 })
 
 export const getProductsWithStock = (): IRequestBody => ({
@@ -326,6 +363,12 @@ export const insCorp = ({ id, description, type, status, logo, logotype, operati
     method: "UFN_CORPORATION_INS",
     key: "UFN_CORPORATION_INS",
     parameters: { id, description, type, status, logo, logotype, operation }
+});
+
+export const insPaymentMethod = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_PAYMENT_METHOD_INS",
+    key: "UFN_PAYMENT_METHOD_INS",
+    parameters: { ... parameters}
 });
 
 export const insSupplier = (parameters: Dictionary): IRequestBody => ({

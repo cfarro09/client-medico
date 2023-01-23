@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Button, makeStyles } from "@material-ui/core";
 import { Dictionary } from "@types";
-import { getRoles, getShops, getUserSel, getValuesFromDomain, getWareHouse, insUser } from "common/helpers";
+import { getRoles, getShops, getAccountSel, getValuesFromDomain, getWareHouse, insAccount } from "common/helpers";
 import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -12,8 +12,8 @@ import { useDispatch } from "react-redux";
 import { execute, getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
-import AutorenewIcon from '@material-ui/icons/Autorenew';
-import AddIcon from '@material-ui/icons/Add';
+import AutorenewIcon from "@material-ui/icons/Autorenew";
+import AddIcon from "@material-ui/icons/Add";
 
 const useStyles = makeStyles((theme) => ({
     containerHeader: {
@@ -34,34 +34,29 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const Bill: FC = () => {
+const Account: FC = () => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainResult = useSelector((state) => state.main.mainData);
     const [viewSelected, setViewSelected] = useState("view-1");
     const [rowSelected, setRowSelected] = useState<Dictionary | null>(null);
     const [waitSave, setWaitSave] = useState(false);
-    const [newBillDialog, setNewBillDialog] = useState(false);
-    const [transferDialog, setTransferDialog] = useState(false);
+    const [newAccountModal, setNewAccountModal] = useState(false);
+    const [newTransferModal, setNewTransferModal] = useState(false);
     const [dataView, setDataView] = useState<Dictionary[]>([]);
     const applications = useSelector((state) => state.login?.validateToken?.user?.menu);
     const [pagePermissions, setPagePermissions] = useState<Dictionary>({});
     const executeResult = useSelector((state) => state.main.execute);
     const classes = useStyles();
-    
+
     useEffect(() => {
         if (applications) {
             setPagePermissions({
-                "view": applications["/user"][0],
-                "modify": applications["/user"][1],
-                "insert": applications["/user"][2],
-                "delete": applications["/user"][3],
-                "download": applications["/user"][4],
-                //"view": applications["/bill"][0],
-                //"modify": applications["/bill"][1],
-                //"insert": applications["/bill"][2],
-                //"delete": applications["/bill"][3],
-                //"download": applications["/bill"][4],
+                view: applications["/account"][0],
+                modify: applications["/account"][1],
+                insert: applications["/account"][2],
+                delete: applications["/account"][3],
+                download: applications["/account"][4],
             });
         }
     }, [applications]);
@@ -86,62 +81,64 @@ const Bill: FC = () => {
 
     useEffect(() => {
         fetchData();
-        dispatch(getMultiCollection([
-            getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
-            getValuesFromDomain("TIPODOCUMENTO", "DOMAIN-TIPODOCUMENTO"),
-            getRoles(),
-            getShops(),
-            getWareHouse()
-        ]));
+        dispatch(
+            getMultiCollection([
+                getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
+                getValuesFromDomain("TIPODOCUMENTO", "DOMAIN-TIPODOCUMENTO"),
+                getRoles(),
+                getShops(),
+                getWareHouse(),
+            ])
+        );
         return () => {
             dispatch(resetAllMain());
         };
     }, []);
 
     useEffect(() => {
-        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_USER_SEL") {
+        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_ACCOUNT_SEL") {
             setDataView(mainResult.data);
         }
     }, [mainResult]);
 
-    const fetchData = () => dispatch(getCollection(getUserSel(0)));
+    const fetchData = () => dispatch(getCollection(getAccountSel(0)));
 
     const columns = React.useMemo(
         () => [
             {
-                accessor: 'billid',
+                accessor: "accountid",
                 NoFilter: true,
                 isComponent: true,
                 minWidth: 60,
-                width: '1%',
+                width: "1%",
                 Cell: (props: any) => {
-                    const row = props.cell.row.original;
-                    return (
-                        <TemplateIcons
-                            deleteFunction={() => handleDelete(row)}
-                        />
-                    )
-                }
+                    const row = props.cell.row.original
+                    return (row.type !== 'system') ? <TemplateIcons deleteFunction={() => handleDelete(row)} /> : null
+                },
             },
             {
                 Header: t(langKeys.description),
-                accessor: 'description',
+                accessor: "description",
                 NoFilter: true,
             },
             {
                 Header: t(langKeys.amount),
-                accessor: 'amount',
+                accessor: "amount",
                 NoFilter: true,
             },
             {
                 Header: t(langKeys.status),
-                accessor: 'status',
+                accessor: "status",
                 NoFilter: true,
             },
             {
                 Header: t(langKeys.lastUpdate),
-                accessor: 'lastupdate',
+                accessor: "changedate",
                 NoFilter: true,
+                Cell: (props: any) => {
+                    const { changedate } = props.cell.row.original;
+                    return changedate.split(".")[0];
+                },
             },
         ],
         []
@@ -159,7 +156,7 @@ const Bill: FC = () => {
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(execute(insUser({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.corpid })));
+            dispatch(execute(insAccount({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.accountid })));
             dispatch(showBackdrop(true));
             setWaitSave(true);
         };
@@ -174,7 +171,6 @@ const Bill: FC = () => {
     };
 
     if (viewSelected === "view-1") {
-
         if (mainResult.error) {
             return <h1>ERROR</h1>;
         }
@@ -183,14 +179,13 @@ const Bill: FC = () => {
             <>
                 <TableZyx
                     columns={columns}
-                    titlemodule={`${t(langKeys.bill)}s`}
+                    titlemodule={"Cuentas"}
                     data={dataView}
                     download={false}
                     loading={mainResult.loading}
                     onClickRow={handleEdit}
                     register={false}
                     hoverShadow={true}
-                    
                     ButtonsElement={() => (
                         <div className={classes.containerHeader}>
                             <Button
@@ -199,9 +194,9 @@ const Bill: FC = () => {
                                 color="primary"
                                 startIcon={<AddIcon />}
                                 style={{ width: 150, backgroundColor: "#303f9f" }}
-                                onClick={() => setNewBillDialog(true)}
+                                onClick={() => setNewAccountModal(true)}
                             >
-                                {t(langKeys.createbill)}
+                                {`Crear cuenta`}
                             </Button>
                             <Button
                                 disabled={mainResult.loading}
@@ -209,7 +204,7 @@ const Bill: FC = () => {
                                 color="primary"
                                 startIcon={<AutorenewIcon />}
                                 style={{ width: 150, backgroundColor: "#55BD84" }}
-                                onClick={() => setTransferDialog(true)}
+                                onClick={() => setNewTransferModal(true)}
                             >
                                 {t(langKeys.transfer)}
                             </Button>
@@ -221,16 +216,15 @@ const Bill: FC = () => {
                     row={rowSelected}
                     setViewSelected={setViewSelected}
                     fetchData={fetchData}
-                    newBillDialog = {newBillDialog}
-                    setNewBillDialog = {setNewBillDialog}
-                    transferDialog = {transferDialog}
-                    setTransferDialog = {setTransferDialog}
+                    newAccountModal={newAccountModal}
+                    setNewAccountModal={setNewAccountModal}
+                    newTransferModal={newTransferModal}
+                    setNewTransferModal={setNewTransferModal}
                 />
             </>
-        )
-    }
-    else {
-        return (<></>)
+        );
+    } else {
+        return <></>;
     }
 };
-export default Bill;
+export default Account;

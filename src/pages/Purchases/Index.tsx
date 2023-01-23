@@ -2,6 +2,7 @@
 import { Dictionary } from "@types";
 import {
     getDateCleaned,
+    getPaymentMethodList,
     getProductList,
     getPurchases,
     getSupplierList,
@@ -108,6 +109,7 @@ const Purchase: FC = () => {
                 getSupplierList(),
                 getWareHouse(),
                 getValuesFromDomain("METODOPAGO", "DOMAIN-METODOPAGO"),
+                getPaymentMethodList(),
             ])
         );
         return () => {
