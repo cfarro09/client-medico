@@ -90,7 +90,7 @@ const DetailSupplier: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
             id: row?.supplierid || 0,
             description: row?.description || "",
             doc_type: row?.doc_type || "",
-            doc_num: row?.doc_num || "",
+            doc_number: row?.doc_number || "",
             contact_name: row?.contact_name || "",
             contact_email: row?.contact_email || "",
             contact_phone: row?.contact_phone || "",
@@ -105,7 +105,7 @@ const DetailSupplier: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
         register("description", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register("status", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register("doc_type", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register("doc_num", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
+        register("doc_number", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register("contact_name");
         register("contact_email");
         register("contact_phone");
@@ -182,10 +182,10 @@ const DetailSupplier: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                         <FieldEdit
                             label={t(langKeys.docNumber)}
                             className="col-6"
-                            valueDefault={getValues("doc_num")}
-                            onChange={(value) => setValue("doc_num", value)}
+                            valueDefault={getValues("doc_number")}
+                            onChange={(value) => setValue("doc_number", value)}
                             type='number'
-                            error={errors?.doc_num?.message}
+                            error={errors?.doc_number?.message}
                             InputProps={{ inputProps: { min: "0", max: '99999999999' } }}
                         />
                         <FieldEdit

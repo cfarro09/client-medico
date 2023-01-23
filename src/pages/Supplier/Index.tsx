@@ -99,7 +99,7 @@ const Supplier: FC = () => {
             },
             {
                 Header: 'Nro Documento',
-                accessor: 'doc_num'
+                accessor: 'doc_number'
             },
             {
                 Header: 'Nombre Contacto',

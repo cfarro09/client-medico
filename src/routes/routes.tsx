@@ -1,4 +1,4 @@
-import { AccountCircle, AllInbox, Apartment, AssignmentInd, Domain, LocalMall, LocalShipping, Loyalty, Receipt, Store } from "@material-ui/icons";
+import { AccountBalance, AccountBalanceWallet, AccountCircle, AllInbox, Apartment, AssignmentInd, Domain, LocalMall, LocalShipping, Loyalty, Receipt, Store } from "@material-ui/icons";
 import { RouteConfig } from "@types";
 import paths from "common/constants/paths";
 import {
@@ -57,13 +57,13 @@ export const routes: RouteConfig[] = [
         path: paths.CUSTOMERS,
         icon: (color) => <AssignmentInd stroke={color} fill={color} />,
     },
-    // {
-    //     key: paths.SUPPLIER,
-    //     description: <Trans i18nKey={langKeys.supplier} count={2} />,
-    //     tooltip: <Trans i18nKey={langKeys.supplier} />,
-    //     path: paths.SUPPLIER,
-    //     icon: (color) => <Store stroke={color} fill={color} />,
-    // },
+    {
+        key: paths.SUPPLIER,
+        description: <Trans i18nKey={langKeys.supplier} count={2} />,
+        tooltip: <Trans i18nKey={langKeys.supplier} />,
+        path: paths.SUPPLIER,
+        icon: (color) => <Store stroke={color} fill={color} />,
+    },
     {
         key: paths.VEHICLES,
         description: 'Vehiculos',
@@ -90,14 +90,14 @@ export const routes: RouteConfig[] = [
         description: 'Cuentas',
         tooltip: 'Cuentas',
         path: paths.ACCOUNT,
-        icon: (color) => <Loyalty stroke={color} fill={color} />,
+        icon: (color) => <AccountBalance stroke={color} fill={color} />,
     },
     {
         key: paths.PAYMENT_METHODS,
         description: 'Metodos de Pago',
         tooltip: 'Metodos de Pago',
         path: paths.PAYMENT_METHODS,
-        icon: (color) => <Loyalty stroke={color} fill={color} />,
+        icon: (color) => <AccountBalanceWallet stroke={color} fill={color} />,
     },
     {
         key: paths.PURCHASES,
