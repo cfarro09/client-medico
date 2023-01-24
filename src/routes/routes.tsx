@@ -65,10 +65,10 @@ export const routes: RouteConfig[] = [
         icon: (color) => <Store stroke={color} fill={color} />,
     },
     {
-        key: paths.VEHICLES,
+        key: paths.VEHICLE,
         description: 'Vehiculos',
         tooltip: 'Vehiculos',
-        path: paths.VEHICLES,
+        path: paths.VEHICLE,
         icon: (color) => <LocalShipping stroke={color} fill={color} />,
     },
     {

@@ -81,6 +81,15 @@ export const getCorpSel = (id: number): IRequestBody => ({
     }
 });
 
+export const getVehicleSel = (id: number): IRequestBody => ({
+    method: "UFN_VEHICLE_SEL",
+    key: "UFN_VEHICLE_SEL",
+    parameters: {
+        id: id,
+        all: id === 0,
+    }
+});
+
 export const getPaymentMethodsSel = (id: number): IRequestBody => ({
     method: "UFN_PAYMENT_METHODS_SEL",
     key: "UFN_PAYMENT_METHODS_SEL",
@@ -363,6 +372,12 @@ export const insCorp = ({ id, description, type, status, logo, logotype, operati
     method: "UFN_CORPORATION_INS",
     key: "UFN_CORPORATION_INS",
     parameters: { id, description, type, status, logo, logotype, operation }
+});
+
+export const insVehicle = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_VEHICLE_INS",
+    key: "UFN_VEHICLE_INS",
+    parameters: { ...parameters}
 });
 
 export const insPaymentMethod = (parameters: Dictionary): IRequestBody => ({

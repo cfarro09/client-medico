@@ -14,7 +14,7 @@ const paths = {
     STOCK: '/stock',
     SIGNIN: '/sign-in',
     PRODUCTS: '/products',
-    VEHICLES: '/vehicles',
+    VEHICLE: '/vehicle',
     PAYMENT_METHODS: '/payment_methods'
 };
 

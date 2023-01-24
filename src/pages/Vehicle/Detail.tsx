@@ -1,12 +1,3 @@
-/*
- ** Change DetailTemplate to the new name of your file
- ** Change arrayBread
- ** Change insCorp for insert function of your new module
- ** Change defaultValues
- ** Change REGISTER_VALUES
- ** Change FORM_TITTLE
- */
-
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Button, makeStyles } from "@material-ui/core";
 import { DetailModule, Dictionary } from "@types";
@@ -21,11 +12,11 @@ import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import { execute } from "store/main/actions";
-import { insCorp } from "common/helpers";
+import { insVehicle } from "common/helpers";
 
 const arrayBread = [
-    { id: "view-1", name: "Corporation" },
-    { id: "view-2", name: "Corporation detail" },
+    { id: "view-1", name: "Vehicle" },
+    { id: "view-2", name: "Vehicle detail" },
 ];
 
 const useStyles = makeStyles((theme) => ({
@@ -42,8 +33,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-
-const DetailTemplate: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
+const DetailVehicle: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
     const classes = useStyles();
     const [waitSave, setWaitSave] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
@@ -97,12 +87,13 @@ const DetailTemplate: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
         formState: { errors },
     } = useForm({
         defaultValues: {
-            id: row?.corpid || 0,
+            id: row?.warehouseid || 0,
             description: row?.description || "",
-            type: row?.type || "NINGUNO",
+            plate_number: row?.plate_number || "",
+            soat: row?.soat || "",
+            vehicle_capacity: row?.vehicle_capacity || "",
+            vehicle_type: row?.vehicle_type || "",
             status: row?.status || "ACTIVO",
-            logo: row?.logo || "",
-            logotype: row?.logotype || "",
             operation: row ? "UPDATE" : "INSERT",
         },
     });
@@ -110,7 +101,7 @@ const DetailTemplate: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
     const onSubmit = handleSubmit((data) => {
         const callback = () => {
             dispatch(showBackdrop(true));
-            dispatch(execute(insCorp(data)));
+            dispatch(execute(insVehicle(data)));
             setWaitSave(true);
         };
 
@@ -123,11 +114,13 @@ const DetailTemplate: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
         );
     });
 
-    // REGISTER_VALUES
     React.useEffect(() => {
         register("description", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register("status", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register("id", { validate: (value) => (value && value > 0) || "" + t(langKeys.field_required) });
+        register("plate_number", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
+        register("soat");
+        register("vehicle_capacity");
+        register("vehicle_type");
     }, [register]);
 
     return (
@@ -135,7 +128,7 @@ const DetailTemplate: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
             <form onSubmit={onSubmit}>
                 <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
                 <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-                    <TitleDetail title={row ? `${row.description}` : 'FORM_TITTLE'} />
+                    <TitleDetail title={row ? `${row.description}` : "Nuevo Vehiculo"} />
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                         <Button
                             variant="contained"
@@ -162,26 +155,44 @@ const DetailTemplate: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                 <div className={classes.containerDetail}>
                     <div className="row-zyx">
                         <FieldEdit
-                            label={t(langKeys.corporation)}
+                            label={"Numero de Placa"}
+                            className="col-6"
+                            valueDefault={getValues("plate_number")}
+                            onChange={(value) => setValue("plate_number", value)}
+                            error={errors?.plate_number?.message}
+                        />
+                        <FieldEdit
+                            label={"Descripcion"}
                             className="col-6"
                             valueDefault={getValues("description")}
                             onChange={(value) => setValue("description", value)}
                             error={errors?.description?.message}
                         />
-                        <FieldSelect
-                            label={t(langKeys.type)}
+                    </div>
+                    <div className="row-zyx">
+                        <FieldEdit
+                            label={"Soat"}
                             className="col-6"
-                            valueDefault={getValues("type")}
-                            onChange={(value) => setValue("type", value?.domainvalue)}
-                            error={errors?.type?.message}
-                            data={dataExtra.type}
-                            uset={true}
-                            prefixTranslation="type_corp_"
-                            optionDesc="domainvalue"
-                            optionValue="domainvalue"
+                            valueDefault={getValues("soat")}
+                            onChange={(value) => setValue("soat", value)}
+                            error={errors?.soat?.message}
+                        />
+                        <FieldEdit
+                            label={"Capacidad del Vehiculo"}
+                            className="col-6"
+                            valueDefault={getValues("vehicle_capacity")}
+                            onChange={(value) => setValue("vehicle_capacity", value)}
+                            error={errors?.vehicle_capacity?.message}
                         />
                     </div>
                     <div className="row-zyx">
+                        <FieldEdit
+                            label={"Tipo del Vehiculo"}
+                            className="col-6"
+                            valueDefault={getValues("vehicle_type")}
+                            onChange={(value) => setValue("vehicle_type", value)}
+                            error={errors?.vehicle_type?.message}
+                        />
                         <FieldSelect
                             label={t(langKeys.status)}
                             className="col-6"
@@ -199,6 +210,6 @@ const DetailTemplate: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
             </form>
         </div>
     );
-}
+};
 
-export default DetailTemplate;
+export default DetailVehicle;
