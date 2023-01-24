@@ -81,6 +81,15 @@ export const getCorpSel = (id: number): IRequestBody => ({
     }
 });
 
+export const getDriverSel = (id: number): IRequestBody => ({
+    method: "UFN_DRIVERS_SEL",
+    key: "UFN_DRIVERS_SEL",
+    parameters: {
+        id: id,
+        all: id === 0,
+    }
+});
+
 export const getVehicleSel = (id: number): IRequestBody => ({
     method: "UFN_VEHICLE_SEL",
     key: "UFN_VEHICLE_SEL",
@@ -368,10 +377,16 @@ export const insDomainvalue = ({ id, domainname, description, domainvalue, domai
     parameters: { id, domainname, description, domainvalue, domaindesc, system: false, status, type, bydefault, operation }
 });
 
-export const insCorp = ({ id, description, type, status, logo, logotype, operation }: Dictionary): IRequestBody => ({
+export const insCorp = (parameters: Dictionary): IRequestBody => ({
     method: "UFN_CORPORATION_INS",
     key: "UFN_CORPORATION_INS",
-    parameters: { id, description, type, status, logo, logotype, operation }
+    parameters: { ...parameters}
+});
+
+export const insDriver = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_DRIVER_INS",
+    key: "UFN_DRIVER_INS",
+    parameters: { ...parameters}
 });
 
 export const insVehicle = (parameters: Dictionary): IRequestBody => ({

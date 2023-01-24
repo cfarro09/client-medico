@@ -32,6 +32,7 @@ const Forward = lazy(() => import('pages/Forward/Index'));
 const Account = lazy(() => import('pages/Account/Index'));
 const PaymentMethods = lazy(() => import('pages/PaymentMethods/Index'));
 const Vehicle = lazy(() => import('pages/Vehicle/Index'));
+const Driver = lazy(() => import('pages/Driver/Index'));
 
 const useStyles = makeStyles((theme) => ({
 	main: {
@@ -152,6 +153,9 @@ const RouterApp: FC = () => {
 					</ProtectRoute>
 					<ProtectRoute exact path={paths.VEHICLE}>
 						<Layout mainClasses={classes.main}><Vehicle /></Layout>
+					</ProtectRoute>
+					<ProtectRoute exact path={paths.DRIVER}>
+						<Layout mainClasses={classes.main}><Driver /></Layout>
 					</ProtectRoute>
 
 

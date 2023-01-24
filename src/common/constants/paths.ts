@@ -15,7 +15,8 @@ const paths = {
     SIGNIN: '/sign-in',
     PRODUCTS: '/products',
     VEHICLE: '/vehicle',
-    PAYMENT_METHODS: '/payment_methods'
+    PAYMENT_METHODS: '/payment_methods',
+    DRIVER: '/driver',
 };
 
 export default paths;

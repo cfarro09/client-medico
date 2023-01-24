@@ -37,6 +37,13 @@ export const routes: RouteConfig[] = [
         icon: (className) => <AccountCircle style={{ width: 22, height: 22 }} className={className} />,
     },
     {
+        key: paths.DRIVER,
+        description: 'Conductores',
+        tooltip: 'Conductores',
+        path: paths.DRIVER,
+        icon: (className) => <AccountCircle style={{ width: 22, height: 22 }} className={className} />,
+    },
+    {
         key: paths.DOMAINS,
         description: <Trans i18nKey={langKeys.domain_plural} count={2} />,
         tooltip: <Trans i18nKey={langKeys.domain_plural} />,
