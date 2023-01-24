@@ -122,6 +122,11 @@ const Account: FC = () => {
                 NoFilter: true,
             },
             {
+                Header: 'Nro de Cuenta',
+                accessor: "account_number",
+                NoFilter: true,
+            },
+            {
                 Header: t(langKeys.amount),
                 accessor: "amount",
                 NoFilter: true,

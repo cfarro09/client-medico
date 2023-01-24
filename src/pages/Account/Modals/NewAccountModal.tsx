@@ -46,36 +46,44 @@ const NewAccountModal: React.FC<modalPorps> = ({ openModal, setOpenModal, fetchD
         }
     }, [executeResult, waitSave]);
 
-    const { register, handleSubmit, setValue, getValues, formState: { errors }, clearErrors } = useForm({
+    const {
+        register,
+        handleSubmit,
+        setValue,
+        getValues,
+        formState: { errors },
+        clearErrors,
+    } = useForm({
         defaultValues: {
             id: 0,
-            description: '',
-            initial_amount: '',
-            observations: '',
-            status: 'ACTIVO',
-            operation: 'INSERT'
-        }
+            description: "",
+            account_number: "",
+            initial_amount: "",
+            observations: "",
+            status: "ACTIVO",
+            operation: "INSERT",
+        },
     });
 
     useEffect(() => {
-        register('description', { validate: (value: any) => (value && value.length) || t(langKeys.field_required) });
-        register('initial_amount', { validate: (value: any) => (value && value.length) || t(langKeys.field_required) });
-        register('status');
-    }, [getValues, register, t])
+        register("description", { validate: (value: any) => (value && value.length) || t(langKeys.field_required) });
+        register("initial_amount", { validate: (value: any) => (value && value.length) || t(langKeys.field_required) });
+        register("account_number");
+        register("status");
+    }, [getValues, register, t]);
 
     const handleCancelModal = () => {
         setOpenModal(false);
-        setValue('description', "");
-        setValue('initial_amount', "");
-        setValue('observations', "");
+        setValue("description", "");
+        setValue("initial_amount", "");
+        setValue("observations", "");
         clearErrors();
-    }
+    };
 
     const onSubmitAccount = handleSubmit((data) => {
-        console.log('submit', data)
         const callback = () => {
             dispatch(showBackdrop(true));
-            dispatch(execute(insAccount({...data, amount: data.initial_amount})));
+            dispatch(execute(insAccount({ ...data, amount: data.initial_amount })));
             setWaitSave(true);
         };
 
@@ -102,28 +110,35 @@ const NewAccountModal: React.FC<modalPorps> = ({ openModal, setOpenModal, fetchD
                 <FieldEdit
                     label={t(langKeys.name)}
                     className="col-12"
-                    valueDefault={getValues('description')}
-                    onChange={(value) => setValue('description', value)}
+                    valueDefault={getValues("description")}
+                    onChange={(value) => setValue("description", value)}
                     error={errors?.description?.message}
+                />
+                <FieldEdit
+                    label={"Numero de Cuenta"}
+                    className="col-12"
+                    valueDefault={getValues("account_number")}
+                    onChange={(value) => setValue("account_number", value)}
+                    error={errors?.account_number?.message}
                 />
                 <FieldEdit
                     label={t(langKeys.initialamount)}
                     className="col-12"
                     type="number"
-                    valueDefault={getValues('initial_amount')}
-                    onChange={(value) => setValue('initial_amount', value)}
+                    valueDefault={getValues("initial_amount")}
+                    onChange={(value) => setValue("initial_amount", value)}
                     error={errors?.initial_amount?.message}
                 />
                 <FieldEdit
                     label={t(langKeys.observations)}
                     className="col-12"
-                    valueDefault={getValues('observations')}
-                    onChange={(value) => setValue('observations', value)}
+                    valueDefault={getValues("observations")}
+                    onChange={(value) => setValue("observations", value)}
                     error={errors?.observations?.message}
                 />
             </div>
         </DialogZyx>
-    )
-}
+    );
+};
 
 export default NewAccountModal;
