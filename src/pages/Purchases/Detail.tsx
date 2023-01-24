@@ -201,6 +201,8 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({
                                         product_type: "envase",
                                     }
                                 );
+                            else
+                                acum.push({...current, label: current.product_name, id: current.productid, product_type: 'full'})
                             return acum as Dictionary;
                         }, []) as Dictionary[]
                 );
