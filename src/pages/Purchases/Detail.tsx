@@ -186,7 +186,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({
                     products.data
                         .filter((x) => x.category === "GLP")
                         .reduce((acum, current) => {
-                            if (current.category === "GLP")
+                            if (current.with_container)
                                 acum.push(
                                     {
                                         ...current,

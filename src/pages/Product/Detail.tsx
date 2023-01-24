@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, makeStyles } from "@material-ui/core";
+import { Button, FormControlLabel, makeStyles, Switch } from "@material-ui/core";
 import { DetailModule, Dictionary } from "@types";
 import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
 import { useSelector } from "hooks";
@@ -96,6 +96,7 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
         handleSubmit,
         setValue,
         getValues,
+        trigger,
         formState: { errors },
     } = useForm({
         defaultValues: {
@@ -112,6 +113,7 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
             types_packaging: row?.types_packaging || "",
             color: row?.color || "",
             n_bottles: row?.n_bottles || 0,
+            with_container: row?.with_container || false,
             status: row?.status || "ACTIVO",
             operation: row ? "UPDATE" : "INSERT",
         },
@@ -122,7 +124,13 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
         // register("price_1", { validate: (value) => (value && value > 0) || t(langKeys.field_required) });
         // register("purchase_price", { validate: (value) => (value && value > 0) || t(langKeys.field_required) });
         register("status", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
+        register('with_container');
     }, [register]);
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setValue("with_container", event.target.checked);
+        trigger("with_container");
+    };
 
     const onSubmit = handleSubmit((data) => {
         const callback = () => {
@@ -296,6 +304,19 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                             optionDesc="domainvalue"
                             optionValue="domainvalue"
                         />
+                        <div className="col-6">
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={getValues("with_container")}
+                                        onChange={handleChange}
+                                        name="checkedB"
+                                        color="primary"
+                                    />
+                                }
+                                label="Tiene Envase?"
+                            />
+                        </div>
                     </div>
                 </div>
             </form>
