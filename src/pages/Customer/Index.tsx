@@ -93,35 +93,38 @@ const Customer: FC = () => {
             },
             {
                 Header: 'Descripcion',
-                accessor: 'description'
+                accessor: 'description',
+                NoFilter: true,
             },
             {
                 Header: 'Tipo Documento',
-                accessor: 'doc_type'
+                accessor: 'doc_type',
+                NoFilter: true,
             },
             {
                 Header: 'Nro Documento',
-                accessor: 'doc_num'
+                accessor: 'doc_number',
+                NoFilter: true,
             },
             {
                 Header: 'Nombre Contacto',
-                accessor: 'contact_name'
+                accessor: 'contact_name',
+                NoFilter: true,
             },
             {
                 Header: 'Email Contacto',
-                accessor: 'contact_email'
+                accessor: 'contact_email',
+                NoFilter: true,
             },
             {
                 Header: 'Telefono Contacto',
-                accessor: 'contact_phone'
-            },
-            {
-                Header: 'Direccion',
-                accessor: 'address'
+                accessor: 'contact_phone',
+                NoFilter: true,
             },
             {
                 Header: t(langKeys.status),
                 accessor: "status",
+                NoFilter: true,
                 prefixTranslation: "status_",
                 Cell: (props: any) => {
                     const { status } = props.cell.row.original;

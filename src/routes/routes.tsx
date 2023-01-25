@@ -59,8 +59,8 @@ export const routes: RouteConfig[] = [
     // },
     {
         key: paths.CUSTOMERS,
-        description: <Trans i18nKey={langKeys.customer} count={2} />,
-        tooltip: <Trans i18nKey={langKeys.customer} />,
+        description: 'Clientes',
+        tooltip: 'Clientes',
         path: paths.CUSTOMERS,
         icon: (color) => <AssignmentInd stroke={color} fill={color} />,
     },
