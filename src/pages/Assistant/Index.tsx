@@ -95,8 +95,8 @@ const Assistant: FC = () => {
                 },
             },
             {
-                Header: 'Usuario',
-                accessor: "usr",
+                Header: 'Nombre Completo',
+                accessor: "full_name",
                 NoFilter: true,
             },
             {
@@ -107,11 +107,6 @@ const Assistant: FC = () => {
             {
                 Header: 'Numero de Documento',
                 accessor: "doc_number",
-                NoFilter: true,
-            },
-            {
-                Header: 'Nombre Completo',
-                accessor: "full_name",
                 NoFilter: true,
             },
             {
