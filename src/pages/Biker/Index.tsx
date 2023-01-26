@@ -151,7 +151,7 @@ const Biker: FC = () => {
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(execute(insBiker({ ...row, operation: "DELETE", id: row.userid, pwd: null })));
+            dispatch(execute(insBiker({ ...row, operation: "DELETE", id: row.userid, password: null })));
             dispatch(showBackdrop(true));
             setWaitSave(true);
         };

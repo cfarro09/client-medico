@@ -146,7 +146,7 @@ const Assistant: FC = () => {
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(execute(insAssistant({ ...row, operation: "DELETE", id: row.userid, pwd: null })));
+            dispatch(execute(insAssistant({ ...row, operation: "DELETE", id: row.userid, password: null })));
             dispatch(showBackdrop(true));
             setWaitSave(true);
         };
