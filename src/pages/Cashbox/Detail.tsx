@@ -1,8 +1,3 @@
-/*
- ** Change REGISTER_VALUES
- ** Change FORM_TITTLE
- */
-
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Button, makeStyles } from "@material-ui/core";
 import { DetailModule, Dictionary } from "@types";
@@ -117,7 +112,7 @@ const DetailCashbox: React.FC<DetailModule> = ({ row, setViewSelected, fetchData
         );
     });
 
-    // REGISTER_VALUES
+    // 
     React.useEffect(() => {
         register("description", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register("status", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
@@ -130,7 +125,7 @@ const DetailCashbox: React.FC<DetailModule> = ({ row, setViewSelected, fetchData
             <form onSubmit={onSubmit}>
                 <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
                 <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-                    <TitleDetail title={row ? `${row.description}` : "FORM_TITTLE"} />
+                    <TitleDetail title={row ? `${row.description}` : "Nueva Caja"} />
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                         <Button
                             variant="contained"

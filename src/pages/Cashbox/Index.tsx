@@ -1,8 +1,3 @@
-/*
- ** Change cashboxid from your dataset
- ** Chnage HandlesFunctions
- ** Change TEMPALTE_TITLE
- */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
 import { getCashboxSel, getValuesFromDomain, insCashbox } from "common/helpers";
@@ -164,7 +159,7 @@ const Cashbox: FC = () => {
             <TableZyx
                 columns={columns}
                 data={dataView}
-                titlemodule={`TEMPALTE_TITLE`}
+                titlemodule={`Cajas`}
                 download={!!pagePermissions.download}
                 onClickRow={handleEdit}
                 loading={mainResult.loading}
