@@ -35,6 +35,7 @@ const Vehicle = lazy(() => import('pages/Vehicle/Index'));
 const Driver = lazy(() => import('pages/Driver/Index'));
 const Cashbox = lazy(() => import('pages/Cashbox/Index'));
 const Biker = lazy(() => import('pages/Biker/Index'));
+const Assistant = lazy(() => import('pages/Assistant/Index'));
 
 const useStyles = makeStyles((theme) => ({
 	main: {
@@ -164,6 +165,9 @@ const RouterApp: FC = () => {
 					</ProtectRoute>
 					<ProtectRoute exact path={paths.BIKERS}>
 						<Layout mainClasses={classes.main}><Biker /></Layout>
+					</ProtectRoute>
+					<ProtectRoute exact path={paths.ASSISTANT}>
+						<Layout mainClasses={classes.main}><Assistant /></Layout>
 					</ProtectRoute>
 
 

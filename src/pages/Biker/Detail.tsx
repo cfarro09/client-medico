@@ -36,7 +36,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
+const DetailBiker: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
     const classes = useStyles();
     const [waitSave, setWaitSave] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
@@ -177,7 +177,7 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                     <div className="row-zyx">
                     <FieldEdit
                             className="col-6"
-                            label={t(langKeys.fullname)}
+                            label={'Nombre completo (*)'}
                             valueDefault={row?.full_name || ""}
                             onChange={(value) => setValue('full_name', value)}
                             error={errors?.full_name?.message}
@@ -203,7 +203,7 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                             error={errors?.email?.message}
                         />
                         <FieldEdit
-                            label={t(langKeys.user)}
+                            label={'Usuario (*)'}
                             className="col-6"
                             valueDefault={getValues('usr')}
                             onChange={(value) => setValue('usr', value)}
@@ -213,7 +213,7 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                     <div className="row-zyx">
                         <FieldSelect
                             loading={multiData.loading}
-                            label={t(langKeys.docType)}
+                            label={`${t(langKeys.docType)} (*)`}
                             className="col-6"
                             valueDefault={getValues('doc_type')}
                             onChange={(value) => setValue('doc_type', value ? value.domainvalue : '')}
@@ -223,25 +223,11 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                             optionValue="domainvalue"
                         />
                         <FieldEdit
-                            label={t(langKeys.docNumber)}
+                            label={`${t(langKeys.docNumber)} (*)`}
                             className="col-6"
                             valueDefault={getValues('doc_number')}
                             onChange={(value) => setValue('doc_number', value)}
                             error={errors?.doc_number?.message}
-                        />
-                    </div>
-                    <div className="row-zyx">
-                        <FieldSelect
-                            label={t(langKeys.status)}
-                            className="col-6"
-                            valueDefault={getValues("status")}
-                            onChange={(value) => setValue("status", value?.domainvalue)}
-                            error={errors?.status?.message}
-                            data={dataExtra.status}
-                            uset={true}
-                            prefixTranslation="status_"
-                            optionDesc="domainvalue"
-                            optionValue="domainvalue"
                         />
                     </div>
                 </div>
@@ -256,4 +242,4 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
     );
 }
 
-export default DetailDriver;
+export default DetailBiker;
