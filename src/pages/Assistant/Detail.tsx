@@ -12,11 +12,11 @@ import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import { execute } from "store/main/actions";
-import { insBiker } from "common/helpers";
+import { insAssistant } from "common/helpers";
 
 const arrayBread = [
-    { id: "view-1", name: "Bikers" },
-    { id: "view-2", name: "Biker detail" },
+    { id: "view-1", name: "Assistants" },
+    { id: "view-2", name: "Assistant detail" },
 ];
 
 const useStyles = makeStyles((theme) => ({
@@ -103,7 +103,7 @@ const DetailAssistant: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
     const onSubmit = handleSubmit((data) => {
         const callback = () => {
             dispatch(showBackdrop(true));
-            dispatch(execute(insBiker({ ...data, pwd: data.password })));
+            dispatch(execute(insAssistant({ ...data, pwd: data.password })));
             setWaitSave(true);
         };
 

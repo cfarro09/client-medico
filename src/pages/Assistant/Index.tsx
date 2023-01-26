@@ -170,7 +170,7 @@ const Assistant: FC = () => {
             <TableZyx
                 columns={columns}
                 data={dataView}
-                titlemodule={`Motorizados`}
+                titlemodule={`Ayudantes`}
                 download={!!pagePermissions.download}
                 onClickRow={handleEdit}
                 loading={mainResult.loading}
