@@ -1,4 +1,4 @@
-import { AccountBalance, AccountBalanceWallet, AccountCircle, AllInbox, Apartment, AssignmentInd, Contacts, Domain, LocalMall, LocalShipping, Loyalty, PersonPin, Receipt, Store } from "@material-ui/icons";
+import { AccountBalance, AccountBalanceWallet, AccountCircle, AllInbox, Apartment, AssignmentInd, Contacts, Domain, LocalMall, LocalShipping, Loyalty, Motorcycle, PersonPin, Receipt, Store } from "@material-ui/icons";
 import { RouteConfig } from "@types";
 import paths from "common/constants/paths";
 import {
@@ -42,6 +42,13 @@ export const routes: RouteConfig[] = [
         tooltip: 'Conductores',
         path: paths.DRIVER,
         icon: (className) => <Contacts style={{ width: 22, height: 22 }} className={className} />,
+    },
+    {
+        key: paths.BIKERS,
+        description: 'Motorizados',
+        tooltip: 'Motorizados',
+        path: paths.BIKERS,
+        icon: (className) => <Motorcycle style={{ width: 22, height: 22 }} className={className} />,
     },
     {
         key: paths.DOMAINS,

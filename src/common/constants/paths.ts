@@ -18,6 +18,7 @@ const paths = {
     PAYMENT_METHODS: '/payment_methods',
     DRIVER: '/driver',
     CASH_BOX: '/cash_box',
+    BIKERS: '/bikers',
 };
 
 export default paths;

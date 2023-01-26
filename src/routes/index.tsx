@@ -34,6 +34,7 @@ const PaymentMethods = lazy(() => import('pages/PaymentMethods/Index'));
 const Vehicle = lazy(() => import('pages/Vehicle/Index'));
 const Driver = lazy(() => import('pages/Driver/Index'));
 const Cashbox = lazy(() => import('pages/Cashbox/Index'));
+const Biker = lazy(() => import('pages/Biker/Index'));
 
 const useStyles = makeStyles((theme) => ({
 	main: {
@@ -160,6 +161,9 @@ const RouterApp: FC = () => {
 					</ProtectRoute>
 					<ProtectRoute exact path={paths.CASH_BOX}>
 						<Layout mainClasses={classes.main}><Cashbox /></Layout>
+					</ProtectRoute>
+					<ProtectRoute exact path={paths.BIKERS}>
+						<Layout mainClasses={classes.main}><Biker /></Layout>
 					</ProtectRoute>
 
 

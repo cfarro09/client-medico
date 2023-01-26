@@ -99,6 +99,15 @@ export const getDriverSel = (id: number): IRequestBody => ({
     }
 });
 
+export const getBikerSel = (id: number): IRequestBody => ({
+    method: "UFN_BIKERS_SEL",
+    key: "UFN_BIKERS_SEL",
+    parameters: {
+        id: id,
+        all: id === 0,
+    }
+});
+
 export const getVehicleSel = (id: number): IRequestBody => ({
     method: "UFN_VEHICLE_SEL",
     key: "UFN_VEHICLE_SEL",
@@ -403,6 +412,13 @@ export const insDriver = (parameters: Dictionary): IRequestBody => ({
     key: "UFN_DRIVER_INS",
     parameters: { ...parameters}
 });
+
+export const insBiker = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_BIKER_INS",
+    key: "UFN_BIKER_INS",
+    parameters: { ...parameters}
+});
+
 
 export const insVehicle = (parameters: Dictionary): IRequestBody => ({
     method: "UFN_VEHICLE_INS",
