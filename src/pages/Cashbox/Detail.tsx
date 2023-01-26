@@ -164,7 +164,7 @@ const DetailCashbox: React.FC<DetailModule> = ({ row, setViewSelected, fetchData
                             valueDefault={getValues("initial_amount")}
                             onChange={(value) => setValue("initial_amount", value)}
                             error={errors?.initial_amount?.message}
-                            type="numeric"
+                            type="number"
                         />
                     </div>
                     <div className="row-zyx">
