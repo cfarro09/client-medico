@@ -1,17 +1,11 @@
 /*
- ** Change IndexName to the new name of your file
- ** Change route /template to the actual route of your new Module
- ** Change getCorpSel to the actual sel of your main data
- ** Change MainDataFill or delete it in case no use
- ** Change MultiData or delete it in case no use
- ** Change ViewColumns or delete it in case no use
- ** Change corpid from your dataset
- ** Change insCorp for your ins function
+ ** Change cashboxid from your dataset
+ ** Chnage HandlesFunctions
  ** Change TEMPALTE_TITLE
  */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getCorpSel, getValuesFromDomain, insCorp } from "common/helpers";
+import { getCashboxSel, getValuesFromDomain, insCashbox } from "common/helpers";
 import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -23,7 +17,7 @@ import { execute, getCollection, getMultiCollection, resetAllMain } from "store/
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
 
-const IndexName: FC = () => {
+const Cashbox: FC = () => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainResult = useSelector((state) => state.main.mainData);
@@ -38,11 +32,11 @@ const IndexName: FC = () => {
     useEffect(() => {
         if (applications) {
             setPagePermissions({
-                view: applications["/template"][0],
-                modify: applications["/template"][1],
-                insert: applications["/template"][2],
-                delete: applications["/template"][3],
-                download: applications["/template"][4],
+                view: applications["/cash_box"][0],
+                modify: applications["/cash_box"][1],
+                insert: applications["/cash_box"][2],
+                delete: applications["/cash_box"][3],
+                download: applications["/cash_box"][4],
             });
         }
     }, [applications]);
@@ -65,11 +59,11 @@ const IndexName: FC = () => {
         }
     }, [executeResult, waitSave]);
     
-    const fetchData = () => dispatch(getCollection(getCorpSel(0)));
+    const fetchData = () => dispatch(getCollection(getCashboxSel(0)));
 
     // MainDataFill
     useEffect(() => {
-        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_CORPORATION_SEL") {
+        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_CASHBOX_SEL") {
             setDataView(mainResult.data);
         }
     }, [mainResult]);
@@ -92,7 +86,7 @@ const IndexName: FC = () => {
     const columns = React.useMemo(
         () => [
             {
-                accessor: "corpid",
+                accessor: "cashboxid",
                 isComponent: true,
                 minWidth: 60,
                 width: "1%",
@@ -106,8 +100,13 @@ const IndexName: FC = () => {
                 },
             },
             {
-                Header: 'DESCRIPTION',
+                Header: 'Descripcion',
                 accessor: "description",
+                NoFilter: true,
+            },
+            {
+                Header: 'Monto',
+                accessor: "amount",
                 NoFilter: true,
             },
             {
@@ -121,13 +120,8 @@ const IndexName: FC = () => {
                 },
             },
             {
-                Header: t(langKeys.createdBy),
-                accessor: "createdby",
-                NoFilter: true,
-            },
-            {
-                Header: t(langKeys.creationDate),
-                accessor: "createdate",
+                Header: t(langKeys.lastUpdate),
+                accessor: "changedate",
                 NoFilter: true,
                 Cell: (props: any) => {
                     const date = props.cell.row.original.createdate;
@@ -151,7 +145,7 @@ const IndexName: FC = () => {
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(execute(insCorp({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.corpid })));
+            dispatch(execute(insCashbox({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.cashboxid })));
             dispatch(showBackdrop(true));
             setWaitSave(true);
         };
@@ -188,4 +182,4 @@ const IndexName: FC = () => {
         );
     }
 };
-export default IndexName;
+export default Cashbox;

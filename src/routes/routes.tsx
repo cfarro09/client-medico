@@ -1,4 +1,4 @@
-import { AccountBalance, AccountBalanceWallet, AccountCircle, AllInbox, Apartment, AssignmentInd, Domain, LocalMall, LocalShipping, Loyalty, Receipt, Store } from "@material-ui/icons";
+import { AccountBalance, AccountBalanceWallet, AccountCircle, AllInbox, Apartment, AssignmentInd, Contacts, Domain, LocalMall, LocalShipping, Loyalty, PersonPin, Receipt, Store } from "@material-ui/icons";
 import { RouteConfig } from "@types";
 import paths from "common/constants/paths";
 import {
@@ -41,7 +41,7 @@ export const routes: RouteConfig[] = [
         description: 'Conductores',
         tooltip: 'Conductores',
         path: paths.DRIVER,
-        icon: (className) => <AccountCircle style={{ width: 22, height: 22 }} className={className} />,
+        icon: (className) => <Contacts style={{ width: 22, height: 22 }} className={className} />,
     },
     {
         key: paths.DOMAINS,
@@ -97,6 +97,13 @@ export const routes: RouteConfig[] = [
         description: 'Cuentas',
         tooltip: 'Cuentas',
         path: paths.ACCOUNT,
+        icon: (color) => <AccountBalance stroke={color} fill={color} />,
+    },
+    {
+        key: paths.CASH_BOX,
+        description: 'Cajas',
+        tooltip: 'Cajas',
+        path: paths.CASH_BOX,
         icon: (color) => <AccountBalance stroke={color} fill={color} />,
     },
     {

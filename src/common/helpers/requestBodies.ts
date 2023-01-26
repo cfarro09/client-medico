@@ -81,6 +81,15 @@ export const getCorpSel = (id: number): IRequestBody => ({
     }
 });
 
+export const getCashboxSel = (id: number): IRequestBody => ({
+    method: "UFN_CASHBOX_SEL",
+    key: "UFN_CASHBOX_SEL",
+    parameters: {
+        id: id,
+        all: id === 0,
+    }
+});
+
 export const getDriverSel = (id: number): IRequestBody => ({
     method: "UFN_DRIVERS_SEL",
     key: "UFN_DRIVERS_SEL",
@@ -380,6 +389,12 @@ export const insDomainvalue = ({ id, domainname, description, domainvalue, domai
 export const insCorp = (parameters: Dictionary): IRequestBody => ({
     method: "UFN_CORPORATION_INS",
     key: "UFN_CORPORATION_INS",
+    parameters: { ...parameters}
+});
+
+export const insCashbox = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_CASHBOX_INS",
+    key: "UFN_CASHBOX_INS",
     parameters: { ...parameters}
 });
 

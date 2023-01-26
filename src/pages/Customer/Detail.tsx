@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import {
     Button,
+    CircularProgress,
     IconButton,
     makeStyles,
     Table,
@@ -78,6 +79,7 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
     const [productsToShow, setProductsToShow] = useState<Dictionary[]>([]);
     const [productsToDelete, setProductsToDelete] = useState<Dictionary[]>([]);
     const mainAux = useSelector((state) => state.main.mainAux);
+    const [loading, setLoading] = useState<Boolean>(true);
     const [productSelected, setProductSelected] = useState<{
         item: Dictionary | null;
         edit: boolean;
@@ -214,6 +216,7 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
     useEffect(() => {
         if (!mainAux.loading && !mainAux.error) {
             if (mainAux.key === "UFN_CUSTOMER_PRODUCT_SEL") {
+                setLoading(false)
                 setValue(
                     "products",
                     mainAux.data.map((x) => ({
@@ -428,57 +431,64 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                         />
                     </div>
                 </div>
-                <div className={classes.containerDetail}>
-                    <FieldSelect
-                        label={"Product"}
-                        variant="outlined"
-                        optionDesc="label"
-                        optionValue="productid"
-                        data={productsToShow}
-                        onChange={(value) => {
-                            handleChange(value);
-                        }}
-                    />
-                    <TableContainer>
-                        <Table size="small">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell></TableCell>
-                                    <TableCell>Producto</TableCell>
-                                    <TableCell style={{}}>Precio</TableCell>
-                                    <TableCell style={{}}>Bonificacion</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody style={{ marginTop: 5 }}>
-                                {fieldsProduct.map((item, i: number) => (
-                                    <TableRow key={item.id} className={classes.simple_table}>
-                                        <TableCell>
-                                            <div style={{ display: "flex" }}>
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={() => {
-                                                        handleDelete({ item, i });
-                                                    }}
-                                                >
-                                                    <DeleteIcon style={{ color: "#777777" }} />
-                                                </IconButton>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell onClick={() => handleEditProduct({ item, idx: i })}>
-                                            <div>{getValues(`products.${i}.product_description`)}</div>
-                                        </TableCell>
-                                        <TableCell onClick={() => handleEditProduct({ item, idx: i })}>
-                                            <div>{getValues(`products.${i}.price`)}</div>
-                                        </TableCell>
-                                        <TableCell onClick={() => handleEditProduct({ item, idx: i })}>
-                                            <div>{getValues(`products.${i}.bonification_value`)}</div>
-                                        </TableCell>
+                {loading && (
+                    <div style={{ textAlign: "center", marginTop: '20px' }}>
+                        <CircularProgress />
+                    </div>
+                )}
+                {!loading && (
+                    <div className={classes.containerDetail}>
+                        <FieldSelect
+                            label={"Product"}
+                            variant="outlined"
+                            optionDesc="label"
+                            optionValue="productid"
+                            data={productsToShow}
+                            onChange={(value) => {
+                                handleChange(value);
+                            }}
+                        />
+                        <TableContainer>
+                            <Table size="small">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell></TableCell>
+                                        <TableCell>Producto</TableCell>
+                                        <TableCell style={{}}>Precio</TableCell>
+                                        <TableCell style={{}}>Bonificacion</TableCell>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </div>
+                                </TableHead>
+                                <TableBody style={{ marginTop: 5 }}>
+                                    {fieldsProduct.map((item, i: number) => (
+                                        <TableRow key={item.id} className={classes.simple_table}>
+                                            <TableCell>
+                                                <div style={{ display: "flex" }}>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => {
+                                                            handleDelete({ item, i });
+                                                        }}
+                                                    >
+                                                        <DeleteIcon style={{ color: "#777777" }} />
+                                                    </IconButton>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell onClick={() => handleEditProduct({ item, idx: i })}>
+                                                <div>{getValues(`products.${i}.product_description`)}</div>
+                                            </TableCell>
+                                            <TableCell onClick={() => handleEditProduct({ item, idx: i })}>
+                                                <div>{getValues(`products.${i}.price`)}</div>
+                                            </TableCell>
+                                            <TableCell onClick={() => handleEditProduct({ item, idx: i })}>
+                                                <div>{getValues(`products.${i}.bonification_value`)}</div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </div>
+                )}
             </form>
             <ProductModal
                 parentData={productSelected}

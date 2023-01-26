@@ -42,11 +42,11 @@ const ProductModal: React.FC<modalPorps> = ({
         reset({
             productid: item?.productid,
             description: item?.label,
-            price: item?.price || '',
+            price: item?.price || "",
             product_type: item?.product_type,
             bonification_value: item?.bonification_value,
             label: item?.label,
-            identifier: item?.identifier
+            identifier: item?.identifier,
         });
     }, [item, edit]);
 
@@ -62,11 +62,11 @@ const ProductModal: React.FC<modalPorps> = ({
         defaultValues: {
             productid: 0,
             description: "",
-            price: '',
+            price: "",
             bonification_value: "",
             product_type: "",
             label: "",
-            identifier: ''
+            identifier: "",
         },
     });
 
@@ -77,8 +77,7 @@ const ProductModal: React.FC<modalPorps> = ({
     }, [getValues, register, t, item]);
 
     const handleCancelModal = () => {
-        if (item?.clientproductpriceid <= 0 || item?.fromBD)
-            setProductsToShow([...productsToShow, item]);
+        if (item?.clientproductpriceid <= 0 || item?.fromBD) setProductsToShow([...productsToShow, item]);
         clearErrors();
         setOpenModal(false);
     };
@@ -109,6 +108,7 @@ const ProductModal: React.FC<modalPorps> = ({
             buttonText2={t(langKeys.save)}
             handleClickButton1={handleCancelModal}
             handleClickButton2={onSubmitAccount}
+            maxWidth={"sm"}
         >
             <div className="row-zyx">
                 <FieldEdit
