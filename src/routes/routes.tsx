@@ -100,10 +100,10 @@ export const routes: RouteConfig[] = [
         icon: (color) => <Loyalty stroke={color} fill={color} />,
     },
     {
-        key: paths.FORWARD,
+        key: paths.ROUTE,
         description: <Trans i18nKey={langKeys.routes} count={2} />,
         tooltip: <Trans i18nKey={langKeys.routes} />,
-        path: paths.FORWARD,
+        path: paths.ROUTE,
         icon: (color) => <Loyalty stroke={color} fill={color} />,
     },
     {

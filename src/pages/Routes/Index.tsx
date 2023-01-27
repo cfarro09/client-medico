@@ -1,13 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Button, makeStyles } from "@material-ui/core";
 import { Dictionary } from "@types";
-import {
-    getDateCleaned,
-    getDrivers,
-    getRoutes,
-    getValuesFromDomain,
-    getVehicles,
-} from "common/helpers";
+import { getDateCleaned, getDrivers, getRoutes, getValuesFromDomain, getVehicles } from "common/helpers";
 import { DateRangePicker, FieldSelect } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -60,8 +54,8 @@ const useStyles = makeStyles((theme) => ({
         color: "rgb(143, 146, 161)",
     },
     title: {
-        fontSize: '22px',
-        fontWeight: 'bold',
+        fontSize: "22px",
+        fontWeight: "bold",
         color: theme.palette.text.primary,
         padding: "10px 0 ",
     },
@@ -76,9 +70,9 @@ const initialRange = {
     endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
     key: "selection",
 };
-const selectionKey = "routeid"
+const selectionKey = "routeid";
 
-const Forward: FC = () => {
+const Routes: FC = () => {
     const classes = useStyles();
     const dispatch = useDispatch();
     const { t } = useTranslation();
@@ -95,11 +89,11 @@ const Forward: FC = () => {
     const [selectedRows, setSelectedRows] = useState<any>({});
     const [filters, setFilters] = useState({
         userid: 0,
-        vehicleid: 0
+        warehouseid: 0,
     });
     const [dataExtra, setDataExtra] = useState<{
-        driver: Dictionary[],
-        vehicles: Dictionary[],
+        driver: Dictionary[];
+        vehicles: Dictionary[];
     }>({
         driver: [],
         vehicles: [],
@@ -109,27 +103,30 @@ const Forward: FC = () => {
     useEffect(() => {
         if (applications) {
             setPagePermissions({
-                view: applications["/forward"][0],
-                modify: applications["/forward"][1],
-                insert: applications["/forward"][2],
-                delete: applications["/forward"][3],
-                download: applications["/forward"][4],
+                view: applications["/route"][0],
+                modify: applications["/route"][1],
+                insert: applications["/route"][2],
+                delete: applications["/route"][3],
+                download: applications["/route"][4],
             });
         }
     }, [applications]);
 
     const fetchData = () =>
-        dispatch(getCollection(getRoutes({ startdate: dateRange.startDate, finishdate: dateRange.endDate, userid: filters.userid, vehicleid: filters.vehicleid })));
+        dispatch(
+            getCollection(
+                getRoutes({
+                    startdate: dateRange.startDate,
+                    finishdate: dateRange.endDate,
+                    userid: filters.userid,
+                    warehouseid: filters.warehouseid,
+                })
+            )
+        );
 
     useEffect(() => {
         fetchData();
-        dispatch(
-            getMultiCollection([
-                getValuesFromDomain("ZONAS", "DOMAIN-ZONAS"),
-                getDrivers(),
-                getVehicles(),
-            ])
-        );
+        dispatch(getMultiCollection([getValuesFromDomain("ZONAS", "DOMAIN-ZONAS"), getDrivers(), getVehicles()]));
         return () => {
             dispatch(resetAllMain());
         };
@@ -149,7 +146,7 @@ const Forward: FC = () => {
         if (waitSave) {
             if (!executeResult.loading && !executeResult.error) {
                 setWaitSave(false);
-                window.open(executeResult.url, '_blank')
+                window.open(executeResult.url, "_blank");
             } else if (executeResult.error) {
                 const errormessage = t(executeResult.code || "error_unexpected_error", {
                     module: t(langKeys.corporation_plural).toLocaleLowerCase(),
@@ -161,54 +158,53 @@ const Forward: FC = () => {
         }
     }, [executeResult, waitSave]);
 
-
     useEffect(() => {
         if (!multiData.error && !multiData.loading) {
-            const driverdata = multiData.data.find(x => x.key === "UFN_DRIVER_USERS_SEL")?.data || []
-            const vehicledata = multiData.data.find(x => x.key === "UFN_AVAILABLE_VEHICLE_LST")?.data || []
+            const driverdata = multiData.data.find((x) => x.key === "UFN_DRIVER_USERS_SEL")?.data || [];
+            const vehicledata = multiData.data.find((x) => x.key === "UFN_AVAILABLE_VEHICLE_LST")?.data || [];
             setDataExtra({
                 driver: driverdata,
                 vehicles: vehicledata,
-            })
+            });
         }
-    }, [multiData])
+    }, [multiData]);
 
     const columns = React.useMemo(
         () => [
             {
                 Header: "Cliente",
                 accessor: "full_name",
-                width: 'auto',
+                width: "auto",
                 NoFilter: true,
             },
             {
                 Header: "Tipo Doc.",
                 accessor: "doc_type",
-                width: 'auto',
+                width: "auto",
                 NoFilter: true,
             },
             {
                 Header: "Num. Doc.",
                 accessor: "doc_number",
-                width: 'auto',
+                width: "auto",
                 NoFilter: true,
             },
             {
                 Header: "Unidad",
                 accessor: "plate_number",
-                width: 'auto',
+                width: "auto",
                 NoFilter: true,
             },
             {
                 Header: "Asistentes",
                 accessor: "assistants",
-                width: 'auto',
+                width: "auto",
                 NoFilter: true,
             },
             {
                 Header: "Estado",
                 accessor: "status",
-                width: 'auto',
+                width: "auto",
                 NoFilter: true,
             },
         ],
@@ -228,9 +224,7 @@ const Forward: FC = () => {
     if (viewSelected === "view-1") {
         return (
             <div className={classes.container}>
-                <div className={classes.title}>
-                    {"Rutas"}
-                </div>
+                <div className={classes.title}>{"Rutas"}</div>
                 <TableZyx
                     columns={columns}
                     data={dataView}
@@ -262,19 +256,19 @@ const Forward: FC = () => {
                             <FieldSelect
                                 label={"Unidades"}
                                 className={classes.filterComponent}
-                                valueDefault={filters.vehicleid}
-                                onChange={(value) => setFilters({...filters, vehicleid: value?.vehicleid|| 0})}
+                                valueDefault={filters.warehouseid}
+                                onChange={(value) => setFilters({ ...filters, warehouseid: value?.warehouseid || 0 })}
                                 uset={true}
                                 variant="outlined"
                                 data={dataExtra.vehicles}
                                 optionDesc="plate_number"
-                                optionValue="vehicleid"
+                                optionValue="warehouseid"
                             />
                             <FieldSelect
                                 label={t(langKeys.driver)}
                                 className={classes.filterComponent}
                                 valueDefault={filters.userid}
-                                onChange={(value) => setFilters({...filters, userid: value?.userid|| 0})}
+                                onChange={(value) => setFilters({ ...filters, userid: value?.userid || 0 })}
                                 uset={true}
                                 variant="outlined"
                                 loading={multiData.loading}
@@ -302,4 +296,4 @@ const Forward: FC = () => {
     }
 };
 
-export default Forward;
+export default Routes;

@@ -28,7 +28,7 @@ const Products = lazy(() => import('pages/Product/Index'));
 const Domains = lazy(() => import('pages/Domain/Index'));
 const Customer = lazy(() => import('pages/Customer/Index'));
 const Dashboard = lazy(() => import('pages/Dashboard/Index'));
-const Forward = lazy(() => import('pages/Forward/Index'));
+const Routes = lazy(() => import('pages/Routes/Index'));
 const Account = lazy(() => import('pages/Account/Index'));
 const PaymentMethods = lazy(() => import('pages/PaymentMethods/Index'));
 const Vehicle = lazy(() => import('pages/Vehicle/Index'));
@@ -136,8 +136,8 @@ const RouterApp: FC = () => {
 					<ProtectRoute exact path={paths.SALES}>
 						<Layout mainClasses={classes.main}><Sales /></Layout>
 					</ProtectRoute>
-					<ProtectRoute exact path={paths.FORWARD}>
-						<Layout mainClasses={classes.main}><Forward /></Layout>
+					<ProtectRoute exact path={paths.ROUTE}>
+						<Layout mainClasses={classes.main}><Routes /></Layout>
 					</ProtectRoute>
 					<ProtectRoute exact path={paths.ACCOUNT}>
 						<Layout mainClasses={classes.main}><Account /></Layout>
