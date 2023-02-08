@@ -1,7 +1,4 @@
 /*
- ** Change DetailTemplate to the new name of your file
- ** Change arrayBread
- ** Change insCorp for insert function of your new module
  ** Change defaultValues
  ** Change REGISTER_VALUES
  ** Change FORM_TITTLE
@@ -21,11 +18,11 @@ import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import { execute } from "store/main/actions";
-import { insCorp } from "common/helpers";
+import { insWarehouse } from "common/helpers";
 
 const arrayBread = [
-    { id: "view-1", name: "Corporation" },
-    { id: "view-2", name: "Corporation detail" },
+    { id: "view-1", name: "Locales" },
+    { id: "view-2", name: "Detalle local" },
 ];
 
 const useStyles = makeStyles((theme) => ({
@@ -42,7 +39,8 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const DetailTemplate: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
+
+const WarehouseDetail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
     const classes = useStyles();
     const [waitSave, setWaitSave] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
@@ -101,17 +99,13 @@ const DetailTemplate: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
             status: row?.status || "ACTIVO",
             type: row?.type || "NINGUNO",
             description: row?.description || "",
-            contact_name: row?.contact_name || "",
-            contact_email: row?.contact_email || "",
-            contact_phone: row?.contact_phone || "",
-            address: row?.address || "",
         },
     });
 
     const onSubmit = handleSubmit((data) => {
         const callback = () => {
             dispatch(showBackdrop(true));
-            dispatch(execute(insCorp(data)));
+            dispatch(execute(insWarehouse(data)));
             setWaitSave(true);
         };
 
@@ -129,10 +123,6 @@ const DetailTemplate: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
         register("description", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register("status", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register("id", { validate: (value) => (value && value > 0) || "" + t(langKeys.field_required) });
-        register("contact_name");
-        register("contact_email");
-        register("contact_phone");
-        register("address");
     }, [register]);
 
     return (
@@ -140,7 +130,7 @@ const DetailTemplate: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
             <form onSubmit={onSubmit}>
                 <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
                 <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-                    <TitleDetail title={row ? `${row.description}` : "FORM_TITTLE"} />
+                    <TitleDetail title={row ? `${row.description}` : 'FORM_TITTLE'} />
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                         <Button
                             variant="contained"
@@ -204,6 +194,6 @@ const DetailTemplate: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
             </form>
         </div>
     );
-};
+}
 
-export default DetailTemplate;
+export default WarehouseDetail;

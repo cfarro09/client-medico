@@ -141,7 +141,7 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
         register("status", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
 
         dispatch(resetMainAux());
-        row && dispatch(getCollectionAux(getWarehouseSel({ shopid: row?.shopid, id: 0 })));
+        row && dispatch(getCollectionAux(getWarehouseSel(0)));
     }, [register]);
 
     useEffect(() => {

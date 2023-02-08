@@ -142,6 +142,13 @@ export const routes: RouteConfig[] = [
         icon: (color) => <AllInbox stroke={color} fill={color} />,
     },
     {
+        key: paths.WAREHOUSE,
+        description: "Locales",
+        tooltip: "Locales",
+        path: paths.WAREHOUSE,
+        icon: (color) => <LocalMall stroke={color} fill={color} />,
+    },
+    {
         key: paths.PRODUCTS,
         description: "Productos",
         tooltip: "Productos",

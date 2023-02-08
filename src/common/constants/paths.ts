@@ -20,6 +20,7 @@ const paths = {
     CASH_BOX: '/cash_box',
     BIKERS: '/bikers',
     ASSISTANT: '/assistant',
+    WAREHOUSE: '/warehouse',
 };
 
 export default paths;

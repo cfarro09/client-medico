@@ -1,17 +1,6 @@
-/*
- ** Change IndexName to the new name of your file
- ** Change route /template to the actual route of your new Module
- ** Change getCorpSel to the actual sel of your main data
- ** Change MainDataFill or delete it in case no use
- ** Change MultiData or delete it in case no use
- ** Change corpid from your dataset
- ** Change ViewColumns or delete it in case no use
- ** Change insCorp for your ins function
- ** Change TEMPALTE_TITLE
- */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getCorpSel, getValuesFromDomain, insCorp } from "common/helpers";
+import { getWarehouseSel, getValuesFromDomain, insWarehouse } from "common/helpers";
 import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -23,7 +12,7 @@ import { execute, getCollection, getMultiCollection, resetAllMain } from "store/
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
 
-const IndexName: FC = () => {
+const Warehouse: FC = () => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainResult = useSelector((state) => state.main.mainData);
@@ -38,11 +27,11 @@ const IndexName: FC = () => {
     useEffect(() => {
         if (applications) {
             setPagePermissions({
-                view: applications["/template"][0],
-                modify: applications["/template"][1],
-                insert: applications["/template"][2],
-                delete: applications["/template"][3],
-                download: applications["/template"][4],
+                view: applications["/warehouse"][0],
+                modify: applications["/warehouse"][1],
+                insert: applications["/warehouse"][2],
+                delete: applications["/warehouse"][3],
+                download: applications["/warehouse"][4],
             });
         }
     }, [applications]);
@@ -65,11 +54,11 @@ const IndexName: FC = () => {
         }
     }, [executeResult, waitSave]);
     
-    const fetchData = () => dispatch(getCollection(getCorpSel(0)));
+    const fetchData = () => dispatch(getCollection(getWarehouseSel(0)));
 
     // MainDataFill
     useEffect(() => {
-        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_CORPORATION_SEL") {
+        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_WAREHOUSE_SEL") {
             setDataView(mainResult.data);
         }
     }, [mainResult]);
@@ -92,7 +81,6 @@ const IndexName: FC = () => {
     const columns = React.useMemo(
         () => [
             {
-                accessor: "corpid",
                 isComponent: true,
                 minWidth: 60,
                 width: "1%",
@@ -106,8 +94,28 @@ const IndexName: FC = () => {
                 },
             },
             {
-                Header: 'DESCRIPTION',
+                Header: 'DESCRIPCION',
                 accessor: "description",
+                NoFilter: true,
+            },
+            {
+                Header: 'NOMBRE CONTACTO',
+                accessor: "contact_name",
+                NoFilter: true,
+            },
+            {
+                Header: 'CORREO CONTACTO',
+                accessor: "contact_email",
+                NoFilter: true,
+            },
+            {
+                Header: 'TELEFONO CONTACTO',
+                accessor: "contact_phone",
+                NoFilter: true,
+            },
+            {
+                Header: 'DIRECCION',
+                accessor: "address",
                 NoFilter: true,
             },
             {
@@ -118,20 +126,6 @@ const IndexName: FC = () => {
                 Cell: (props: any) => {
                     const { status } = props.cell.row.original;
                     return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
-                },
-            },
-            {
-                Header: t(langKeys.createdBy),
-                accessor: "createdby",
-                NoFilter: true,
-            },
-            {
-                Header: t(langKeys.creationDate),
-                accessor: "createdate",
-                NoFilter: true,
-                Cell: (props: any) => {
-                    const date = props.cell.row.original.createdate;
-                    return date.split(".")[0].split(" ")[0];
                 },
             },
         ],
@@ -151,8 +145,8 @@ const IndexName: FC = () => {
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(execute(insCorp({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.corpid })));
             dispatch(showBackdrop(true));
+            dispatch(execute(insWarehouse({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.warehouseid })));
             setWaitSave(true);
         };
 
@@ -170,7 +164,7 @@ const IndexName: FC = () => {
             <TableZyx
                 columns={columns}
                 data={dataView}
-                titlemodule={`TEMPALTE_TITLE`}
+                titlemodule={`Locales`}
                 download={!!pagePermissions.download}
                 onClickRow={handleEdit}
                 loading={mainResult.loading}
@@ -188,4 +182,4 @@ const IndexName: FC = () => {
         );
     }
 };
-export default IndexName;
+export default Warehouse;

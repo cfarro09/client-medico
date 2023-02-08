@@ -66,10 +66,13 @@ export const insRoute = (parameters: Dictionary): IRequestBody => ({
     parameters: { ...parameters }
 })
 
-export const getWarehouseSel = ({ shopid, id }: Dictionary): IRequestBody => ({
+export const getWarehouseSel = (id: number): IRequestBody => ({
     method: "UFN_WAREHOUSE_SEL",
     key: "UFN_WAREHOUSE_SEL",
-    parameters: { shopid, id, all: id === 0 }
+    parameters: {
+        id: id,
+        all: id === 0,
+    }
 })
 
 export const getCorpSel = (id: number): IRequestBody => ({
@@ -205,6 +208,12 @@ export const getRoles = (): IRequestBody => ({
 export const getWareHouse = (shopid: number | null = null, key: string | null = ""): IRequestBody => ({
     method: "UFN_WAREHOUSE_LST",
     key: `UFN_WAREHOUSE_LST${key}`,
+    parameters: { shopid }
+})
+
+export const getDriversLst = (shopid: number | null = null, key: string | null = ""): IRequestBody => ({
+    method: "UFN_DRIVERS_LST",
+    key: `UFN_DRIVERS_LST`,
     parameters: { shopid }
 })
 

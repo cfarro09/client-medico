@@ -87,9 +87,15 @@ type FormFields = {
     purchasecreatedate: string;
     purchase_order_number: string;
     observations: string;
-    category: string;
     bill_entry_date: string;
     bill_number: string;
+    company_name: string;
+    driverid: number;
+    scop_number: string;
+    brand: string;
+    guide_number: string;
+    // no va
+    category: string; 
 };
 
 const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({
@@ -116,6 +122,8 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({
         payments: Dictionary[];
         warehouses: Dictionary[];
         payMethods: Dictionary[];
+        drivers: Dictionary[];
+        vehicles: Dictionary[];
     }>({
         status: [],
         type: [],
@@ -123,7 +131,9 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({
         payments: [],
         suppliers: [],
         warehouses: [],
-        payMethods: []
+        payMethods: [],
+        drivers: [],
+        vehicles: [],
     });
     const dispatch = useDispatch();
     const { t } = useTranslation();
@@ -150,6 +160,11 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({
             bill_number: row?.bill_number || "",
             products: [],
             payments: [],
+            company_name: row?.company_name || "",
+            driverid: row?.userid || 0,
+            scop_number: row?.scop_number || '',
+            brand: row?.brand || '',
+            guide_number: row?.guide_number || ''
         },
     });
 
@@ -179,9 +194,10 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({
             const suppliers = multiData.data.find((x) => x.key === "UFN_SUPPLIER_LST");
             const warehouses = multiData.data.find((x) => x.key === "UFN_WAREHOUSE_LST");
             const paymentMethods = multiData.data.find((x) => x.key === "UFN_PAYMENT_METHOD_LST");
+            const drivers = multiData.data.find((x) => x.key === "UFN_DRIVERS_LST");
+            const vehicles = multiData.data.find((x) => x.key === "UFN_AVAILABLE_VEHICLE_LST");
 
-            if (dataStatus && products && suppliers && warehouses) {
-                // setProductsToShow(products.data.filter(x => x.category === (row?.category || "GLP")).map())
+            if (dataStatus && products && suppliers && warehouses && drivers && vehicles) {
                 setProductsToShow(
                     products.data
                         .filter((x) => x.category === "GLP")
@@ -202,7 +218,12 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({
                                     }
                                 );
                             else
-                                acum.push({...current, label: current.product_name, id: current.productid, product_type: 'full'})
+                                acum.push({
+                                    ...current,
+                                    label: current.product_name,
+                                    id: current.productid,
+                                    product_type: "full",
+                                });
                             return acum as Dictionary;
                         }, []) as Dictionary[]
                 );
@@ -213,7 +234,9 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({
                     suppliers: suppliers.data,
                     warehouses: warehouses.data,
                     payments: payments?.data || [],
-                    payMethods: paymentMethods?.data || []
+                    payMethods: paymentMethods?.data || [],
+                    drivers: drivers.data,
+                    vehicles: vehicles.data
                 });
 
                 setValue("supplierid", suppliers.data?.[0]?.supplierid || 0);
@@ -474,6 +497,57 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({
                                 <div className="row-zyx">
                                     <FieldSelect
                                         loading={multiData.loading}
+                                        label={"Chofer"}
+                                        className="col-6"
+                                        valueDefault={getValues("driverid")}
+                                        onChange={(value) => setValue("driverid", value ? value.driverid : 0)}
+                                        error={errors?.driverid?.message}
+                                        data={dataExtra.drivers}
+                                        optionDesc="driver"
+                                        disabled={lock}
+                                        optionValue="userid"
+                                    />
+                                    <FieldSelect
+                                        loading={multiData.loading}
+                                        label={"Almacen (Unidad)"}
+                                        className="col-6"
+                                        valueDefault={getValues("warehouseid")}
+                                        onChange={(value) => setValue("warehouseid", value ? value.warehouseid : 0)}
+                                        error={errors?.warehouseid?.message}
+                                        data={dataExtra.vehicles}
+                                        optionDesc="plate_number"
+                                        disabled={lock}
+                                        optionValue="warehouseid"
+                                    />
+                                </div>
+
+                                <div className="row-zyx">
+                                    <FieldEdit
+                                        label={"Marca"}
+                                        className="col-6"
+                                        valueDefault={getValues("brand")}
+                                        onChange={(value) => setValue("brand", value)}
+                                        error={errors?.brand?.message}
+                                    />
+                                    <FieldEdit
+                                        label={"N° SCOP"}
+                                        className="col-6"
+                                        valueDefault={getValues("scop_number")}
+                                        onChange={(value) => setValue("scop_number", value)}
+                                        error={errors?.scop_number?.message}
+                                    />
+                                </div>
+
+                                <div className="row-zyx">
+                                    <FieldEdit
+                                        label={"Factura"}
+                                        className="col-6"
+                                        valueDefault={getValues("bill_number")}
+                                        onChange={(value) => setValue("bill_number", value)}
+                                        error={errors?.bill_number?.message}
+                                    />
+                                    <FieldSelect
+                                        loading={multiData.loading}
                                         label={"Empresa"}
                                         className="col-6"
                                         valueDefault={getValues("warehouseid")}
@@ -484,71 +558,18 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({
                                         disabled={lock}
                                         optionValue="warehouseid"
                                     />
-                                    <FieldSelect
-                                        loading={multiData.loading}
-                                        label={"Almacen (Vehiculo)"}
-                                        className="col-6"
-                                        valueDefault={getValues("supplierid")}
-                                        onChange={(value) => setValue("supplierid", value ? value.supplierid : 0)}
-                                        error={errors?.supplierid?.message}
-                                        data={dataExtra.suppliers}
-                                        optionDesc="description"
-                                        disabled={lock}
-                                        optionValue="supplierid"
-                                    />
                                 </div>
+
                                 <div className="row-zyx">
                                     <FieldEdit
-                                        label={"N° Pedido"}
+                                        label={"Guia"}
                                         className="col-6"
-                                        valueDefault={getValues("purchase_order_number")}
-                                        onChange={(value) => setValue("purchase_order_number", value)}
-                                        error={errors?.purchase_order_number?.message}
-                                    />
-                                    <FieldEdit
-                                        label={"N° SCOPE"}
-                                        className="col-6"
-                                        valueDefault={getValues("purchase_order_number")}
-                                        onChange={(value) => setValue("purchase_order_number", value)}
-                                        error={errors?.purchase_order_number?.message}
+                                        valueDefault={getValues("guide_number")}
+                                        onChange={(value) => setValue("guide_number", value)}
+                                        error={errors?.guide_number?.message}
                                     />
                                 </div>
-                                <div className="row-zyx">
-                                    <FieldSelect
-                                        loading={multiData.loading}
-                                        label={"Tipo"}
-                                        className="col-6"
-                                        valueDefault={getValues("category")}
-                                        onChange={(value) => {
-                                            setValue("category", value ? value.value : 0);
-                                            trigger("category");
-                                        }}
-                                        error={errors?.category?.message}
-                                        data={purchaseType}
-                                        optionDesc="value"
-                                        disabled={lock || getValues("purchaseorderid") !== 0}
-                                        optionValue="value"
-                                    />
-                                </div>
-                                {/* {!merchantEntry && (
-                                    <div className="row-zyx">
-                                        <FieldSelect
-                                            loading={multiData.loading}
-                                            label={t(langKeys.status)}
-                                            className="col-6"
-                                            valueDefault={getValues('status')}
-                                            onChange={(value) => {
-                                                setValue('status', value ? value.value : 0);
-                                                trigger('status')
-                                            }}
-                                            error={errors?.status?.message}
-                                            data={statusList}
-                                            optionDesc="value"
-                                            disabled={lock || getValues("purchaseorderid") !== 0}
-                                            optionValue="value"
-                                        />
-                                    </div>
-                                )} */}
+                                
                                 {getValues("category") === "ENTREGADO" && (
                                     <div className="row-zyx">
                                         <FieldEdit

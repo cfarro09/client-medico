@@ -2,11 +2,13 @@
 import { Dictionary } from "@types";
 import {
     getDateCleaned,
+    getDriversLst,
     getPaymentMethodList,
     getProductList,
     getPurchases,
     getSupplierList,
     getValuesFromDomain,
+    getVehicles,
     getWareHouse,
     insPurchase,
 } from "common/helpers";
@@ -110,6 +112,8 @@ const Purchase: FC = () => {
                 getWareHouse(),
                 getValuesFromDomain("METODOPAGO", "DOMAIN-METODOPAGO"),
                 getPaymentMethodList(),
+                getDriversLst(),
+                getVehicles(),
             ])
         );
         return () => {
