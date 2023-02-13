@@ -21,6 +21,12 @@ export const getProductList = (): IRequestBody => ({
     parameters: {}
 })
 
+export const getProductList2 = (): IRequestBody => ({
+    method: "UFN_PRODUCT_LST2",
+    key: "UFN_PRODUCT_LST2",
+    parameters: {}
+})
+
 export const getSupplierList = (): IRequestBody => ({
     method: "UFN_SUPPLIER_LST",
     key: "UFN_SUPPLIER_LST",
@@ -281,22 +287,27 @@ export const getDomainValueSel = (domainname: string): IRequestBody => ({
     }
 })
 
-export const insPurchase = ({ purchaseorderid, status, operation, total, supplierid, warehouseid, purchasecreatedate, purchase_order_number, observations, bill_number, bill_entry_date, purchase_order_create_date }: Dictionary): IRequestBody => ({
+export const insPurchase = ({ id, purchaseorderid, operation, supplierid, warehouseid, userid, bill_number, description, purchase_order_number, purchase_order_create_date, observations, bill_entry_date, total, status, company_name, scop_number, brand, guide_number }: Dictionary): IRequestBody => ({
     method: "UFN_PURCHASE_ORDER_INS",
     key: "UFN_PURCHASE_ORDER_INS",
     parameters: {
-        id: purchaseorderid,
+        id,
+        operation,
         supplierid,
+        warehouseid,
+        userid,
         bill_number,
+        description: '',
+        purchase_order_number,
+        purchase_order_create_date,
+        observations,
+        bill_entry_date,
         total,
         status,
-        type: null,
-        purchase_order_number,
-        bill_entry_date,
-        purchase_order_create_date: purchasecreatedate || purchase_order_create_date || null,
-        warehouseid,
-        observations,
-        operation
+        company_name,
+        scop_number,
+        brand,
+        guide_number,
     }
 })
 
@@ -311,6 +322,14 @@ export const processOC = (purchaseorderid: number): IRequestBody => ({
 export const getDetailPurchase = (purchaseorderid: number): IRequestBody => ({
     method: "UFN_PURHCASE_ORDER_DETAIL_SEL",
     key: "UFN_PURHCASE_ORDER_DETAIL_SEL",
+    parameters: {
+        purchaseorderid
+    }
+})
+
+export const getDetailPayments = (purchaseorderid: number): IRequestBody => ({
+    method: "UFN_PURCHASE_ODER_PAYMENT_SEL",
+    key: "UFN_PURCHASE_ODER_PAYMENT_SEL",
     parameters: {
         purchaseorderid
     }
@@ -351,21 +370,28 @@ export const getPaymentByOrder = (saleorderid: number): IRequestBody => ({
     }
 })
 
-export const insPurchaseDetail = ({ status, operation, delivered_quantity, purchasedetailid, productid, price, quantity, subtotal: total }: Dictionary): IRequestBody => ({
+export const insPurchaseDetail = ({ status, operation, delivered_quantity, purchaseorderdetailid, productid, price, requested_quantity, subtotal: total, product_type }: Dictionary): IRequestBody => ({
     method: "UFN_PURCHASE_DETAIL_INS",
     key: "UFN_PURCHASE_DETAIL_INS",
     parameters: {
-        id: purchasedetailid || 0,
+        id: purchaseorderdetailid || 0,
         productid,
         total,
-        requested_quantity: quantity,
+        requested_quantity,
         discount: 0,
         status,
         type: "",
         price,
         delivered_quantity,
-        operation
+        operation,
+        product_type
     }
+})
+
+export const insPurchasePayments = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_PURCHASE_PAYMENTS_INS",
+    key: `UFN_PURCHASE_PAYMENTS_INS`,
+    parameters: { ... parameters }
 })
 
 export const insOrderSale = ({ saleorderid, customerid, warehouseid, bill_sale_date, status, document_type, document_number, operation, total }: Dictionary): IRequestBody => ({

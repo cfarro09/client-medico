@@ -4,7 +4,7 @@ import {
     getDateCleaned,
     getDriversLst,
     getPaymentMethodList,
-    getProductList,
+    getProductList2,
     getPurchases,
     getSupplierList,
     getValuesFromDomain,
@@ -100,20 +100,20 @@ const Purchase: FC = () => {
         }
     }, [applications]);
 
-    const fetchData = () => dispatch(getCollection(getPurchases({ startdate: dateRange.startDate, finishdate: dateRange.endDate })));
+    const fetchData = () =>
+        dispatch(getCollection(getPurchases({ startdate: dateRange.startDate, finishdate: dateRange.endDate })));
 
     useEffect(() => {
         // fetchData();
         dispatch(
             getMultiCollection([
-                getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
-                getProductList(),
-                getSupplierList(),
+                getValuesFromDomain("EMPRESAS", "DOMAIN-EMPRESAS"),
+                getProductList2(),
                 getWareHouse(),
-                getValuesFromDomain("METODOPAGO", "DOMAIN-METODOPAGO"),
                 getPaymentMethodList(),
                 getDriversLst(),
                 getVehicles(),
+                getSupplierList()
             ])
         );
         return () => {
