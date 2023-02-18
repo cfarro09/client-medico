@@ -23,7 +23,7 @@ const LinkList: FC<{ config: RouteConfig, classes: any, open: boolean }> = ({ co
     const history = useHistory();
 
     if (!config.path) {
-        return <Typography className={open ? classes.drawerLabel : classes.drawerCloseLabel}>{config.description}</Typography>;
+        return <Typography className={open ? classes.drawerLabel : classes.drawerCloesLabel}>{config.description}</Typography>;
     }
 
     const isSelected = !config.subroute ? config.path === history.location.pathname : history.location.pathname.includes(config.path);

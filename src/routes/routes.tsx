@@ -34,7 +34,15 @@ export const routes: RouteConfig[] = [
         description: <Trans i18nKey={langKeys.user} />,
         tooltip: <Trans i18nKey={langKeys.user} />,
         path: paths.USERS,
+        subroute: true,
         icon: (className) => <AccountCircle style={{ width: 22, height: 22 }} className={className} />,
+    },
+    {
+        key: paths.STAFF,
+        description: 'Personal',
+        tooltip: 'Personal',
+        path: paths.STAFF,
+        icon: (className) => <Contacts style={{ width: 22, height: 22 }} className={className} />,
     },
     {
         key: paths.DRIVER,
