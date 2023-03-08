@@ -113,7 +113,7 @@ const RouterApp: FC = () => {
 					<ProtectRoute exact path="/" />
 					<Route exact path={paths.SIGNIN} component={SignIn} />
 
-					<ProtectRoute exact path={paths.USERS}>
+					<ProtectRoute exact path={paths.USER}>
 						<Layout mainClasses={classes.main}><Users /></Layout>
 					</ProtectRoute>
 

@@ -1,18 +1,18 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, makeStyles } from "@material-ui/core";
+import { Button, Checkbox, makeStyles, Switch, Typography } from "@material-ui/core";
 import { DetailModule, Dictionary } from "@types";
 import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
 import React, { useEffect, useState } from "react"; // we need this to make JSX compile
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
-import { execute } from "store/main/actions";
-import { insStaff } from "common/helpers";
+import { execute, getCollectionAux } from "store/main/actions";
+import { getCustomerProductsSel, insStaff } from "common/helpers";
 import ModalPassword from "./Modal/ModalPassword";
 import LockOpenIcon from "@material-ui/icons/LockOpen";
 
@@ -32,43 +32,90 @@ const useStyles = makeStyles((theme) => ({
         padding: theme.spacing(2),
         background: "#fff",
     },
+    containerDetail2: {
+        marginTop: theme.spacing(2),
+        padding: theme.spacing(2),
+        background: "#fff",
+        width: "50%",
+        boxShadow: "0 3px 9px 1px rgb(51,48,69,.03), 0 9px 8px rgb(51,48,60,.02), 0 1px 6px 4px rgb(51,48,60,.01)",
+        borderRadius: "6px",
+    },
     button: {
         padding: 12,
         fontWeight: 500,
         fontSize: "14px",
         textTransform: "initial",
     },
+    input: {
+        "&  input": {
+            padding: "12px",
+        },
+    },
 }));
+interface StaffValues {
+    id: number;
+    operation: string;
+    full_name: string;
+    password: string;
+    usr: string;
+    email: string;
+    doc_type: string;
+    doc_number: string;
+    address: string;
+    status: string;
+    payment_type: string;
+    roleid: number;
+    staff_type: string;
+    comision: boolean;
+    comision_amount: number;
+    salary: boolean;
+    salary_amount: number;
+    travel: boolean;
+    travel_amount: number;
+    payment_type2: Dictionary;
+}
+
+let renderCount = 0;
 
 const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
+    renderCount++;
     const classes = useStyles();
     const [waitSave, setWaitSave] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
     const multiData = useSelector((state) => state.main.multiData);
-    const [dataExtra, setDataExtra] = useState<{ status: Dictionary[]; type: Dictionary[]; tipopago: Dictionary[] }>({
+    const [dataExtra, setDataExtra] = useState<{
+        status: Dictionary[];
+        type: Dictionary[];
+        tipopago: Dictionary[];
+        tipopersonal: Dictionary[];
+    }>({
         status: [],
         type: [],
         tipopago: [],
+        tipopersonal: [],
     });
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const [openDialogPassword, setOpenDialogPassword] = useState(false);
-    const [roleSelected, setRoleSelected] = useState(0);
 
     useEffect(() => {
         if (!multiData.error && !multiData.loading) {
             const dataStatus = multiData.data.find((x) => x.key === "DOMAIN-ESTADOGENERICO");
             const dataTypes = multiData.data.find((x) => x.key === "DOMAIN-TIPODOCUMENTO");
             const tipopago = multiData.data.find((x) => x.key === "DOMAIN-TIPOPAGOPERSONAL");
-            if (dataStatus && dataTypes && tipopago) {
+            const tipopersonal = multiData.data.find((x) => x.key === "DOMAIN-TIPOTRABAJADOR");
+            if (dataStatus && dataTypes && tipopago && tipopersonal) {
                 setDataExtra({
                     status: dataStatus.data,
                     type: dataTypes.data,
                     tipopago: tipopago.data,
+                    tipopersonal: tipopersonal.data,
                 });
             }
         }
     }, [multiData]);
+
+    dispatch(getCollectionAux(getCustomerProductsSel(row?.customerid)));
 
     useEffect(() => {
         if (waitSave) {
@@ -99,9 +146,11 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
         handleSubmit,
         setValue,
         getValues,
+        control,
+        watch,
         trigger,
         formState: { errors },
-    } = useForm({
+    } = useForm<StaffValues>({
         defaultValues: {
             id: row?.userid || 0,
             operation: row ? "UPDATE" : "INSERT",
@@ -115,18 +164,34 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
             status: row?.status || "ACTIVO",
             payment_type: row?.payment_type || "",
             roleid: row?.roleid || 0,
+            staff_type: row?.staff_type || "",
+            comision: row?.comision || false,
+            comision_amount: row?.comision_amount || 0,
+            salary: row?.salary || false,
+            salary_amount: row?.salary_amount || 0,
+            travel: row?.travel || false,
+            travel_amount: row?.travel_amount || 0,
         },
     });
 
+    const [staff_type_watch, role_watch, salary, comision, travel] = watch([
+        "staff_type",
+        "roleid",
+        "salary",
+        "comision",
+        "travel",
+    ]);
+
     const onSubmit = handleSubmit((data) => {
-        if (!row && !data.password && roleSelected !== 5) {
+        console.log("🚀 ~ file: Detail.tsx:159 ~ onSubmit ~ data:", data);
+        if (!row && !data.password && role_watch !== 5) {
             dispatch(showSnackbar({ show: true, success: false, message: t(langKeys.password_required) }));
             return;
         }
 
         const callback = () => {
             dispatch(showBackdrop(true));
-            dispatch(execute(insStaff({ ...data, pwd: data.password, roleid: roleSelected })));
+            dispatch(execute(insStaff({ ...data, pwd: data.password, roleid: role_watch })));
             setWaitSave(true);
         };
 
@@ -145,21 +210,39 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
         register("status", { validate: (value) => (value && !!value.length) || "" + t(langKeys.field_required) });
         register("full_name", { validate: (value) => (value && !!value.length) || "" + t(langKeys.field_required) });
         register("usr", {
-            validate: (value) => (value && !!value.length) || roleSelected === 5 || "" + t(langKeys.field_required),
+            validate: (value) => (value && !!value.length) || role_watch === 5 || "" + t(langKeys.field_required),
         });
         register("doc_type", { validate: (value) => (value && !!value.length) || "" + t(langKeys.field_required) });
         register("doc_number", { validate: (value) => (value && !!value.length) || "" + t(langKeys.field_required) });
         register("roleid", { validate: (value) => (value && value > 0) || "" + t(langKeys.field_required) });
         register("email");
         register("address");
-    }, [register, roleSelected]);
+    }, [register, role_watch]);
 
-    const handleRoleChange = (value: Dictionary) => {
-        setRoleSelected(value.id);
-        setValue("roleid", value ? value.id : 0);
-        if (value.id === 5 || value.id === 0) setValue("usr", '')
-        trigger("roleid");
-    };
+    React.useEffect(() => {
+        if (!salary) {
+            setValue("salary_amount", 0);
+            trigger("salary_amount");
+        }
+    }, [salary]);
+
+    React.useEffect(() => {
+        if (!comision) {
+            setValue("comision_amount", 0);
+            trigger("comision_amount");
+            return
+        }
+        if (comision && role_watch === 3) {
+            console.log('mierda')
+        }
+    }, [comision]);
+
+    React.useEffect(() => {
+        if (!travel) {
+            setValue("travel_amount", 0);
+            trigger("travel_amount");
+        }
+    }, [travel]);
 
     return (
         <div style={{ width: "100%" }}>
@@ -179,7 +262,7 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                             {t(langKeys.back)}
                         </Button>
                         <>
-                            {roleSelected !== 5 && roleSelected !== 0 && (
+                            {role_watch !== 5 && role_watch !== 0 && (
                                 <Button
                                     variant="contained"
                                     color="primary"
@@ -203,15 +286,15 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                     </div>
                 </div>
                 <div className={classes.containerDetail}>
+                    <div>{renderCount}</div>
+
                     <div className="row-zyx">
                         <FieldSelect
                             label={"Cargo (*)"}
                             className="col-4"
                             loading={multiData.loading}
                             valueDefault={getValues("roleid")}
-                            onChange={(value) => {
-                                handleRoleChange(value);
-                            }}
+                            onChange={(value) => setValue("roleid", value ? value.id : 0)}
                             error={errors?.roleid?.message}
                             data={charges}
                             optionDesc="value"
@@ -227,7 +310,7 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                         <FieldEdit
                             className="col-4"
                             label={"Usuario (*)"}
-                            disabled={roleSelected === 5 || roleSelected === 0}
+                            disabled={role_watch === 5 || role_watch === 0}
                             valueDefault={getValues("usr")}
                             onChange={(value) => setValue("usr", value)}
                             error={errors?.usr?.message}
@@ -291,7 +374,185 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                             optionValue="domainvalue"
                         />
                     </div>
+                    <div className="row-zyx">
+                        <FieldSelect
+                            label={"Tipo Peronsal"}
+                            className="col-4"
+                            loading={multiData.loading}
+                            valueDefault={getValues("staff_type")}
+                            onChange={(value) => setValue("staff_type", value ? value.domainvalue : "")}
+                            error={errors?.staff_type?.message}
+                            data={dataExtra.tipopersonal}
+                            optionDesc="domaindesc"
+                            optionValue="domainvalue"
+                        />
+                    </div>
                 </div>
+                {staff_type_watch && (
+                    <div className={classes.containerDetail2}>
+                        <Typography component="div" variant="h5">
+                            Forma de pago
+                        </Typography>
+                        <br />
+                        {staff_type_watch === "FIJO" ? (
+                            <div className="fijo">
+                                <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
+                                    <div className="col-4">
+                                        <label>SUELDO</label>
+                                    </div>
+                                    <div className="col-6">
+                                        <FieldEdit
+                                            label={""}
+                                            type="number"
+                                            className={classes.input}
+                                            disabled={!salary}
+                                            valueDefault={getValues("salary_amount")}
+                                            onChange={(value) => setValue("salary_amount", value)}
+                                            error={errors?.salary_amount?.message}
+                                            variant="outlined"
+                                        />
+                                    </div>
+                                    <div className="col-2">
+                                        <Controller
+                                            name="salary"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Switch
+                                                    checked={getValues("salary")}
+                                                    onChange={(value) => setValue("salary", value.target.checked)}
+                                                    color="primary"
+                                                />
+                                            )}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
+                                    <div className="col-4">
+                                        <label>VATICOS</label>
+                                    </div>
+                                    <div className="col-6">
+                                        <FieldEdit
+                                            label={""}
+                                            type="number"
+                                            className={classes.input}
+                                            disabled={!travel}
+                                            valueDefault={getValues("travel_amount")}
+                                            onChange={(value) => setValue("travel_amount", value)}
+                                            error={errors?.travel_amount?.message}
+                                            variant="outlined"
+                                        />
+                                    </div>
+                                    <div className="col-2">
+                                        <Controller
+                                            name="travel"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Switch
+                                                    checked={getValues("travel")}
+                                                    onChange={(value) => setValue("travel", value.target.checked)}
+                                                    color="primary"
+                                                />
+                                            )}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
+                                    <div className="col-4">
+                                        <label>COMISION</label>
+                                    </div>
+                                    <div className="col-6">
+                                        <FieldEdit
+                                            label={""}
+                                            type="number"
+                                            disabled={!comision}
+                                            className={classes.input}
+                                            valueDefault={getValues("comision_amount")}
+                                            onChange={(value) => setValue("comision_amount", value)}
+                                            error={errors?.comision_amount?.message}
+                                            variant="outlined"
+                                        />
+                                    </div>
+                                    <div className="col-2">
+                                        <Controller
+                                            name="comision"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Switch
+                                                    checked={getValues("comision")}
+                                                    onChange={(value) => setValue("comision", value.target.checked)}
+                                                    color="primary"
+                                                />
+                                            )}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="temporal">
+                                <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
+                                    <div className="col-4">
+                                        <label>COSTO TRABAJO</label>
+                                    </div>
+                                    <div className="col-6">
+                                        <FieldEdit
+                                            label={""}
+                                            type="number"
+                                            className={classes.input}
+                                            disabled={!salary}
+                                            valueDefault={getValues("salary_amount")}
+                                            onChange={(value) => setValue("salary_amount", value)}
+                                            error={errors?.salary_amount?.message}
+                                            variant="outlined"
+                                        />
+                                    </div>
+                                    <div className="col-2">
+                                        <Controller
+                                            name="salary"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Switch
+                                                    checked={getValues("salary")}
+                                                    onChange={(value) => setValue("salary", value.target.checked)}
+                                                    color="primary"
+                                                />
+                                            )}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
+                                    <div className="col-4">
+                                        <label>VATICOS POR DIA</label>
+                                    </div>
+                                    <div className="col-6">
+                                        <FieldEdit
+                                            label={""}
+                                            type="number"
+                                            className={classes.input}
+                                            disabled={!travel}
+                                            valueDefault={getValues("travel_amount")}
+                                            onChange={(value) => setValue("travel_amount", value)}
+                                            error={errors?.travel_amount?.message}
+                                            variant="outlined"
+                                        />
+                                    </div>
+                                    <div className="col-2">
+                                        <Controller
+                                            name="travel"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Switch
+                                                    checked={getValues("travel")}
+                                                    onChange={(value) => setValue("travel", value.target.checked)}
+                                                    color="primary"
+                                                />
+                                            )}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
             </form>
             <ModalPassword
                 openModal={openDialogPassword}

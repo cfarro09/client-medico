@@ -71,6 +71,7 @@ const Staff: FC = () => {
                 getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
                 getValuesFromDomain("TIPODOCUMENTO", "DOMAIN-TIPODOCUMENTO"),
                 getValuesFromDomain("TIPOPAGOPERSONAL", "DOMAIN-TIPOPAGOPERSONAL"),
+                getValuesFromDomain("TIPOTRABAJADOR", "DOMAIN-TIPOTRABAJADOR"),
             ])
         );
         return () => {

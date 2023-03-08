@@ -2,7 +2,7 @@ const paths = {
     DASHBOARD: '/dashboard',
     REPORTS: '/reports',
     DOMAINS: '/domain',
-    USERS: '/user',
+    USER: '/user',
     CORPORATIONS: '/corporations',
     SHOPS: '/shop',
     CUSTOMERS: '/customer',

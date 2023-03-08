@@ -81,6 +81,7 @@ const Warehouse: FC = () => {
     const columns = React.useMemo(
         () => [
             {
+                accessor: "warehouseid",
                 isComponent: true,
                 minWidth: 60,
                 width: "1%",
@@ -94,28 +95,8 @@ const Warehouse: FC = () => {
                 },
             },
             {
-                Header: 'DESCRIPCION',
+                Header: 'DESCRIPTION',
                 accessor: "description",
-                NoFilter: true,
-            },
-            {
-                Header: 'NOMBRE CONTACTO',
-                accessor: "contact_name",
-                NoFilter: true,
-            },
-            {
-                Header: 'CORREO CONTACTO',
-                accessor: "contact_email",
-                NoFilter: true,
-            },
-            {
-                Header: 'TELEFONO CONTACTO',
-                accessor: "contact_phone",
-                NoFilter: true,
-            },
-            {
-                Header: 'DIRECCION',
-                accessor: "address",
                 NoFilter: true,
             },
             {
@@ -128,6 +109,20 @@ const Warehouse: FC = () => {
                     return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
                 },
             },
+            {
+                Header: t(langKeys.createdBy),
+                accessor: "createdby",
+                NoFilter: true,
+            },
+            // {
+            //     Header: t(langKeys.creationDate),
+            //     accessor: "createdate",
+            //     NoFilter: true,
+            //     Cell: (props: any) => {
+            //         const date = props.cell.row.original.createdate;
+            //         return date.split(".")[0].split(" ")[0];
+            //     },
+            // },
         ],
         []
     );
@@ -145,8 +140,8 @@ const Warehouse: FC = () => {
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(showBackdrop(true));
             dispatch(execute(insWarehouse({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.warehouseid })));
+            dispatch(showBackdrop(true));
             setWaitSave(true);
         };
 

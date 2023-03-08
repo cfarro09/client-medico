@@ -44,6 +44,7 @@ const Customer: FC = () => {
             getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
             getValuesFromDomain("TIPODOCUMENTO", "DOMAIN-TIPODOCUMENTO"),
             getValuesFromDomain("TIPOBONIFICACION", "DOMAIN-TIPOBONIFICACION"),
+            getValuesFromDomain("TIPOCLIENTE", "DOMAIN-TIPOCLIENTE"),
             getProductList(),
         ]));
         return () => {

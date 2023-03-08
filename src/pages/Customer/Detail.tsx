@@ -46,6 +46,8 @@ type FormValues = {
     type: string;
     operation: string;
     products: Dictionary[];
+    latitude: number;
+    longitude: number;
 };
 
 const useStyles = makeStyles((theme) => ({
@@ -79,7 +81,7 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
     const [productsToShow, setProductsToShow] = useState<Dictionary[]>([]);
     const [productsToDelete, setProductsToDelete] = useState<Dictionary[]>([]);
     const mainAux = useSelector((state) => state.main.mainAux);
-    const [loading, setLoading] = useState<Boolean>(true);
+    const [loading, setLoading] = useState<Boolean>(false);
     const [productSelected, setProductSelected] = useState<{
         item: Dictionary | null;
         edit: boolean;
@@ -89,10 +91,16 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
         edit: false,
         idx: 0,
     });
-    const [dataExtra, setDataExtra] = useState<{ status: Dictionary[]; type: Dictionary[]; bonif: Dictionary[] }>({
+    const [dataExtra, setDataExtra] = useState<{
+        status: Dictionary[];
+        type: Dictionary[];
+        bonif: Dictionary[];
+        tipoCliente: Dictionary[];
+    }>({
         status: [],
         type: [],
         bonif: [],
+        tipoCliente: [],
     });
 
     useEffect(() => {
@@ -100,8 +108,9 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
             const dataStatus = multiData.data.find((x) => x.key === "DOMAIN-ESTADOGENERICO");
             const dataTypes = multiData.data.find((x) => x.key === "DOMAIN-TIPODOCUMENTO");
             const dataBonif = multiData.data.find((x) => x.key === "DOMAIN-TIPOBONIFICACION");
+            const tipoCliente = multiData.data.find((x) => x.key === "DOMAIN-TIPOCLIENTE");
             const products = multiData.data.find((x) => x.key === "UFN_PRODUCT_LST");
-            if (dataStatus && dataTypes && products && dataBonif) {
+            if (dataStatus && dataTypes && products && dataBonif && tipoCliente) {
                 setProductsToShow(
                     products.data.reduce((acum, current) => {
                         if (current.with_container)
@@ -133,6 +142,7 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                     status: dataStatus.data,
                     type: dataTypes.data,
                     bonif: dataBonif.data,
+                    tipoCliente: tipoCliente.data,
                 });
             }
         }
@@ -169,6 +179,7 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
         setValue,
         getValues,
         trigger,
+        watch,
         formState: { errors },
     } = useForm<FormValues>({
         defaultValues: {
@@ -183,9 +194,13 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
             status: row?.status || "ACTIVO",
             type: row?.type || "NINGUNO",
             operation: row ? "UPDATE" : "INSERT",
+            latitude: row?.latitude || 0,
+            longitude: row?.longitude || 0,
             products: [],
         },
     });
+
+    const [latitude, longitude] = watch(["latitude", "longitude"]);
 
     const {
         fields: fieldsProduct,
@@ -209,6 +224,7 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
         register("address");
 
         if (row) {
+            setLoading(true);
             dispatch(getCollectionAux(getCustomerProductsSel(row?.customerid)));
         }
     }, [register]);
@@ -216,7 +232,7 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
     useEffect(() => {
         if (!mainAux.loading && !mainAux.error) {
             if (mainAux.key === "UFN_CUSTOMER_PRODUCT_SEL") {
-                setLoading(false)
+                setLoading(false);
                 setValue(
                     "products",
                     mainAux.data.map((x) => ({
@@ -430,9 +446,53 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                             optionValue="domainvalue"
                         />
                     </div>
+                    <div className="row-zyx">
+                        <FieldSelect
+                            label={"Tipo Cliente"}
+                            className="col-6"
+                            valueDefault={getValues("type")}
+                            onChange={(value) => setValue("type", value?.domainvalue)}
+                            error={errors?.type?.message}
+                            data={dataExtra.tipoCliente}
+                            uset={true}
+                            optionDesc="domainvalue"
+                            optionValue="domainvalue"
+                        />
+                        <FieldEdit
+                            label={"Latitud"}
+                            className="col-2"
+                            type="number"
+                            valueDefault={getValues("latitude")}
+                            onChange={(value) => setValue("latitude", value)}
+                            error={errors?.latitude?.message}
+                        />
+                        <FieldEdit
+                            label={"Longitud"}
+                            className="col-2"
+                            type="number"
+                            valueDefault={getValues("longitude")}
+                            onChange={(value) => setValue("longitude", value)}
+                            error={errors?.longitude?.message}
+                        />
+                        {latitude !== 0 && longitude !== 0 && (
+                            <div className="col-2" style={{ display: "flex", alignItems: "center" }}>
+                                <span>
+                                    <a
+                                        target={"_blank"}
+                                        href={`http://www.google.com/maps/place/${getValues("latitude")},${getValues(
+                                            "longitude"
+                                        )}`}
+                                        rel="noreferrer"
+                                    >
+                                        Geoposicion
+                                    </a>
+                                </span>
+                            </div>
+                        )}
+                    </div>
                 </div>
                 {loading && (
-                    <div style={{ textAlign: "center", marginTop: '20px' }}>
+                    <div style={{ textAlign: "center", marginTop: "20px" }}>
                         <CircularProgress />
                     </div>
                 )}

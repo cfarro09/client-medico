@@ -30,11 +30,10 @@ export const routes: RouteConfig[] = [
         icon: (className) => <ReportsIcon style={{ width: 22, height: 22 }} className={className} />,
     },
     {
-        key: paths.USERS,
+        key: paths.USER,
         description: <Trans i18nKey={langKeys.user} />,
         tooltip: <Trans i18nKey={langKeys.user} />,
-        path: paths.USERS,
-        subroute: true,
+        path: paths.USER,
         icon: (className) => <AccountCircle style={{ width: 22, height: 22 }} className={className} />,
     },
     {
