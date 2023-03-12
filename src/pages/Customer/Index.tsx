@@ -27,11 +27,11 @@ const Customer: FC = () => {
     useEffect(() => {
         if (applications) {
             setPagePermissions({
-                "view": applications["/customer"][0],
-                "modify": applications["/customer"][1],
-                "insert": applications["/customer"][2],
-                "delete": applications["/customer"][3],
-                "download": applications["/customer"][4],
+                view: applications["/customer"][0],
+                modify: applications["/customer"][1],
+                insert: applications["/customer"][2],
+                delete: applications["/customer"][3],
+                download: applications["/customer"][4],
             });
         }
     }, [applications]);
@@ -40,13 +40,15 @@ const Customer: FC = () => {
 
     useEffect(() => {
         fetchData();
-        dispatch(getMultiCollection([
-            getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
-            getValuesFromDomain("TIPODOCUMENTO", "DOMAIN-TIPODOCUMENTO"),
-            getValuesFromDomain("TIPOBONIFICACION", "DOMAIN-TIPOBONIFICACION"),
-            getValuesFromDomain("TIPOCLIENTE", "DOMAIN-TIPOCLIENTE"),
-            getProductList(),
-        ]));
+        dispatch(
+            getMultiCollection([
+                getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
+                getValuesFromDomain("TIPODOCUMENTO", "DOMAIN-TIPODOCUMENTO"),
+                getValuesFromDomain("TIPOBONIFICACION", "DOMAIN-TIPOBONIFICACION"),
+                getValuesFromDomain("TIPOCLIENTE", "DOMAIN-TIPOCLIENTE"),
+                getProductList(),
+            ])
+        );
         return () => {
             dispatch(resetAllMain());
         };
@@ -85,45 +87,11 @@ const Customer: FC = () => {
                 width: "1%",
                 Cell: (props: any) => {
                     const row = props.cell.row.original;
-                    return (
-                        <TemplateIcons
-                            deleteFunction={() => handleDelete(row)}
-                        />
-                    );
+                    return <TemplateIcons deleteFunction={() => handleDelete(row)} />;
                 },
             },
             {
-                Header: 'Descripcion',
-                accessor: 'description',
-                NoFilter: true,
-            },
-            {
-                Header: 'Tipo Documento',
-                accessor: 'doc_type',
-                NoFilter: true,
-            },
-            {
-                Header: 'Nro Documento',
-                accessor: 'doc_number',
-                NoFilter: true,
-            },
-            {
-                Header: 'Nombre Contacto',
-                accessor: 'contact_name',
-                NoFilter: true,
-            },
-            {
-                Header: 'Email Contacto',
-                accessor: 'contact_email',
-                NoFilter: true,
-            },
-            {
-                Header: 'Telefono Contacto',
-                accessor: 'contact_phone',
-                NoFilter: true,
-            },
-            {
-                Header: t(langKeys.status),
+                Header: "CONDICION",
                 accessor: "status",
                 NoFilter: true,
                 prefixTranslation: "status_",
@@ -131,6 +99,50 @@ const Customer: FC = () => {
                     const { status } = props.cell.row.original;
                     return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
                 },
+            },
+            {
+                Header: "CLIENTE",
+                accessor: "description",
+                NoFilter: true,
+            },
+            {
+                Header: "DNI/RUC",
+                accessor: "doc_number",
+                NoFilter: true,
+            },
+            {
+                Header: "TIPO CLIENTE",
+                accessor: "type",
+                NoFilter: true,
+            },
+            {
+                Header: "RUTA",
+                accessor: "route",
+                NoFilter: true,
+            },
+            {
+                Header: "ZONA",
+                accessor: "zone",
+                NoFilter: true,
+            },
+            {
+                Header: "DIRECCION",
+                accessor: "address",
+                NoFilter: true,
+            },
+            {
+                Header: "CELULAR",
+                accessor: "contact_phone",
+                NoFilter: true,
+            },
+            {
+                Header: "COORDENADAS",
+                accessor: "coordenadas",
+                NoFilter: true,
+                Cell: (props: any) => {
+                    const { latitude, longitude } = props.cell.row.original;
+                    return <span>{latitude}, {longitude}</span>;
+                }
             },
         ],
         []
@@ -167,7 +179,7 @@ const Customer: FC = () => {
             <TableZyx
                 columns={columns}
                 data={dataView}
-                titlemodule={'Clientes'}
+                titlemodule={"Clientes"}
                 download={!!pagePermissions.download}
                 onClickRow={handleEdit}
                 loading={mainResult.loading}
@@ -176,13 +188,7 @@ const Customer: FC = () => {
             />
         );
     } else {
-        return (
-            <Detail
-                row={rowSelected}
-                setViewSelected={setViewSelected}
-                fetchData={fetchData}
-            />
-        );
+        return <Detail row={rowSelected} setViewSelected={setViewSelected} fetchData={fetchData} />;
     }
 };
 export default Customer;

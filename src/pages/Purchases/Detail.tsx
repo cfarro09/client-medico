@@ -138,8 +138,8 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                     vehicles: vehicles.data,
                     suppliers: suppliers.data,
                 });
-                
-                if(!row){
+
+                if (!row) {
                     setValue("supplierid", suppliers.data?.[0]?.supplierid || 0);
                     setValue("warehouseid", warehouses.data?.[0]?.warehouseid || 0);
                     setValue("company_name", companys.data?.[0]?.domainvalue || 0);

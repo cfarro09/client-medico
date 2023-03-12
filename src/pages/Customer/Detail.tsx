@@ -48,6 +48,8 @@ type FormValues = {
     products: Dictionary[];
     latitude: number;
     longitude: number;
+    route: string;
+    zone: string;
 };
 
 const useStyles = makeStyles((theme) => ({
@@ -70,7 +72,10 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+let renderCount = 0;
+
 const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
+    renderCount++;
     const classes = useStyles();
     const dispatch = useDispatch();
     const { t } = useTranslation();
@@ -185,7 +190,7 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
         defaultValues: {
             id: row?.customerid || 0,
             description: row?.description || "",
-            doc_type: row?.doc_type || "RUC",
+            doc_type: row?.doc_type || "DNI",
             doc_number: row?.doc_number || "",
             contact_name: row?.contact_name || "",
             contact_email: row?.contact_email || "",
@@ -196,6 +201,8 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
             operation: row ? "UPDATE" : "INSERT",
             latitude: row?.latitude || 0,
             longitude: row?.longitude || 0,
+            route: row?.route || "",
+            zone: row?.zone || "",
             products: [],
         },
     });
@@ -216,10 +223,7 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
             validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required),
         });
         register("status", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
-        register("doc_type", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
         register("doc_number", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
-        register("contact_name");
-        register("contact_email");
         register("contact_phone");
         register("address");
 
@@ -368,29 +372,17 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                     </div>
                 </div>
                 <div className={classes.containerDetail}>
+                    <div>{renderCount}</div>
                     <div className="row-zyx">
                         <FieldEdit
-                            label={"Descripcion (*)"}
+                            label={"NOMBRE CLIENTE (*)"}
                             className="col-6"
                             valueDefault={getValues("description")}
                             onChange={(value) => setValue("description", value)}
                             error={errors?.description?.message}
                         />
-                        <FieldSelect
-                            label={"Tipo de Documento (*)"}
-                            className="col-6"
-                            valueDefault={getValues("doc_type")}
-                            onChange={(value) => setValue("doc_type", value?.domainvalue)}
-                            error={errors?.doc_type?.message}
-                            data={dataExtra.type}
-                            uset={true}
-                            optionDesc="domainvalue"
-                            optionValue="domainvalue"
-                        />
-                    </div>
-                    <div className="row-zyx">
                         <FieldEdit
-                            label={`${t(langKeys.docNumber)} (*)`}
+                            label={`RUC/DNI (*)`}
                             className="col-6"
                             valueDefault={getValues("doc_number")}
                             onChange={(value) => setValue("doc_number", value)}
@@ -398,25 +390,10 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                             error={errors?.doc_number?.message}
                             InputProps={{ inputProps: { min: "0", max: "99999999999" } }}
                         />
-                        <FieldEdit
-                            label={"Nombre Contacto"}
-                            className="col-6"
-                            valueDefault={getValues("contact_name")}
-                            onChange={(value) => setValue("contact_name", value)}
-                            error={errors?.contact_name?.message}
-                        />
                     </div>
                     <div className="row-zyx">
                         <FieldEdit
-                            label={"Email Contact"}
-                            className="col-6"
-                            valueDefault={getValues("contact_email")}
-                            onChange={(value) => setValue("contact_email", value)}
-                            type="email"
-                            error={errors?.contact_email?.message}
-                        />
-                        <FieldEdit
-                            label={"Telefono Contacto"}
+                            label={"TELEFONO"}
                             className="col-6"
                             valueDefault={getValues("contact_phone")}
                             onChange={(value) => setValue("contact_phone", value)}
@@ -424,17 +401,44 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                             type="number"
                             InputProps={{ inputProps: { min: "0", max: "999999999" } }}
                         />
-                    </div>
-                    <div className="row-zyx">
                         <FieldEdit
-                            label={"Direccion"}
+                            label={"DIRECCION"}
                             className="col-6"
                             valueDefault={getValues("address")}
                             onChange={(value) => setValue("address", value)}
                             error={errors?.address?.message}
                         />
+                    </div>
+                    <div className="row-zyx">
+                        <FieldEdit
+                            label={"ZONA"}
+                            className="col-6"
+                            valueDefault={getValues("zone")}
+                            onChange={(value) => setValue("zone", value)}
+                            error={errors?.zone?.message}
+                        />
+                        <FieldEdit
+                            label={"RUTA"}
+                            className="col-6"
+                            valueDefault={getValues("route")}
+                            onChange={(value) => setValue("route", value)}
+                            error={errors?.route?.message}
+                        />
+                    </div>
+                    <div className="row-zyx">
                         <FieldSelect
-                            label={t(langKeys.status)}
+                            label={"TIPO CLIENTE"}
+                            className="col-6"
+                            valueDefault={getValues("type")}
+                            onChange={(value) => setValue("type", value?.domainvalue)}
+                            error={errors?.type?.message}
+                            data={dataExtra.tipoCliente}
+                            uset={true}
+                            optionDesc="domainvalue"
+                            optionValue="domainvalue"
+                        />
+                        <FieldSelect
+                            label={"CONDICION"}
                             className="col-6"
                             valueDefault={getValues("status")}
                             onChange={(value) => setValue("status", value?.domainvalue)}
@@ -447,19 +451,8 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                         />
                     </div>
                     <div className="row-zyx">
-                        <FieldSelect
-                            label={"Tipo Cliente"}
-                            className="col-6"
-                            valueDefault={getValues("type")}
-                            onChange={(value) => setValue("type", value?.domainvalue)}
-                            error={errors?.type?.message}
-                            data={dataExtra.tipoCliente}
-                            uset={true}
-                            optionDesc="domainvalue"
-                            optionValue="domainvalue"
-                        />
                         <FieldEdit
-                            label={"Latitud"}
+                            label={"LATITUD"}
                             className="col-2"
                             type="number"
                             valueDefault={getValues("latitude")}
@@ -467,7 +460,7 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                             error={errors?.latitude?.message}
                         />
                         <FieldEdit
-                            label={"Longitud"}
+                            label={"LONGITUD"}
                             className="col-2"
                             type="number"
                             valueDefault={getValues("longitude")}

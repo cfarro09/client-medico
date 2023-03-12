@@ -61,7 +61,7 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                     category: dataCategory.data,
                     package: dataPackage.data,
                     unit: dataUnit.data,
-                    brand: dataBrand.data
+                    brand: dataBrand.data,
                 });
             }
         }
@@ -124,7 +124,7 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
         // register("price_1", { validate: (value) => (value && value > 0) || t(langKeys.field_required) });
         // register("purchase_price", { validate: (value) => (value && value > 0) || t(langKeys.field_required) });
         register("status", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
-        register('with_container');
+        register("with_container");
     }, [register]);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -211,11 +211,13 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                             optionValue="domainvalue"
                         />
                         <FieldEdit
-                            label={t(langKeys.description)}
+                            label={"Precio de costo"}
                             className="col-6"
-                            valueDefault={getValues("product_description")}
-                            onChange={(value) => setValue("product_description", value)}
-                            error={errors?.product_description?.message}
+                            type="number"
+                            valueDefault={getValues("purchase_price")}
+                            onChange={(value) => setValue("purchase_price", value)}
+                            error={errors?.purchase_price?.message}
+                            InputProps={{ inputProps: { min: "0" } }}
                         />
                     </div>
                     <div className="row-zyx">
@@ -230,68 +232,6 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                             optionDesc="domainvalue"
                             optionValue="domainvalue"
                         />
-                        <FieldEdit
-                            label={"Precio de costo"}
-                            className="col-6"
-                            type="number"
-                            valueDefault={getValues("purchase_price")}
-                            onChange={(value) => setValue("purchase_price", value)}
-                            error={errors?.purchase_price?.message}
-                            InputProps={{ inputProps: { min: "0" } }}
-                        />
-                    </div>
-                    {/* <div className="row-zyx">
-                        <FieldSelect
-                            label={"Presentacion"}
-                            className="col-6"
-                            valueDefault={getValues("types_packaging")}
-                            onChange={(value) => setValue("types_packaging", value?.domainvalue)}
-                            error={errors?.types_packaging?.message}
-                            data={dataExtra.package}
-                            uset={true}
-                            optionDesc="domainvalue"
-                            optionValue="domainvalue"
-                        />
-                        <FieldEdit
-                            label={"N Unidades de presentacion"}
-                            className="col-6"
-                            type="number"
-                            valueDefault={getValues("n_bottles")}
-                            onChange={(value) => setValue("n_bottles", value)}
-                            error={errors?.n_bottles?.message}
-                            InputProps={{ inputProps: { min: "0" } }}
-                        />
-                    </div> */}
-                    {/* <div className="row-zyx">
-                        <FieldEdit
-                            label={"Precio venta unit"}
-                            className="col-6"
-                            type="number"
-                            valueDefault={getValues("price_1")}
-                            onChange={(value) => setValue("price_1", value)}
-                            error={errors?.price_1?.message}
-                            InputProps={{ inputProps: { min: "0" } }}
-                        />
-                        <FieldEdit
-                            label={"Precio venta mayor"}
-                            className="col-6"
-                            type="number"
-                            valueDefault={getValues("price_2")}
-                            onChange={(value) => setValue("price_2", value)}
-                            error={errors?.price_2?.message}
-                            InputProps={{ inputProps: { min: "0" } }}
-                        />
-                    </div> */}
-                    {/* <div className="row-zyx">
-                        <FieldEdit
-                            label={"Color"}
-                            className="col-6"
-                            valueDefault={getValues("color")}
-                            onChange={(value) => setValue("color", value)}
-                            error={errors?.color?.message}
-                        />
-                    </div> */}
-                    <div className="row-zyx">
                         <FieldSelect
                             label={t(langKeys.status)}
                             className="col-6"
@@ -304,6 +244,8 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                             optionDesc="domainvalue"
                             optionValue="domainvalue"
                         />
+                    </div>
+                    <div className="row-zyx">
                         <div className="col-6">
                             <FormControlLabel
                                 control={

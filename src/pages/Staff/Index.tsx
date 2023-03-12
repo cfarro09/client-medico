@@ -112,23 +112,13 @@ const Staff: FC = () => {
                 NoFilter: true,
             },
             {
-                Header: 'TIPO DE DOCUMENTO',
-                accessor: "doc_type",
-                NoFilter: true,
-            },
-            {
-                Header: 'NUMERO DE DOCUMENTO',
+                Header: 'DNI/RUC',
                 accessor: "doc_number",
                 NoFilter: true,
             },
             {
                 Header: 'CARGO',
                 accessor: "charge",
-                NoFilter: true,
-            },
-            {
-                Header: 'TIPO DE PAGO',
-                accessor: "payment_type",
                 NoFilter: true,
             },
         ],

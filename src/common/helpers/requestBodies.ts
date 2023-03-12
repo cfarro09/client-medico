@@ -352,6 +352,14 @@ export const getCustomerProductsSel = (customerid: number): IRequestBody => ({
     }
 })
 
+export const getUserComissionProduct = (userid: number): IRequestBody => ({
+    method: "UFN_USER_COMMISSION_PRODUCT_LS",
+    key: "UFN_USER_COMMISSION_PRODUCT_LS",
+    parameters: {
+        userid
+    }
+})
+
 export const getDetailSale = (saleorderid: number): IRequestBody => ({
     method: "UFN_SALE_ORDER_DETAIL_SEL",
     key: "UFN_SALE_ORDER_DETAIL_SEL",

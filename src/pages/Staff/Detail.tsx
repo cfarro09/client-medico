@@ -5,14 +5,14 @@ import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "compon
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
 import React, { useEffect, useState } from "react"; // we need this to make JSX compile
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
-import { execute, getCollectionAux } from "store/main/actions";
-import { getCustomerProductsSel, insStaff } from "common/helpers";
+import { execute, getCollectionAux, resetMainAux } from "store/main/actions";
+import { getUserComissionProduct, insStaff } from "common/helpers";
 import ModalPassword from "./Modal/ModalPassword";
 import LockOpenIcon from "@material-ui/icons/LockOpen";
 
@@ -63,7 +63,6 @@ interface StaffValues {
     doc_number: string;
     address: string;
     status: string;
-    payment_type: string;
     roleid: number;
     staff_type: string;
     comision: boolean;
@@ -72,16 +71,15 @@ interface StaffValues {
     salary_amount: number;
     travel: boolean;
     travel_amount: number;
-    payment_type2: Dictionary;
+    payment_type: Dictionary;
+    products: Dictionary[];
 }
 
-let renderCount = 0;
-
 const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
-    renderCount++;
     const classes = useStyles();
     const [waitSave, setWaitSave] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
+    const mainAux = useSelector((state) => state.main.mainAux);
     const multiData = useSelector((state) => state.main.multiData);
     const [dataExtra, setDataExtra] = useState<{
         status: Dictionary[];
@@ -97,6 +95,8 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const [openDialogPassword, setOpenDialogPassword] = useState(false);
+    const [showDataComision, setShowDataComision] = useState(false);
+    const [dataComision, setDataComision] = useState([]);
 
     useEffect(() => {
         if (!multiData.error && !multiData.loading) {
@@ -114,8 +114,6 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
             }
         }
     }, [multiData]);
-
-    dispatch(getCollectionAux(getCustomerProductsSel(row?.customerid)));
 
     useEffect(() => {
         if (waitSave) {
@@ -162,24 +160,41 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
             doc_number: row?.doc_number || "",
             address: row?.address || "",
             status: row?.status || "ACTIVO",
-            payment_type: row?.payment_type || "",
             roleid: row?.roleid || 0,
             staff_type: row?.staff_type || "",
-            comision: row?.comision || false,
-            comision_amount: row?.comision_amount || 0,
-            salary: row?.salary || false,
-            salary_amount: row?.salary_amount || 0,
-            travel: row?.travel || false,
-            travel_amount: row?.travel_amount || 0,
+            payment_type: {
+                salary_amount: row?.payment_type?.salary_amount || 0,
+                travel_amount: row?.payment_type?.travel_amount || 0,
+                comision_amount: row?.payment_type?.comision_amount || 0,
+                labor_cost_amount: row?.payment_type?.labor_cost_amount || 0,
+                per_day_amount: row?.payment_type?.per_day_amount || 0,
+                salary: row?.payment_type?.salary_amount ? true : false,
+                travel: row?.payment_type?.travel_amount ? true : false,
+                comision: row?.payment_type?.comision_amount ? true : false,
+                labor_cost: row?.payment_type?.labor_cost_amount ? true : false,
+                per_day: row?.payment_type?.per_day_amount ? true : false,
+            },
+            products: [],
         },
     });
 
-    const [staff_type_watch, role_watch, salary, comision, travel] = watch([
+    const {
+        fields: fieldsProduct,
+        append: productAppend,
+        remove: productRemove,
+    } = useFieldArray({
+        control,
+        name: "products",
+    });
+
+    const [staff_type, role_watch, salary, comision, travel, labor_cost, per_day] = watch([
         "staff_type",
         "roleid",
-        "salary",
-        "comision",
-        "travel",
+        "payment_type.salary",
+        "payment_type.comision",
+        "payment_type.travel",
+        "payment_type.labor_cost",
+        "payment_type.per_day",
     ]);
 
     const onSubmit = handleSubmit((data) => {
@@ -217,32 +232,70 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
         register("roleid", { validate: (value) => (value && value > 0) || "" + t(langKeys.field_required) });
         register("email");
         register("address");
+        dispatch(getCollectionAux(getUserComissionProduct(row?.userid || 0)));
     }, [register, role_watch]);
+
+    useEffect(() => {
+        if (!mainAux.loading && !mainAux.error) {
+            if (mainAux.key === "UFN_USER_COMMISSION_PRODUCT_LS") {
+                // setLoading(false);
+                setValue(
+                    "products",
+                    mainAux.data.map((x) => ({
+                        productid: x.productid,
+                        product_name: x.product_name,
+                        purchase_price: x.purchase_price,
+                        category: x.categroy,
+                        comission_type: x.comission_type,
+                        description: x.description,
+                        userproductcommissionid: x.userproductcommissionid || 0,
+                        userid: x.userid || 0,
+                        amount: parseFloat(x.amount || "0"),
+                    }))
+                );
+                trigger("products");
+            }
+        }
+        return () => {
+            dispatch(resetMainAux());
+        };
+    }, [mainAux]);
 
     React.useEffect(() => {
         if (!salary) {
-            setValue("salary_amount", 0);
-            trigger("salary_amount");
+            setValue("payment_type.salary_amount", 0);
+            trigger("payment_type.salary_amount");
         }
     }, [salary]);
 
     React.useEffect(() => {
         if (!comision) {
-            setValue("comision_amount", 0);
-            trigger("comision_amount");
-            return
-        }
-        if (comision && role_watch === 3) {
-            console.log('mierda')
+            setValue("payment_type.comision_amount", 0);
+            trigger("payment_type.comision_amount");
+            return;
         }
     }, [comision]);
 
     React.useEffect(() => {
         if (!travel) {
-            setValue("travel_amount", 0);
-            trigger("travel_amount");
+            setValue("payment_type.travel_amount", 0);
+            trigger("payment_type.travel_amount");
         }
     }, [travel]);
+
+    React.useEffect(() => {
+        if (!labor_cost) {
+            setValue("payment_type.labor_cost_amount", 0);
+            trigger("payment_type.labor_cost_amount");
+        }
+    }, [labor_cost]);
+
+    React.useEffect(() => {
+        if (!per_day) {
+            setValue("payment_type.per_day_amount", 0);
+            trigger("payment_type.per_day_amount");
+        }
+    }, [per_day]);
 
     return (
         <div style={{ width: "100%" }}>
@@ -286,8 +339,6 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                     </div>
                 </div>
                 <div className={classes.containerDetail}>
-                    <div>{renderCount}</div>
-
                     <div className="row-zyx">
                         <FieldSelect
                             label={"Cargo (*)"}
@@ -317,37 +368,13 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                         />
                     </div>
                     <div className="row-zyx">
-                        <FieldSelect
-                            loading={multiData.loading}
-                            label={`${t(langKeys.docType)} (*)`}
-                            className="col-4"
-                            valueDefault={getValues("doc_type")}
-                            onChange={(value) => setValue("doc_type", value ? value.domainvalue : "")}
-                            error={errors?.doc_type?.message}
-                            data={dataExtra.type}
-                            optionDesc="domaindesc"
-                            optionValue="domainvalue"
-                        />
                         <FieldEdit
-                            label={"Nro Documento (*)"}
+                            label={"DNI/RUC (*)"}
                             className="col-4"
                             valueDefault={getValues("doc_number")}
                             onChange={(value) => setValue("doc_number", value)}
                             error={errors?.doc_number?.message}
                         />
-                        <FieldSelect
-                            label={"Tipo de Pago (*)"}
-                            className="col-4"
-                            loading={multiData.loading}
-                            valueDefault={getValues("payment_type")}
-                            onChange={(value) => setValue("payment_type", value ? value.domainvalue : "")}
-                            error={errors?.payment_type?.message}
-                            data={dataExtra.tipopago}
-                            optionDesc="domaindesc"
-                            optionValue="domainvalue"
-                        />
-                    </div>
-                    <div className="row-zyx">
                         <FieldEdit
                             label={t(langKeys.email)}
                             className="col-4"
@@ -362,6 +389,8 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                             onChange={(value) => setValue("address", value)}
                             error={errors?.address?.message}
                         />
+                    </div>
+                    <div className="row-zyx">
                         <FieldSelect
                             label={t(langKeys.status)}
                             className="col-4"
@@ -373,14 +402,15 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                             optionDesc="domaindesc"
                             optionValue="domainvalue"
                         />
-                    </div>
-                    <div className="row-zyx">
                         <FieldSelect
                             label={"Tipo Peronsal"}
                             className="col-4"
                             loading={multiData.loading}
                             valueDefault={getValues("staff_type")}
-                            onChange={(value) => setValue("staff_type", value ? value.domainvalue : "")}
+                            onChange={(value) => {
+                                setValue("staff_type", value ? value.domainvalue : "")
+                                trigger('staff_type')
+                            }}
                             error={errors?.staff_type?.message}
                             data={dataExtra.tipopersonal}
                             optionDesc="domaindesc"
@@ -388,167 +418,206 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                         />
                     </div>
                 </div>
-                {staff_type_watch && (
-                    <div className={classes.containerDetail2}>
-                        <Typography component="div" variant="h5">
-                            Forma de pago
-                        </Typography>
-                        <br />
-                        {staff_type_watch === "FIJO" ? (
-                            <div className="fijo">
-                                <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
-                                    <div className="col-4">
-                                        <label>SUELDO</label>
+                {staff_type && (
+                    <div className="row-zyx">
+                        <div className={classes.containerDetail2}>
+                            <Typography component="div" variant="h5">
+                                Forma de pago
+                            </Typography>
+                            <br />
+                            {staff_type === "FIJO" && (
+                                <div className="fijo">
+                                    <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
+                                        <div className="col-4">
+                                            <label>SUELDO</label>
+                                        </div>
+                                        <div className="col-6">
+                                            <FieldEdit
+                                                label={""}
+                                                type="number"
+                                                className={classes.input}
+                                                disabled={!salary}
+                                                valueDefault={getValues("payment_type.salary_amount")}
+                                                onChange={(value) => setValue("payment_type.salary_amount", value)}
+                                                error={errors?.payment_type?.salary_amount?.message}
+                                                variant="outlined"
+                                            />
+                                        </div>
+                                        <div className="col-2">
+                                            <Controller
+                                                name="salary"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <Switch
+                                                        checked={getValues("payment_type.salary")}
+                                                        onChange={(value) =>
+                                                            setValue("payment_type.salary", value.target.checked)
+                                                        }
+                                                        color="primary"
+                                                    />
+                                                )}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="col-6">
-                                        <FieldEdit
-                                            label={""}
-                                            type="number"
-                                            className={classes.input}
-                                            disabled={!salary}
-                                            valueDefault={getValues("salary_amount")}
-                                            onChange={(value) => setValue("salary_amount", value)}
-                                            error={errors?.salary_amount?.message}
-                                            variant="outlined"
-                                        />
+                                    <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
+                                        <div className="col-4">
+                                            <label>VATICOS</label>
+                                        </div>
+                                        <div className="col-6">
+                                            <FieldEdit
+                                                label={""}
+                                                type="number"
+                                                className={classes.input}
+                                                disabled={!travel}
+                                                valueDefault={getValues("payment_type.travel_amount")}
+                                                onChange={(value) => setValue("payment_type.travel_amount", value)}
+                                                error={errors?.payment_type?.travel_amount?.message}
+                                                variant="outlined"
+                                            />
+                                        </div>
+                                        <div className="col-2">
+                                            <Controller
+                                                name="travel"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <Switch
+                                                        checked={getValues("payment_type.travel")}
+                                                        onChange={(value) =>
+                                                            setValue("payment_type.travel", value.target.checked)
+                                                        }
+                                                        color="primary"
+                                                    />
+                                                )}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="col-2">
-                                        <Controller
-                                            name="salary"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <Switch
-                                                    checked={getValues("salary")}
-                                                    onChange={(value) => setValue("salary", value.target.checked)}
-                                                    color="primary"
-                                                />
-                                            )}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
-                                    <div className="col-4">
-                                        <label>VATICOS</label>
-                                    </div>
-                                    <div className="col-6">
-                                        <FieldEdit
-                                            label={""}
-                                            type="number"
-                                            className={classes.input}
-                                            disabled={!travel}
-                                            valueDefault={getValues("travel_amount")}
-                                            onChange={(value) => setValue("travel_amount", value)}
-                                            error={errors?.travel_amount?.message}
-                                            variant="outlined"
-                                        />
-                                    </div>
-                                    <div className="col-2">
-                                        <Controller
-                                            name="travel"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <Switch
-                                                    checked={getValues("travel")}
-                                                    onChange={(value) => setValue("travel", value.target.checked)}
-                                                    color="primary"
-                                                />
-                                            )}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
-                                    <div className="col-4">
-                                        <label>COMISION</label>
-                                    </div>
-                                    <div className="col-6">
-                                        <FieldEdit
-                                            label={""}
-                                            type="number"
-                                            disabled={!comision}
-                                            className={classes.input}
-                                            valueDefault={getValues("comision_amount")}
-                                            onChange={(value) => setValue("comision_amount", value)}
-                                            error={errors?.comision_amount?.message}
-                                            variant="outlined"
-                                        />
-                                    </div>
-                                    <div className="col-2">
-                                        <Controller
-                                            name="comision"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <Switch
-                                                    checked={getValues("comision")}
-                                                    onChange={(value) => setValue("comision", value.target.checked)}
-                                                    color="primary"
-                                                />
-                                            )}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="temporal">
-                                <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
-                                    <div className="col-4">
-                                        <label>COSTO TRABAJO</label>
-                                    </div>
-                                    <div className="col-6">
-                                        <FieldEdit
-                                            label={""}
-                                            type="number"
-                                            className={classes.input}
-                                            disabled={!salary}
-                                            valueDefault={getValues("salary_amount")}
-                                            onChange={(value) => setValue("salary_amount", value)}
-                                            error={errors?.salary_amount?.message}
-                                            variant="outlined"
-                                        />
-                                    </div>
-                                    <div className="col-2">
-                                        <Controller
-                                            name="salary"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <Switch
-                                                    checked={getValues("salary")}
-                                                    onChange={(value) => setValue("salary", value.target.checked)}
-                                                    color="primary"
-                                                />
-                                            )}
-                                        />
+                                    <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
+                                        <div className="col-4">
+                                            <label>COMISION</label>
+                                        </div>
+                                        <div className="col-6">
+                                            <FieldEdit
+                                                label={""}
+                                                type="number"
+                                                disabled={true}
+                                                className={classes.input}
+                                                valueDefault={getValues("payment_type.comision_amount")}
+                                                onChange={(value) => setValue("payment_type.comision_amount", value)}
+                                                error={errors?.payment_type?.comision_amount?.message}
+                                                variant="outlined"
+                                            />
+                                        </div>
+                                        <div className="col-2">
+                                            <Controller
+                                                name="comision"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <Switch
+                                                        checked={getValues("payment_type.comision")}
+                                                        onChange={(value) =>
+                                                            setValue("payment_type.comision", value.target.checked)
+                                                        }
+                                                        color="primary"
+                                                    />
+                                                )}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
-                                    <div className="col-4">
-                                        <label>VATICOS POR DIA</label>
-                                    </div>
-                                    <div className="col-6">
-                                        <FieldEdit
-                                            label={""}
-                                            type="number"
-                                            className={classes.input}
-                                            disabled={!travel}
-                                            valueDefault={getValues("travel_amount")}
-                                            onChange={(value) => setValue("travel_amount", value)}
-                                            error={errors?.travel_amount?.message}
-                                            variant="outlined"
-                                        />
-                                    </div>
-                                    <div className="col-2">
-                                        <Controller
-                                            name="travel"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <Switch
-                                                    checked={getValues("travel")}
-                                                    onChange={(value) => setValue("travel", value.target.checked)}
-                                                    color="primary"
+                            )}
+                            {staff_type !== "FIJO" && 
+                                (
+                                    <div className="temporal">
+                                        <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
+                                            <div className="col-4">
+                                                <label>COSTO TRABAJO</label>
+                                            </div>
+                                            <div className="col-6">
+                                                <FieldEdit
+                                                    label={""}
+                                                    type="number"
+                                                    className={classes.input}
+                                                    disabled={!labor_cost}
+                                                    valueDefault={getValues("payment_type.labor_cost_amount")}
+                                                    onChange={(value) => setValue("payment_type.labor_cost_amount", value)}
+                                                    error={errors?.payment_type?.labor_cost_amount?.message}
+                                                    variant="outlined"
                                                 />
-                                            )}
-                                        />
+                                            </div>
+                                            <div className="col-2">
+                                                <Controller
+                                                    name="salary"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <Switch
+                                                            checked={getValues("payment_type.labor_cost")}
+                                                            onChange={(value) => setValue("payment_type.labor_cost", value.target.checked)}
+                                                            color="primary"
+                                                        />
+                                                    )}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
+                                            <div className="col-4">
+                                                <label>VIATICOS POR DIA</label>
+                                            </div>
+                                            <div className="col-6">
+                                                <FieldEdit
+                                                    label={""}
+                                                    type="number"
+                                                    className={classes.input}
+                                                    disabled={!per_day}
+                                                    valueDefault={getValues("payment_type.per_day_amount")}
+                                                    onChange={(value) => setValue("payment_type.per_day_amount", value)}
+                                                    error={errors?.payment_type?.per_day_amount?.message}
+                                                    variant="outlined"
+                                                />
+                                            </div>
+                                            <div className="col-2">
+                                                <Controller
+                                                    name="travel"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <Switch
+                                                            checked={getValues("payment_type.per_day")}
+                                                            onChange={(value) =>
+                                                                setValue("payment_type.per_day", value.target.checked)
+                                                            }
+                                                            color="primary"
+                                                        />
+                                                    )}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                )
+                            }
+                        </div>
+                        {(comision && role_watch === 3) && (
+                            <div className={classes.containerDetail2}>
+                                <Typography component="div" variant="h5">
+                                    Comisiones
+                                </Typography>
+                                <br />
+                                {fieldsProduct.map((item, i: number) => (
+                                    <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }} key={i}>
+                                        <div className="col-4">
+                                            <label>{getValues(`products.${i}.description`)}</label>
+                                        </div>
+                                        <div className="col-6">
+                                            <FieldEdit
+                                                label={""}
+                                                type="number"
+                                                className={classes.input}
+                                                valueDefault={getValues(`products.${i}.amount`)}
+                                                onChange={(value) => setValue(`products.${i}.amount`, value)}
+                                                error={errors?.products?.[i]?.amount?.message}
+                                                variant="outlined"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>

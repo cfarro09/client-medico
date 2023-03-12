@@ -108,18 +108,8 @@ const Product: FC = () => {
                 NoFilter: true,
             },
             {
-                Header: 'Descripcion',
-                accessor: 'product_description',
-                NoFilter: true,
-            },
-            {
                 Header: 'Unidad de Medida',
                 accessor: 'unit',
-                NoFilter: true,
-            },
-            {
-                Header: 'Precio unit',
-                accessor: 'price_1',
                 NoFilter: true,
             },
             {
