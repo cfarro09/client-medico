@@ -72,10 +72,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-let renderCount = 0;
-
 const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
-    renderCount++;
     const classes = useStyles();
     const dispatch = useDispatch();
     const { t } = useTranslation();
@@ -372,7 +369,6 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                     </div>
                 </div>
                 <div className={classes.containerDetail}>
-                    <div>{renderCount}</div>
                     <div className="row-zyx">
                         <FieldEdit
                             label={"NOMBRE CLIENTE (*)"}
