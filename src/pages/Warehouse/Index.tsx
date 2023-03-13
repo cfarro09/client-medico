@@ -159,7 +159,7 @@ const Warehouse: FC = () => {
             <TableZyx
                 columns={columns}
                 data={dataView}
-                titlemodule={`Locales`}
+                titlemodule={`Almacenes`}
                 download={!!pagePermissions.download}
                 onClickRow={handleEdit}
                 loading={mainResult.loading}

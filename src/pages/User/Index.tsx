@@ -94,28 +94,34 @@ const User: FC = () => {
                 }
             },
             {
-                Header: t(langKeys.user),
-                accessor: 'usr',
-            },
-            {
-                Header: t(langKeys.fullname),
-                accessor: 'full_name',
-            },
-            {
-                Header: "N° doc",
-                accessor: 'doc_number',
-            },
-            {
-                Header: t(langKeys.email),
-                accessor: 'email',
-            },
-            {
-                Header: t(langKeys.role),
-                accessor: 'roles',
-            },
-            {
-                Header: t(langKeys.status),
+                Header: 'CONDICION',
                 accessor: 'status',
+                NoFilter: true
+            },
+            {
+                Header: 'USUARIO',
+                accessor: 'usr',
+                NoFilter: true
+            },
+            {
+                Header: 'NOMBRE COMPLETO',
+                accessor: 'full_name',
+                NoFilter: true
+            },
+            {
+                Header: "RUC/DNI",
+                accessor: 'doc_number',
+                NoFilter: true
+            },
+            {
+                Header: 'CORREO',
+                accessor: 'email',
+                NoFilter: true
+            },
+            {
+                Header: 'ROL',
+                accessor: 'roles',
+                NoFilter: true
             },
         ],
         []

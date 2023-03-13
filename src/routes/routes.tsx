@@ -150,8 +150,8 @@ export const routes: RouteConfig[] = [
     },
     {
         key: paths.WAREHOUSE,
-        description: "Locales",
-        tooltip: "Locales",
+        description: "Almacenes",
+        tooltip: "Almacenes",
         path: paths.WAREHOUSE,
         icon: (color) => <LocalMall stroke={color} fill={color} />,
     },

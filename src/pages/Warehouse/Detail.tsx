@@ -1,7 +1,7 @@
 /*
  ** Change defaultValues
  ** Change REGISTER_VALUES
- ** Change FORM_TITTLE
+ ** Change Almacenes
  */
 
 /* eslint-disable react-hooks/exhaustive-deps */
@@ -94,7 +94,7 @@ const WarehouseDetail: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
         formState: { errors },
     } = useForm({
         defaultValues: {
-            id: row?.corpid || 0,
+            id: row?.warehouseid || 0,
             operation: row ? "UPDATE" : "INSERT",
             status: row?.status || "ACTIVO",
             type: row?.type || "NINGUNO",
@@ -130,7 +130,7 @@ const WarehouseDetail: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
             <form onSubmit={onSubmit}>
                 <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
                 <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-                    <TitleDetail title={row ? `${row.description}` : 'FORM_TITTLE'} />
+                    <TitleDetail title={row ? `${row.description}` : 'Almacenes'} />
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                         <Button
                             variant="contained"
@@ -157,14 +157,14 @@ const WarehouseDetail: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                 <div className={classes.containerDetail}>
                     <div className="row-zyx">
                         <FieldEdit
-                            label={t(langKeys.corporation)}
+                            label={'DESCRIPCION'}
                             className="col-6"
                             valueDefault={getValues("description")}
                             onChange={(value) => setValue("description", value)}
                             error={errors?.description?.message}
                         />
                         <FieldSelect
-                            label={t(langKeys.type)}
+                            label={'TIPO'}
                             className="col-6"
                             valueDefault={getValues("type")}
                             onChange={(value) => setValue("type", value?.domainvalue)}
@@ -178,7 +178,7 @@ const WarehouseDetail: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                     </div>
                     <div className="row-zyx">
                         <FieldSelect
-                            label={t(langKeys.status)}
+                            label={'ESTADO'}
                             className="col-6"
                             valueDefault={getValues("status")}
                             onChange={(value) => setValue("status", value?.domainvalue)}

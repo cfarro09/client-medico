@@ -272,7 +272,7 @@ const DetailShop: React.FC<{
                     optionValue="shopid"
                 />
                 <FieldMultiSelect
-                    label={"WareHouse"}
+                    label={"Almacenes"}
                     className="col-6"
                     valueDefault={getValues(`shops.${i}.warehouses`)}
                     fregister={{
@@ -384,7 +384,6 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                     shop: shop.data,
                 }
                 setDataExtra(dd)
-
                 if (row) {
                     setloadingShop(true)
                     dispatch(getCollectionAux(getShopsByUserid(row.userid)));
@@ -541,19 +540,8 @@ const Detail: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => 
                         />
                     </div>
                     <div className="row-zyx">
-                        <FieldSelect
-                            loading={multiData.loading}
-                            label={t(langKeys.docType)}
-                            className="col-6"
-                            valueDefault={getValues('doc_type')}
-                            onChange={(value) => setValue('doc_type', value ? value.domainvalue : '')}
-                            error={errors?.doc_type?.message}
-                            data={dataExtra.docType}
-                            optionDesc="domaindesc"
-                            optionValue="domainvalue"
-                        />
                         <FieldEdit
-                            label={t(langKeys.docNumber)}
+                            label={'RUC/DNI'}
                             className="col-6"
                             valueDefault={getValues('doc_number')}
                             onChange={(value) => setValue('doc_number', value)}
