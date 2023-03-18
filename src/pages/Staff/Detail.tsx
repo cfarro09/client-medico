@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, Checkbox, makeStyles, Switch, Typography } from "@material-ui/core";
+import { Button, Checkbox, CircularProgress, makeStyles, Switch, Typography } from "@material-ui/core";
 import { DetailModule, Dictionary } from "@types";
 import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
 import { useSelector } from "hooks";
@@ -95,8 +95,7 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const [openDialogPassword, setOpenDialogPassword] = useState(false);
-    const [showDataComision, setShowDataComision] = useState(false);
-    const [dataComision, setDataComision] = useState([]);
+    const [loading, setLoading] = useState<Boolean>(true);
 
     useEffect(() => {
         if (!multiData.error && !multiData.loading) {
@@ -198,7 +197,32 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
     ]);
 
     const onSubmit = handleSubmit((data) => {
-        console.log("🚀 ~ file: Detail.tsx:159 ~ onSubmit ~ data:", data);
+        if (data.staff_type === "FIJO") {
+            if (
+                data.payment_type.salary_amount +
+                    data.payment_type.travel_amount +
+                    data.payment_type.comision_amount ===
+                0
+            ) {
+                dispatch(showSnackbar({ show: true, success: false, message: "Debe asignar algun tipo de pago" }));
+                return;
+            }
+            if (comision && data.payment_type.comision_amount === 0){
+                dispatch(showSnackbar({ show: true, success: false, message: "Debe asignar algun tipo de comnision" }));
+                return;
+            }
+            data.payment_type.labor_cost_amount = data.payment_type.per_day_amount = 0;
+        }
+
+        if (data.staff_type === "TEMPORAL") {
+            if (data.payment_type.labor_cost_amount + data.payment_type.per_day_amount === 0) {
+                dispatch(showSnackbar({ show: true, success: false, message: "Debe asignar algun tipo de pago" }));
+                return;
+            }
+            data.payment_type.salary_amount = data.payment_type.travel_amount = data.payment_type.comision_amount = 0;
+        }
+
+        let productos = JSON.stringify(data.products);
         if (!row && !data.password && role_watch !== 5) {
             dispatch(showSnackbar({ show: true, success: false, message: t(langKeys.password_required) }));
             return;
@@ -206,7 +230,17 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
 
         const callback = () => {
             dispatch(showBackdrop(true));
-            dispatch(execute(insStaff({ ...data, pwd: data.password, roleid: role_watch })));
+            dispatch(
+                execute(
+                    insStaff({
+                        ...data,
+                        pwd: data.password,
+                        roleid: role_watch,
+                        products: productos,
+                        commission: data.payment_type.comision,
+                    })
+                )
+            );
             setWaitSave(true);
         };
 
@@ -238,7 +272,7 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
     useEffect(() => {
         if (!mainAux.loading && !mainAux.error) {
             if (mainAux.key === "UFN_USER_COMMISSION_PRODUCT_LS") {
-                // setLoading(false);
+                setLoading(false);
                 setValue(
                     "products",
                     mainAux.data.map((x) => ({
@@ -246,7 +280,7 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                         product_name: x.product_name,
                         purchase_price: x.purchase_price,
                         category: x.categroy,
-                        comission_type: x.comission_type,
+                        commission_type: x.commission_type,
                         description: x.description,
                         userproductcommissionid: x.userproductcommissionid || 0,
                         userid: x.userid || 0,
@@ -408,8 +442,8 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                             loading={multiData.loading}
                             valueDefault={getValues("staff_type")}
                             onChange={(value) => {
-                                setValue("staff_type", value ? value.domainvalue : "")
-                                trigger('staff_type')
+                                setValue("staff_type", value ? value.domainvalue : "");
+                                trigger("staff_type");
                             }}
                             error={errors?.staff_type?.message}
                             data={dataExtra.tipopersonal}
@@ -418,7 +452,12 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                         />
                     </div>
                 </div>
-                {staff_type && (
+                {loading && (
+                    <div style={{ textAlign: "center", marginTop: "20px" }}>
+                        <CircularProgress />
+                    </div>
+                )}
+                {!loading && staff_type && (
                     <div className="row-zyx">
                         <div className={classes.containerDetail2}>
                             <Typography component="div" variant="h5">
@@ -525,76 +564,76 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                                     </div>
                                 </div>
                             )}
-                            {staff_type !== "FIJO" && 
-                                (
-                                    <div className="temporal">
-                                        <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
-                                            <div className="col-4">
-                                                <label>COSTO TRABAJO</label>
-                                            </div>
-                                            <div className="col-6">
-                                                <FieldEdit
-                                                    label={""}
-                                                    type="number"
-                                                    className={classes.input}
-                                                    disabled={!labor_cost}
-                                                    valueDefault={getValues("payment_type.labor_cost_amount")}
-                                                    onChange={(value) => setValue("payment_type.labor_cost_amount", value)}
-                                                    error={errors?.payment_type?.labor_cost_amount?.message}
-                                                    variant="outlined"
-                                                />
-                                            </div>
-                                            <div className="col-2">
-                                                <Controller
-                                                    name="salary"
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Switch
-                                                            checked={getValues("payment_type.labor_cost")}
-                                                            onChange={(value) => setValue("payment_type.labor_cost", value.target.checked)}
-                                                            color="primary"
-                                                        />
-                                                    )}
-                                                />
-                                            </div>
+                            {staff_type !== "FIJO" && (
+                                <div className="temporal">
+                                    <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
+                                        <div className="col-4">
+                                            <label>COSTO TRABAJO</label>
                                         </div>
-                                        <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
-                                            <div className="col-4">
-                                                <label>VIATICOS POR DIA</label>
-                                            </div>
-                                            <div className="col-6">
-                                                <FieldEdit
-                                                    label={""}
-                                                    type="number"
-                                                    className={classes.input}
-                                                    disabled={!per_day}
-                                                    valueDefault={getValues("payment_type.per_day_amount")}
-                                                    onChange={(value) => setValue("payment_type.per_day_amount", value)}
-                                                    error={errors?.payment_type?.per_day_amount?.message}
-                                                    variant="outlined"
-                                                />
-                                            </div>
-                                            <div className="col-2">
-                                                <Controller
-                                                    name="travel"
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Switch
-                                                            checked={getValues("payment_type.per_day")}
-                                                            onChange={(value) =>
-                                                                setValue("payment_type.per_day", value.target.checked)
-                                                            }
-                                                            color="primary"
-                                                        />
-                                                    )}
-                                                />
-                                            </div>
+                                        <div className="col-6">
+                                            <FieldEdit
+                                                label={""}
+                                                type="number"
+                                                className={classes.input}
+                                                disabled={!labor_cost}
+                                                valueDefault={getValues("payment_type.labor_cost_amount")}
+                                                onChange={(value) => setValue("payment_type.labor_cost_amount", value)}
+                                                error={errors?.payment_type?.labor_cost_amount?.message}
+                                                variant="outlined"
+                                            />
+                                        </div>
+                                        <div className="col-2">
+                                            <Controller
+                                                name="salary"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <Switch
+                                                        checked={getValues("payment_type.labor_cost")}
+                                                        onChange={(value) =>
+                                                            setValue("payment_type.labor_cost", value.target.checked)
+                                                        }
+                                                        color="primary"
+                                                    />
+                                                )}
+                                            />
                                         </div>
                                     </div>
-                                )
-                            }
+                                    <div className="row-zyx" style={{ alignItems: "center", margin: "0 40px" }}>
+                                        <div className="col-4">
+                                            <label>VIATICOS POR DIA</label>
+                                        </div>
+                                        <div className="col-6">
+                                            <FieldEdit
+                                                label={""}
+                                                type="number"
+                                                className={classes.input}
+                                                disabled={!per_day}
+                                                valueDefault={getValues("payment_type.per_day_amount")}
+                                                onChange={(value) => setValue("payment_type.per_day_amount", value)}
+                                                error={errors?.payment_type?.per_day_amount?.message}
+                                                variant="outlined"
+                                            />
+                                        </div>
+                                        <div className="col-2">
+                                            <Controller
+                                                name="travel"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <Switch
+                                                        checked={getValues("payment_type.per_day")}
+                                                        onChange={(value) =>
+                                                            setValue("payment_type.per_day", value.target.checked)
+                                                        }
+                                                        color="primary"
+                                                    />
+                                                )}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                        {(comision && role_watch === 3) && (
+                        {comision && role_watch === 3 && staff_type === "FIJO" && (
                             <div className={classes.containerDetail2}>
                                 <Typography component="div" variant="h5">
                                     Comisiones
@@ -611,7 +650,15 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                                                 type="number"
                                                 className={classes.input}
                                                 valueDefault={getValues(`products.${i}.amount`)}
-                                                onChange={(value) => setValue(`products.${i}.amount`, value)}
+                                                onChange={(value) => {
+                                                    setValue(`products.${i}.amount`, value);
+                                                    let sumComision = getValues("products").reduce(
+                                                        (acc, act) => acc + parseFloat(act.amount),
+                                                        0
+                                                    );
+                                                    setValue("payment_type.comision_amount", sumComision);
+                                                    trigger("payment_type.comision_amount");
+                                                }}
                                                 error={errors?.products?.[i]?.amount?.message}
                                                 variant="outlined"
                                             />

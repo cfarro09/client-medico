@@ -57,7 +57,7 @@ const Vehicle: FC = () => {
             }
         }
     }, [executeResult, waitSave]);
-    
+
     const fetchData = () => dispatch(getCollection(getVehicleSel(0)));
 
     // MainDataFill
@@ -74,6 +74,8 @@ const Vehicle: FC = () => {
             getMultiCollection([
                 getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
                 getValuesFromDomain("TIPOCORP", "DOMAIN-TIPOCORP"),
+                getValuesFromDomain("TIPOVEHICULO", "DOMAIN-TIPOVEHICULO"),
+                getValuesFromDomain("EMPRESAS", "DOMAIN-EMPRESAS"),
             ])
         );
         return () => {
@@ -91,30 +93,11 @@ const Vehicle: FC = () => {
                 width: "1%",
                 Cell: (props: any) => {
                     const row = props.cell.row.original;
-                    return (
-                        <TemplateIcons
-                            deleteFunction={() => handleDelete(row)}
-                        />
-                    );
+                    return <TemplateIcons deleteFunction={() => handleDelete(row)} />;
                 },
             },
             {
-                Header: 'Placa',
-                accessor: "plate_number",
-                NoFilter: true
-            },
-            {
-                Header: 'Soat',
-                accessor: "soat",
-                NoFilter: true
-            },
-            {
-                Header: 'Descripcion',
-                accessor: "description",
-                NoFilter: true
-            },
-            {
-                Header: t(langKeys.status),
+                Header: "CONDICION",
                 accessor: "status",
                 NoFilter: true,
                 prefixTranslation: "status_",
@@ -122,6 +105,36 @@ const Vehicle: FC = () => {
                     const { status } = props.cell.row.original;
                     return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
                 },
+            },
+            {
+                Header: "TIPO",
+                accessor: "vehicle_type",
+                NoFilter: true,
+            },
+            {
+                Header: "DUEÑO",
+                accessor: "company_name",
+                NoFilter: true,
+            },
+            {
+                Header: "ACTIVIDAD",
+                accessor: "activity",
+                NoFilter: true,
+            },
+            {
+                Header: "MARCA",
+                accessor: "vehicle_brand",
+                NoFilter: true,
+            },
+            {
+                Header: "PLACA",
+                accessor: "plate_number",
+                NoFilter: true,
+            },
+            {
+                Header: "TONELAJE",
+                accessor: "vehicle_capacity",
+                NoFilter: true,
             },
         ],
         []
@@ -168,13 +181,7 @@ const Vehicle: FC = () => {
             />
         );
     } else {
-        return (
-            <Detail
-                row={rowSelected}
-                setViewSelected={setViewSelected}
-                fetchData={fetchData}
-            />
-        );
+        return <Detail row={rowSelected} setViewSelected={setViewSelected} fetchData={fetchData} />;
     }
 };
 export default Vehicle;

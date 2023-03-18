@@ -38,7 +38,12 @@ const DetailVehicle: React.FC<DetailModule> = ({ row, setViewSelected, fetchData
     const [waitSave, setWaitSave] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
     const multiData = useSelector((state) => state.main.multiData);
-    const [dataExtra, setDataExtra] = useState<{ status: Dictionary[]; type: Dictionary[] }>({ status: [], type: [] });
+    const [dataExtra, setDataExtra] = useState<{
+        status: Dictionary[];
+        type: Dictionary[];
+        vehicle_type: Dictionary[];
+        companys: Dictionary[];
+    }>({ status: [], type: [], vehicle_type: [], companys: [] });
     const dispatch = useDispatch();
     const { t } = useTranslation();
 
@@ -46,10 +51,14 @@ const DetailVehicle: React.FC<DetailModule> = ({ row, setViewSelected, fetchData
         if (!multiData.error && !multiData.loading) {
             const dataStatus = multiData.data.find((x) => x.key === "DOMAIN-ESTADOGENERICO");
             const dataTypes = multiData.data.find((x) => x.key === "DOMAIN-TIPOCORP");
-            if (dataStatus && dataTypes) {
+            const vehicle_type = multiData.data.find((x) => x.key === "DOMAIN-TIPOVEHICULO");
+            const companys = multiData.data.find((x) => x.key === "DOMAIN-EMPRESAS");
+            if (dataStatus && dataTypes && vehicle_type && companys) {
                 setDataExtra({
                     status: dataStatus.data,
                     type: dataTypes.data,
+                    vehicle_type: vehicle_type.data,
+                    companys: companys.data,
                 });
             }
         }
@@ -93,6 +102,9 @@ const DetailVehicle: React.FC<DetailModule> = ({ row, setViewSelected, fetchData
             soat: row?.soat || "",
             vehicle_capacity: row?.vehicle_capacity || "",
             vehicle_type: row?.vehicle_type || "",
+            vehicle_brand: row?.vehicle_brand || "",
+            activity: row?.activity || "",
+            company_name: row?.company_name || "",
             status: row?.status || "ACTIVO",
             operation: row ? "UPDATE" : "INSERT",
         },
@@ -115,7 +127,6 @@ const DetailVehicle: React.FC<DetailModule> = ({ row, setViewSelected, fetchData
     });
 
     React.useEffect(() => {
-        register("description", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register("status", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register("plate_number", { validate: (value) => (value && value.length) || t(langKeys.field_required) });
         register("soat");
@@ -154,48 +165,63 @@ const DetailVehicle: React.FC<DetailModule> = ({ row, setViewSelected, fetchData
                 </div>
                 <div className={classes.containerDetail}>
                     <div className="row-zyx">
+                        <FieldSelect
+                            label={"TIPO VEHICULO"}
+                            className="col-4"
+                            valueDefault={getValues("vehicle_type")}
+                            onChange={(value) => setValue("vehicle_type", value?.domainvalue)}
+                            error={errors?.vehicle_type?.message}
+                            data={dataExtra.vehicle_type}
+                            uset={true}
+                            optionDesc="domainvalue"
+                            optionValue="domainvalue"
+                        />
                         <FieldEdit
-                            label={"Numero de Placa"}
-                            className="col-6"
+                            label={"MARCA"}
+                            className="col-4"
+                            valueDefault={getValues("vehicle_brand")}
+                            onChange={(value) => setValue("vehicle_brand", value)}
+                            error={errors?.vehicle_brand?.message}
+                        />
+                        <FieldEdit
+                            label={"NUM PLACA"}
+                            className="col-4"
                             valueDefault={getValues("plate_number")}
                             onChange={(value) => setValue("plate_number", value)}
                             error={errors?.plate_number?.message}
                         />
-                        <FieldEdit
-                            label={"Descripcion"}
-                            className="col-6"
-                            valueDefault={getValues("description")}
-                            onChange={(value) => setValue("description", value)}
-                            error={errors?.description?.message}
-                        />
                     </div>
                     <div className="row-zyx">
                         <FieldEdit
-                            label={"Soat"}
-                            className="col-6"
-                            valueDefault={getValues("soat")}
-                            onChange={(value) => setValue("soat", value)}
-                            error={errors?.soat?.message}
+                            label={"ACTIVIDAD"}
+                            className="col-4"
+                            valueDefault={getValues("activity")}
+                            onChange={(value) => setValue("activity", value)}
+                            error={errors?.activity?.message}
+                        />
+                        <FieldSelect
+                            label={"EMPRESA"}
+                            className="col-4"
+                            valueDefault={getValues("company_name")}
+                            onChange={(value) => setValue("company_name", value?.domainvalue)}
+                            error={errors?.company_name?.message}
+                            data={dataExtra.companys}
+                            uset={true}
+                            optionDesc="domainvalue"
+                            optionValue="domainvalue"
                         />
                         <FieldEdit
-                            label={"Capacidad del Vehiculo"}
-                            className="col-6"
+                            label={"TONELAJE"}
+                            className="col-4"
                             valueDefault={getValues("vehicle_capacity")}
                             onChange={(value) => setValue("vehicle_capacity", value)}
                             error={errors?.vehicle_capacity?.message}
                         />
                     </div>
                     <div className="row-zyx">
-                        <FieldEdit
-                            label={"Tipo del Vehiculo"}
-                            className="col-6"
-                            valueDefault={getValues("vehicle_type")}
-                            onChange={(value) => setValue("vehicle_type", value)}
-                            error={errors?.vehicle_type?.message}
-                        />
                         <FieldSelect
-                            label={t(langKeys.status)}
-                            className="col-6"
+                            label={"CONDICION"}
+                            className="col-4"
                             valueDefault={getValues("status")}
                             onChange={(value) => setValue("status", value?.domainvalue)}
                             error={errors?.status?.message}
