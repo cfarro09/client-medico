@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getStaffSel, getValuesFromDomain, insDriver } from "common/helpers";
+import { getRolesPublic, getStaffSel, getValuesFromDomain, insDriver } from "common/helpers";
 import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -72,6 +72,7 @@ const Staff: FC = () => {
                 getValuesFromDomain("TIPODOCUMENTO", "DOMAIN-TIPODOCUMENTO"),
                 getValuesFromDomain("TIPOPAGOPERSONAL", "DOMAIN-TIPOPAGOPERSONAL"),
                 getValuesFromDomain("TIPOTRABAJADOR", "DOMAIN-TIPOTRABAJADOR"),
+                getRolesPublic(),
             ])
         );
         return () => {

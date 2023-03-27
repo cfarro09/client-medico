@@ -1,7 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Button, makeStyles } from "@material-ui/core";
 import { Dictionary } from "@types";
-import { getDateCleaned, getDrivers, getRoutes, getValuesFromDomain, getVehicles } from "common/helpers";
+import {
+    getAssistantSel,
+    getDateCleaned,
+    getDrivers,
+    getRoutes,
+    getValuesFromDomain,
+    getVehicles,
+} from "common/helpers";
 import { DateRangePicker, FieldSelect } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -126,7 +133,14 @@ const Routes: FC = () => {
 
     useEffect(() => {
         fetchData();
-        dispatch(getMultiCollection([getValuesFromDomain("ZONAS", "DOMAIN-ZONAS"), getDrivers(), getVehicles()]));
+        dispatch(
+            getMultiCollection([
+                getValuesFromDomain("ZONAS", "DOMAIN-ZONAS"),
+                getDrivers(),
+                getVehicles(),
+                getAssistantSel(0),
+            ])
+        );
         return () => {
             dispatch(resetAllMain());
         };

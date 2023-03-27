@@ -89,12 +89,18 @@ const DetailSupplier: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
         defaultValues: {
             id: row?.supplierid || 0,
             description: row?.description || "",
-            doc_type: row?.doc_type || "",
+            doc_type: row?.doc_type || "RUC",
             doc_number: row?.doc_number || "",
             contact_name: row?.contact_name || "",
             contact_email: row?.contact_email || "",
             contact_phone: row?.contact_phone || "",
             address: row?.address || "",
+            brand: row?.brand || "",
+            zone: row?.zone || "",
+            manager_contact_name: row?.manager_contact_name || "",
+            manager_contact_phone: row?.manager_contact_phone || "",
+            advisor_contact_name: row?.advisor_contact_name || "",
+            advisor_contact_phone: row?.advisor_contact_phone || "",
             status: row?.status || "ACTIVO",
             type: row?.type || "NINGUNO",
             operation: row ? "UPDATE" : "INSERT",
@@ -133,7 +139,7 @@ const DetailSupplier: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
             <form onSubmit={onSubmit}>
                 <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
                 <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-                    <TitleDetail title={row ? `${row.description}` : 'Nuevo Proveedor'} />
+                    <TitleDetail title={row ? `${row.description}` : "Nuevo Proveedor"} />
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                         <Button
                             variant="contained"
@@ -160,68 +166,46 @@ const DetailSupplier: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                 <div className={classes.containerDetail}>
                     <div className="row-zyx">
                         <FieldEdit
-                            label={'Descripcion'}
+                            label={"EMPRESA"}
                             className="col-6"
                             valueDefault={getValues("description")}
                             onChange={(value) => setValue("description", value)}
                             error={errors?.description?.message}
                         />
-                        <FieldSelect
-                            label={t(langKeys.docType)}
-                            className="col-6"
-                            valueDefault={getValues("doc_type")}
-                            onChange={(value) => setValue("doc_type", value?.domainvalue)}
-                            error={errors?.doc_type?.message}
-                            data={dataExtra.type}
-                            uset={true}
-                            optionDesc="domainvalue"
-                            optionValue="domainvalue"
-                        />
-                    </div>
-                    <div className="row-zyx">
                         <FieldEdit
-                            label={t(langKeys.docNumber)}
+                            label={"RUC"}
                             className="col-6"
                             valueDefault={getValues("doc_number")}
                             onChange={(value) => setValue("doc_number", value)}
-                            type='number'
+                            type="number"
                             error={errors?.doc_number?.message}
-                            InputProps={{ inputProps: { min: "0", max: '99999999999' } }}
-                        />
-                        <FieldEdit
-                            label={"Nombre Contacto"}
-                            className="col-6"
-                            valueDefault={getValues("contact_name")}
-                            onChange={(value) => setValue("contact_name", value)}
-                            error={errors?.contact_name?.message}
+                            InputProps={{ inputProps: { min: "0", max: "99999999999" } }}
                         />
                     </div>
                     <div className="row-zyx">
                         <FieldEdit
-                            label={"Email Contact"}
+                            label={"CORREO"}
                             className="col-6"
                             valueDefault={getValues("contact_email")}
                             onChange={(value) => setValue("contact_email", value)}
-                            type='email'
+                            type="email"
                             error={errors?.contact_email?.message}
                         />
                         <FieldEdit
-                            label={"Telefono Contacto"}
+                            label="MARCA"
                             className="col-6"
-                            valueDefault={getValues("contact_phone")}
-                            onChange={(value) => setValue("contact_phone", value)}
-                            error={errors?.contact_phone?.message}
-                            type='number'
-                            InputProps={{ inputProps: { min: "0", max: '999999999' } }}
+                            valueDefault={getValues("brand")}
+                            onChange={(value) => setValue("brand", value)}
+                            error={errors?.brand?.message}
                         />
                     </div>
                     <div className="row-zyx">
                         <FieldEdit
-                            label={"Direccion"}
+                            label="ZONA"
                             className="col-6"
-                            valueDefault={getValues("address")}
-                            onChange={(value) => setValue("address", value)}
-                            error={errors?.address?.message}
+                            valueDefault={getValues("zone")}
+                            onChange={(value) => setValue("zone", value)}
+                            error={errors?.zone?.message}
                         />
                         <FieldSelect
                             label={t(langKeys.status)}
@@ -234,6 +218,38 @@ const DetailSupplier: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                             prefixTranslation="status_"
                             optionDesc="domainvalue"
                             optionValue="domainvalue"
+                        />
+                    </div>
+                    <div className="row-zyx">
+                        <FieldEdit
+                            label="GERENTE"
+                            className="col-6"
+                            valueDefault={getValues("manager_contact_name")}
+                            onChange={(value) => setValue("manager_contact_name", value)}
+                            error={errors?.manager_contact_name?.message}
+                        />
+                        <FieldEdit
+                            label="GERENTE TELEFONO"
+                            className="col-6"
+                            valueDefault={getValues("manager_contact_phone")}
+                            onChange={(value) => setValue("manager_contact_phone", value)}
+                            error={errors?.manager_contact_phone?.message}
+                        />
+                    </div>
+                    <div className="row-zyx">
+                        <FieldEdit
+                            label="ASESOR"
+                            className="col-6"
+                            valueDefault={getValues("advisor_contact_name")}
+                            onChange={(value) => setValue("advisor_contact_name", value)}
+                            error={errors?.advisor_contact_name?.message}
+                        />
+                        <FieldEdit
+                            label="ASESOR TELEFONO"
+                            className="col-6"
+                            valueDefault={getValues("advisor_contact_phone")}
+                            onChange={(value) => setValue("advisor_contact_phone", value)}
+                            error={errors?.advisor_contact_phone?.message}
                         />
                     </div>
                 </div>

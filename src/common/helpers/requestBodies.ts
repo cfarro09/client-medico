@@ -220,6 +220,13 @@ export const getRoles = (): IRequestBody => ({
     }
 })
 
+export const getRolesPublic = (): IRequestBody => ({
+    method: "UFN_ROLE_PUBLIC_LST",
+    key: "UFN_ROLE_PUBLIC_LST",
+    parameters: {
+    }
+})
+
 export const getWareHouse = (shopid: number | null = null, key: string | null = ""): IRequestBody => ({
     method: "UFN_WAREHOUSE_LST",
     key: `UFN_WAREHOUSE_LST${key}`,

@@ -86,11 +86,13 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
         type: Dictionary[];
         tipopago: Dictionary[];
         tipopersonal: Dictionary[];
+        roles: Dictionary[];
     }>({
         status: [],
         type: [],
         tipopago: [],
         tipopersonal: [],
+        roles: []
     });
     const dispatch = useDispatch();
     const { t } = useTranslation();
@@ -103,12 +105,14 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
             const dataTypes = multiData.data.find((x) => x.key === "DOMAIN-TIPODOCUMENTO");
             const tipopago = multiData.data.find((x) => x.key === "DOMAIN-TIPOPAGOPERSONAL");
             const tipopersonal = multiData.data.find((x) => x.key === "DOMAIN-TIPOTRABAJADOR");
-            if (dataStatus && dataTypes && tipopago && tipopersonal) {
+            const roles = multiData.data.find((x) => x.key === 'UFN_ROLE_PUBLIC_LST');
+            if (dataStatus && dataTypes && tipopago && tipopersonal && roles) {
                 setDataExtra({
                     status: dataStatus.data,
                     type: dataTypes.data,
                     tipopago: tipopago.data,
                     tipopersonal: tipopersonal.data,
+                    roles: roles.data
                 });
             }
         }
@@ -379,11 +383,11 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                             className="col-4"
                             loading={multiData.loading}
                             valueDefault={getValues("roleid")}
-                            onChange={(value) => setValue("roleid", value ? value.id : 0)}
+                            onChange={(value) => setValue("roleid", value ? value.roleid : 0)}
                             error={errors?.roleid?.message}
-                            data={charges}
-                            optionDesc="value"
-                            optionValue="id"
+                            data={dataExtra.roles}
+                            optionDesc="description"
+                            optionValue="roleid"
                         />
                         <FieldEdit
                             className="col-4"

@@ -27,11 +27,11 @@ const Supplier: FC = () => {
     useEffect(() => {
         if (applications) {
             setPagePermissions({
-                "view": applications["/supplier"][0],
-                "modify": applications["/supplier"][1],
-                "insert": applications["/supplier"][2],
-                "delete": applications["/supplier"][3],
-                "download": applications["/supplier"][4],
+                view: applications["/supplier"][0],
+                modify: applications["/supplier"][1],
+                insert: applications["/supplier"][2],
+                delete: applications["/supplier"][3],
+                download: applications["/supplier"][4],
             });
         }
     }, [applications]);
@@ -40,10 +40,12 @@ const Supplier: FC = () => {
 
     useEffect(() => {
         fetchData();
-        dispatch(getMultiCollection([
-            getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
-            getValuesFromDomain("TIPODOCUMENTO", "DOMAIN-TIPODOCUMENTO")
-        ]));
+        dispatch(
+            getMultiCollection([
+                getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
+                getValuesFromDomain("TIPODOCUMENTO", "DOMAIN-TIPODOCUMENTO"),
+            ])
+        );
         return () => {
             dispatch(resetAllMain());
         };
@@ -82,49 +84,49 @@ const Supplier: FC = () => {
                 width: "1%",
                 Cell: (props: any) => {
                     const row = props.cell.row.original;
-                    return (
-                        <TemplateIcons
-                            deleteFunction={() => handleDelete(row)}
-                        />
-                    );
+                    return <TemplateIcons deleteFunction={() => handleDelete(row)} />;
                 },
             },
             {
-                Header: 'Descripcion',
-                accessor: 'description'
-            },
-            {
-                Header: 'Tipo Documento',
-                accessor: 'doc_type'
-            },
-            {
-                Header: 'Nro Documento',
-                accessor: 'doc_number'
-            },
-            {
-                Header: 'Nombre Contacto',
-                accessor: 'contact_name'
-            },
-            {
-                Header: 'Email Contacto',
-                accessor: 'contact_email'
-            },
-            {
-                Header: 'Telefono Contacto',
-                accessor: 'contact_phone'
-            },
-            {
-                Header: 'Direccion',
-                accessor: 'address'
-            },
-            {
-                Header: t(langKeys.status),
+                Header: "CONDICION",
                 accessor: "status",
                 prefixTranslation: "status_",
                 Cell: (props: any) => {
                     const { status } = props.cell.row.original;
                     return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
                 },
+            },
+            {
+                Header: "EMPRESA",
+                accessor: "description",
+            },
+            {
+                Header: "RUC",
+                accessor: "doc_number",
+            },
+            {
+                Header: "ZONA",
+                accessor: "zone",
+            },
+            {
+                Header: "MARCA",
+                accessor: "brand",
+            },
+            {
+                Header: "GERENTE",
+                accessor: "manager_contact_name",
+            },
+            {
+                Header: "GERENTE TELEFONO",
+                accessor: "manager_contact_phone",
+            },
+            {
+                Header: "ASESOR",
+                accessor: "advisor_contact_name",
+            },
+            {
+                Header: "ASESOR TELEFONO",
+                accessor: "advisor_contact_phone",
             },
         ],
         []
@@ -161,7 +163,7 @@ const Supplier: FC = () => {
             <TableZyx
                 columns={columns}
                 data={dataView}
-                titlemodule={'Proveedores'}
+                titlemodule={"Proveedores"}
                 download={!!pagePermissions.download}
                 onClickRow={handleEdit}
                 loading={mainResult.loading}
@@ -170,13 +172,7 @@ const Supplier: FC = () => {
             />
         );
     } else {
-        return (
-            <Detail
-                row={rowSelected}
-                setViewSelected={setViewSelected}
-                fetchData={fetchData}
-            />
-        );
+        return <Detail row={rowSelected} setViewSelected={setViewSelected} fetchData={fetchData} />;
     }
 };
 export default Supplier;
