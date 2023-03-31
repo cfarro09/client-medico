@@ -169,7 +169,7 @@ const Account: FC = () => {
         dispatch(
             manageConfirmation({
                 visible: true,
-                question: t(langKeys.confirmation_delete),
+                question: 'Se eliminarán también los métodos de pago asciados a esta cuenta. Esta seguro que quiere continuar?',
                 callback,
             })
         );

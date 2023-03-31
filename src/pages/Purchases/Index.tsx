@@ -225,7 +225,7 @@ const Purchase: FC = () => {
         const callback = () => {
             dispatch(
                 execute(
-                    insPurchase({ ...row, operation: "DELETE", status: "ELIMINADO", purchaseid: row.purchaseorderid })
+                    insPurchase({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.purchaseorderid })
                 )
             );
             dispatch(showBackdrop(true));
