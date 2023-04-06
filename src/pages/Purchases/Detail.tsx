@@ -134,17 +134,15 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                     companys: companys.data,
                     warehouses: warehouses.data,
                     payments: payments.data,
-                    drivers: drivers.data,
-                    vehicles: vehicles.data,
+                    drivers: !row ? drivers.data.filter((d) => d.status !== "ASIGNADO") : drivers.data,
+                    vehicles: !row ? vehicles.data.filter((v) => v.status !== "ASIGNADO") : vehicles.data,
                     suppliers: suppliers.data,
                 });
 
                 if (!row) {
                     setValue("supplierid", suppliers.data?.[0]?.supplierid || 0);
-                    setValue("warehouseid", warehouses.data?.[0]?.warehouseid || 0);
                     setValue("company_name", companys.data?.[0]?.domainvalue || 0);
                     trigger("supplierid");
-                    trigger("warehouseid");
                     trigger("company_name");
                 }
             }
@@ -416,16 +414,18 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                         >
                             {t(langKeys.back)}
                         </Button>
-                        <Button
-                            className={classes.button}
-                            variant="contained"
-                            color="primary"
-                            type="submit"
-                            startIcon={<SaveIcon color="secondary" />}
-                            style={{ backgroundColor: "#55BD84" }}
-                        >
-                            {t(langKeys.save)}
-                        </Button>
+                        {!row && (
+                            <Button
+                                className={classes.button}
+                                variant="contained"
+                                color="primary"
+                                type="submit"
+                                startIcon={<SaveIcon color="secondary" />}
+                                style={{ backgroundColor: "#55BD84" }}
+                            >
+                                {t(langKeys.save)}
+                            </Button>
+                        )}
                     </div>
                 </div>
                 <div className={classes.containerDetail}>
@@ -433,6 +433,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                         <FieldSelect
                             label={"CHOFER (*)"}
                             className="col-4"
+                            disabled={!!row}
                             valueDefault={getValues("userid")}
                             onChange={(value) => setValue("userid", value?.userid)}
                             error={errors?.userid?.message}
@@ -444,6 +445,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                         <FieldSelect
                             label={"ALMACEN(UNIDAD) (*)"}
                             className="col-4"
+                            disabled={!!row}
                             valueDefault={getValues("warehouseid")}
                             onChange={(value) => setValue("warehouseid", value?.warehouseid)}
                             error={errors?.warehouseid?.message}
@@ -455,6 +457,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                         <FieldSelect
                             label={"EMPRESA"}
                             className="col-4"
+                            disabled={!!row}
                             valueDefault={getValues("company_name")}
                             onChange={(value) => setValue("company_name", value?.domainvalue)}
                             error={errors?.company_name?.message}
@@ -468,6 +471,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                         <FieldSelect
                             label={"PROVEEDOR (*)"}
                             className="col-4"
+                            disabled={!!row}
                             valueDefault={getValues("supplierid")}
                             onChange={(value) => setValue("supplierid", value?.supplierid)}
                             error={errors?.supplierid?.message}
@@ -478,6 +482,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                         />
                         <FieldEdit
                             label={"NRO DE SCOP"}
+                            disabled={!!row}
                             className="col-4"
                             valueDefault={getValues("scop_number")}
                             onChange={(value) => setValue("scop_number", value)}
@@ -486,6 +491,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                         <FieldEdit
                             label={"FACTURA"}
                             className="col-4"
+                            disabled={!!row}
                             valueDefault={getValues("bill_number")}
                             onChange={(value) => setValue("bill_number", value)}
                             error={errors?.bill_number?.message}
@@ -495,6 +501,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                         <FieldEdit
                             label={"MARCA"}
                             className="col-4"
+                            disabled={!!row}
                             valueDefault={getValues("brand")}
                             onChange={(value) => setValue("brand", value)}
                             error={errors?.brand?.message}
@@ -502,6 +509,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                         <FieldEdit
                             label={"NRO GUIA"}
                             className="col-4"
+                            disabled={!!row}
                             valueDefault={getValues("guide_number")}
                             onChange={(value) => setValue("guide_number", value)}
                             error={errors?.guide_number?.message}
@@ -510,6 +518,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                         <FieldEdit
                             label={"OBSERVACIONES"}
                             className="col-4"
+                            disabled={!!row}
                             valueDefault={getValues("observations")}
                             onChange={(value) => setValue("observations", value)}
                             error={errors?.observations?.message}
@@ -531,33 +540,35 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                             >
                                 <Typography className={classes.heading}>Productos</Typography>
                                 <Typography className={classes.secondaryHeading}>
-                                    Elegir productos de la compra
+                                    {row ? "Detalle de productos" : "Elegir productos de la compra"}
                                 </Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 <div className={classes.containerDetail}>
-                                    <FieldSelect
-                                        label={"PRODUCTOS"}
-                                        variant="outlined"
-                                        data={productsToShow}
-                                        optionDesc="descritpion"
-                                        optionValue="id"
-                                        onChange={(value) => {
-                                            setProductsToShow(productsToShow.filter((x) => x.id !== value.id));
-                                            productAppend({
-                                                purchaseorderdetailid: fieldsProduct.length * -1,
-                                                id: value.id,
-                                                productid: value.productid,
-                                                description: value.descritpion,
-                                                product_type: value.product_type,
-                                                price: parseFloat(value?.purchase_price || "0"),
-                                                requested_quantity: 0,
-                                                delivered_quantity: 0,
-                                                subtotal: 0.0,
-                                                status: "ACTIVO",
-                                            });
-                                        }}
-                                    />
+                                    {!row && (
+                                        <FieldSelect
+                                            label={"PRODUCTOS"}
+                                            variant="outlined"
+                                            data={productsToShow}
+                                            optionDesc="descritpion"
+                                            optionValue="id"
+                                            onChange={(value) => {
+                                                setProductsToShow(productsToShow.filter((x) => x.id !== value.id));
+                                                productAppend({
+                                                    purchaseorderdetailid: fieldsProduct.length * -1,
+                                                    id: value.id,
+                                                    productid: value.productid,
+                                                    description: value.descritpion,
+                                                    product_type: value.product_type,
+                                                    price: parseFloat(value?.purchase_price || "0"),
+                                                    requested_quantity: 0,
+                                                    delivered_quantity: 0,
+                                                    subtotal: 0.0,
+                                                    status: "ACTIVO",
+                                                });
+                                            }}
+                                        />
+                                    )}
                                     <TableContainer>
                                         <Table size="small">
                                             <TableHead>
@@ -578,6 +589,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                     <div style={{ display: "flex" }}>
                                                                         <IconButton
                                                                             size="small"
+                                                                            style={{display: !!row ? 'none' : 'auto'}}
                                                                             onClick={() => {
                                                                                 handleRemove(i, item);
                                                                             }}
@@ -602,6 +614,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                             ),
                                                                         }}
                                                                         type={"number"}
+                                                                        disabled={!!row}
                                                                         inputProps={{
                                                                             min: 0,
                                                                             style: { textAlign: "right" },
@@ -643,6 +656,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                             style: { textAlign: "right" },
                                                                         }}
                                                                         type={"number"}
+                                                                        disabled={!!row}
                                                                         valueDefault={getValues(`products.${i}.price`)}
                                                                         error={errors?.products?.[i]?.price?.message}
                                                                         onChange={(value) => {
@@ -692,6 +706,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                     <TableCell>
                                                         <IconButton
                                                             size="small"
+                                                            style={{display: !!row ? 'none' : 'auto'}}
                                                             onClick={() => {
                                                                 const tt = getValues("payments").reduce(
                                                                     (acc, x) => acc + x.amount,
@@ -722,6 +737,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                     <div style={{ display: "flex" }}>
                                                                         <IconButton
                                                                             size="small"
+                                                                            style={{display: !!row ? 'none' : 'auto'}}
                                                                             onClick={() => {
                                                                                 handleDeletePayment(i, item);
                                                                             }}
@@ -734,6 +750,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                     <FieldSelect
                                                                         label={""}
                                                                         className="col-6"
+                                                                        disabled={!!row}
                                                                         valueDefault={getValues(
                                                                             `payments.${i}.paymentmethodid`
                                                                         )}
@@ -776,6 +793,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                             style: { textAlign: "right" },
                                                                         }}
                                                                         type={"number"}
+                                                                        disabled={!!row}
                                                                         valueDefault={getValues(`payments.${i}.amount`)}
                                                                         error={errors?.payments?.[i]?.amount?.message}
                                                                         onChange={(value) =>

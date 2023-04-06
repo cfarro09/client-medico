@@ -67,8 +67,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const initialRange = {
-    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+    startDate: new Date(new Date().setDate(new Date().getDate() - 30)),
+    endDate: new Date(),
     key: "selection",
 };
 
@@ -164,13 +164,13 @@ const Purchase: FC = () => {
                     return (
                         <TemplateIcons
                             deleteFunction={() => handleDelete(row)}
-                            extraOption={"Entrada de mercaderia"}
-                            ExtraICon={() => <SystemUpdateAltIcon width={18} style={{ fill: "#7721AD" }} />}
-                            extraFunction={() => {
-                                setMerchantEntry(true);
-                                setViewSelected("view-2");
-                                setRowSelected(row);
-                            }}
+                            // extraOption={"Entrada de mercaderia"}
+                            // ExtraICon={() => <SystemUpdateAltIcon width={18} style={{ fill: "#7721AD" }} />}
+                            // extraFunction={() => {
+                            //     setMerchantEntry(true);
+                            //     setViewSelected("view-2");
+                            //     setRowSelected(row);
+                            // }}
                         />
                     );
                 },
