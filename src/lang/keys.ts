@@ -567,6 +567,7 @@ export const langKeys = {
     status_pending: 'status_pending',
     status_cerrado: 'status_cerrado',
     status_asignado: 'status_asignado',
+    status_pagado: 'status_pagado',
 
     type_corp_ninguno: 'type_corp_ninguno',
     type_corp_natural: 'type_corp_natural',

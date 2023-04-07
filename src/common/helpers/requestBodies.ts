@@ -90,6 +90,12 @@ export const getCorpSel = (id: number): IRequestBody => ({
     },
 });
 
+export const getAccountReceivable = (): IRequestBody => ({
+    method: "UFN_ACCOUNT_RECEIVABLE_SEL",
+    key: "UFN_ACCOUNT_RECEIVABLE_SEL",
+    parameters: {},
+});
+
 export const getCashboxSel = (id: number): IRequestBody => ({
     method: "UFN_CASHBOX_SEL",
     key: "UFN_CASHBOX_SEL",

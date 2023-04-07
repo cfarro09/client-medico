@@ -163,6 +163,13 @@ export const routes: RouteConfig[] = [
         icon: (color) => <LocalMall stroke={color} fill={color} />,
     },
     {
+        key: paths.ACCOUNT_RECEIVABLE,
+        description: "Cuentas por Cobrar",
+        tooltip: "Cuentas por Cobrar",
+        path: paths.ACCOUNT_RECEIVABLE,
+        icon: (color) => <LocalMall stroke={color} fill={color} />,
+    },
+    {
         key: paths.SIGNIN,
         description: <Trans i18nKey={langKeys.domain_plural} count={2} />,
         tooltip: <Trans i18nKey={langKeys.domain_plural} />,
