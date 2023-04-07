@@ -369,6 +369,7 @@ const translation: LangKeys = {
     status_pendiente: 'pending',
     status_pending: 'pending',
     status_cerrado: 'closed',
+    status_asignado: 'asigned',
 
     type_corp_ninguno: 'none',
     type_corp_natural: 'Natural person',

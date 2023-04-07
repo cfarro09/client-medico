@@ -135,7 +135,7 @@ const Routes: FC = () => {
         fetchData();
         dispatch(
             getMultiCollection([
-                getValuesFromDomain("ZONAS", "DOMAIN-ZONAS"),
+                getValuesFromDomain("RUTAS", "DOMAIN-RUTAS"),
                 getDrivers(),
                 getVehicles(),
                 getAssistantSel(0),

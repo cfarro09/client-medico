@@ -19,10 +19,17 @@ const useStyles = makeStyles((theme) => ({
         width: "100%",
     },
     containerHeader: {
-        display: "block",
         marginBottom: 0,
+        display: "flex",
+        gap: 8,
+        flexWrap: "wrap",
+        justifyContent: "space-between",
         [theme.breakpoints.up("sm")]: {
             display: "flex",
+        },
+        "& > div": {
+            display: "flex",
+            gap: 8,
         },
     },
     filterComponent: {
@@ -30,8 +37,8 @@ const useStyles = makeStyles((theme) => ({
         maxWidth: "320px",
     },
     contentHeader: {
-        maringBottom: '200px'
-    }
+        maringBottom: "200px",
+    },
 }));
 const Stock: FC = () => {
     const classes = useStyles();
@@ -79,7 +86,7 @@ const Stock: FC = () => {
             getMultiCollection([
                 getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
                 getValuesFromDomain("TIPOCORP", "DOMAIN-TIPOCORP"),
-                getWareHouse(),
+                getWareHouse(0,'',true),
             ])
         );
         return () => {
@@ -122,42 +129,38 @@ const Stock: FC = () => {
     const columns = React.useMemo(
         () => [
             {
-                Header: "Almacen",
-                accessor: "warehouse_name",
-            },
-            {
-                Header: "Cod Producto",
-                accessor: "product_code",
-            },
-            {
-                Header: "Producto",
-                accessor: "product_name",
-            },
-            {
-                Header: "Cantidad",
-                accessor: "quantity",
-                type: "number"
-            },
-            {
-                Header: "Balance",
-                accessor: "balance",
-                type: "number"
-            },
-            {
-                Header: "Lote",
-                accessor: "batch",
-            },
-            {
-                Header: "Fecha expiracion",
-                accessor: "exp_date",
-            },
-            {
-                Header: t(langKeys.status),
+                Header: "CONDICION",
                 accessor: "status",
+                NoFilter: true,
                 prefixTranslation: "status_",
                 Cell: (props: any) => {
                     const { status } = props.cell.row.original;
                     return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
+                },
+            },
+            {
+                Header: "ALMACEN",
+                accessor: "warehouse_description",
+                NoFilter: true,
+            },
+            {
+                Header: "PRODUCTO",
+                accessor: "product_description",
+                NoFilter: true,
+            },
+            {
+                Header: "BALANCE",
+                accessor: "balance",
+                type: "number",
+                NoFilter: true,
+            },
+            {
+                Header: "ULTIMA MODIFICACION",
+                accessor: "changedate",
+                NoFilter: true,
+                Cell: (props: any) => {
+                    const { changedate } = props.cell.row.original;
+                    return changedate.split(".")[0];
                 },
             },
         ],
@@ -172,51 +175,49 @@ const Stock: FC = () => {
     if (viewSelected === "view-1") {
         return (
             <div className={classes.container}>
-                {/* <div style={{ height: 10 }}></div>
-                <div className={classes.contentHeader}>
-                    <Typography variant="h5" component="div">
-                        Inventario
-                    </Typography>
-                </div>
-                <br /> */}
+                <div style={{ height: 10}}></div>
+                <Typography variant="h5" component="div">
+                    Inventario
+                </Typography>
+                <br />
                 <TableZyx
                     columns={columns}
                     data={dataView}
-                    titlemodule={"Inventario"}
                     download={!!pagePermissions.download}
                     onClickRow={handleEdit}
                     loading={mainResult.loading}
                     register={false}
                     filterGeneral={false}
                     ButtonsElement={() => (
-                        <div
-                            className={classes.containerHeader}
-                            style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "space-between" }}
-                        >
-                            <div style={{ display: "flex", gap: 8 }}>
-                                <FieldSelect
-                                    label={"Almacen"}
-                                    className={classes.filterComponent}
-                                    valueDefault={warehouseSelected}
-                                    onChange={(value) => setWarehouseSelected(value ? value.warehouseid : 0)}
-                                    uset={true}
-                                    variant="outlined"
-                                    data={multiData1}
-                                    optionDesc="description"
-                                    optionValue="warehouseid"
-                                />
-                                <Button
-                                    disabled={mainResult.loading}
-                                    variant="contained"
-                                    color="primary"
-                                    startIcon={<SearchIcon style={{ color: "white" }} />}
-                                    style={{ width: 120, backgroundColor: "#55BD84" }}
-                                    onClick={() => search()}
-                                >
-                                    {t(langKeys.search)}
-                                </Button>
+                        <>
+                            <div className={classes.containerHeader} style={{ marginBottom: '20px' }}>
+                                <div>
+                                    <FieldSelect
+                                        label={"Almacen"}
+                                        className={classes.filterComponent}
+                                        valueDefault={warehouseSelected}
+                                        onChange={(value) => setWarehouseSelected(value ? value.warehouseid : 0)}
+                                        uset={true}
+                                        variant="outlined"
+                                        data={multiData1}
+                                        optionDesc="description"
+                                        optionValue="warehouseid"
+                                    />
+                                </div>
+                                <div>
+                                    <Button
+                                        disabled={mainResult.loading}
+                                        variant="contained"
+                                        color="primary"
+                                        startIcon={<SearchIcon style={{ color: "white" }} />}
+                                        style={{ width: 120, backgroundColor: "#55BD84" }}
+                                        onClick={() => search()}
+                                    >
+                                        {t(langKeys.search)}
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
+                        </>
                     )}
                 />
             </div>

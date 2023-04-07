@@ -116,7 +116,7 @@ type FormFields = {
     userid: number;
     warehouseid: number;
     assistants: string;
-    zone: string;
+    route: string;
 };
 
 const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
@@ -128,12 +128,12 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
     const [tabIndex, setTabIndex] = useState("0");
     const [dataExtra, setDataExtra] = useState<{
         driver: Dictionary[];
-        zones: Dictionary[];
+        routes: Dictionary[];
         vehicle: Dictionary[];
         assistans: Dictionary[];
     }>({
         driver: [],
-        zones: [],
+        routes: [],
         vehicle: [],
         assistans: [],
     });
@@ -159,7 +159,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
             id: row?.id || 0,
             userid: row?.userid || 0,
             warehouseid: row?.warehouseid || 0,
-            zone: row?.zone || "",
+            route: row?.route || "",
             assistants: '',
         },
     });
@@ -167,12 +167,12 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
     useEffect(() => {
         if (!multiData.error && !multiData.loading) {
             const driver = multiData.data.find((x) => x.key === "UFN_DRIVER_USERS_SEL");
-            const zones = multiData.data.find((x) => x.key === "DOMAIN-ZONAS");
+            const routes = multiData.data.find((x) => x.key === "DOMAIN-RUTAS");
             const vehicle = multiData.data.find((x) => x.key === "UFN_AVAILABLE_VEHICLE_LST");
             const assistans = multiData.data.find((x) => x.key === "UFN_ASSISTANTS_SEL");
 
             setDataExtra({
-                zones: zones?.data || [],
+                routes: routes?.data || [],
                 driver: driver?.data || [],
                 vehicle: vehicle?.data || [],
                 assistans: assistans?.data || [],
@@ -229,7 +229,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
     });
 
     React.useEffect(() => {
-        register("zone", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
+        register("route", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
         register("userid", { validate: (value) => (value && value > 0) || "" + t(langKeys.field_required) });
         register("warehouseid", { validate: (value) => (value && value > 0) || "" + t(langKeys.field_required) });
     }, [register]);
@@ -310,10 +310,10 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                     />
                                     <FieldSelect
                                         loading={multiData.loading}
-                                        label={`${t(langKeys.zone)}s`}
+                                        label={`Rutas`}
                                         className="col-6"
-                                        valueDefault={getValues("zone")}
-                                        data={dataExtra.zones}
+                                        valueDefault={getValues("route")}
+                                        data={dataExtra.routes}
                                         optionDesc="domaindesc"
                                         disabled={true}
                                         optionValue="domainvalue"
@@ -516,12 +516,12 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                 />
                                 <FieldSelect
                                     loading={multiData.loading}
-                                    label={`${t(langKeys.zone)}s`}
+                                    label={`Rutas`}
                                     className="col-6"
-                                    valueDefault={getValues("zone")}
-                                    onChange={(value) => setValue("zone", value ? value.domainvalue : "")}
-                                    error={errors?.zone?.message}
-                                    data={dataExtra.zones}
+                                    valueDefault={getValues("route")}
+                                    onChange={(value) => setValue("route", value ? value.domainvalue : "")}
+                                    error={errors?.route?.message}
+                                    data={dataExtra.routes}
                                     optionDesc="domaindesc"
                                     optionValue="domainvalue"
                                 />

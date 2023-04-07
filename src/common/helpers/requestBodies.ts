@@ -224,10 +224,14 @@ export const getRolesPublic = (): IRequestBody => ({
     parameters: {},
 });
 
-export const getWareHouse = (shopid: number | null = null, key: string | null = ""): IRequestBody => ({
+export const getWareHouse = (
+    shopid: number | null = 0,
+    key: string | null = "",
+    all: boolean | null = false
+): IRequestBody => ({
     method: "UFN_WAREHOUSE_LST",
     key: `UFN_WAREHOUSE_LST${key}`,
-    parameters: { shopid },
+    parameters: { all },
 });
 
 export const getDriversLst = (shopid: number | null = null, key: string | null = ""): IRequestBody => ({

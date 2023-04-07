@@ -2,8 +2,10 @@
 import {
     Button,
     CircularProgress,
+    FormControlLabel,
     IconButton,
     makeStyles,
+    Switch,
     Table,
     TableBody,
     TableCell,
@@ -50,6 +52,9 @@ type FormValues = {
     longitude: number;
     route: string;
     zone: string;
+    glp_consignation: boolean;
+    water_consignation: boolean;
+    can_credit: boolean;
 };
 
 const useStyles = makeStyles((theme) => ({
@@ -98,11 +103,13 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
         type: Dictionary[];
         bonif: Dictionary[];
         tipoCliente: Dictionary[];
+        ruta: Dictionary[];
     }>({
         status: [],
         type: [],
         bonif: [],
         tipoCliente: [],
+        ruta: [],
     });
 
     useEffect(() => {
@@ -111,8 +118,9 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
             const dataTypes = multiData.data.find((x) => x.key === "DOMAIN-TIPODOCUMENTO");
             const dataBonif = multiData.data.find((x) => x.key === "DOMAIN-TIPOBONIFICACION");
             const tipoCliente = multiData.data.find((x) => x.key === "DOMAIN-TIPOCLIENTE");
+            const ruta = multiData.data.find((x) => x.key === "DOMAIN-RUTAS");
             const products = multiData.data.find((x) => x.key === "UFN_PRODUCT_LST");
-            if (dataStatus && dataTypes && products && dataBonif && tipoCliente) {
+            if (dataStatus && dataTypes && products && dataBonif && tipoCliente && ruta) {
                 setProductsToShow(
                     products.data.reduce((acum, current) => {
                         if (current.with_container)
@@ -145,6 +153,7 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                     type: dataTypes.data,
                     bonif: dataBonif.data,
                     tipoCliente: tipoCliente.data,
+                    ruta: ruta.data,
                 });
             }
         }
@@ -200,6 +209,9 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
             longitude: row?.longitude || 0,
             route: row?.route || "",
             zone: row?.zone || "",
+            glp_consignation: row?.glp_consignation || false,
+            water_consignation: row?.water_consignation || false,
+            can_credit: row?.can_credit || false,
             products: [],
         },
     });
@@ -217,6 +229,9 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
 
     React.useEffect(() => {
         register("description", {
+            validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required),
+        });
+        register("route", {
             validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required),
         });
         register("status", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
@@ -413,12 +428,16 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                             onChange={(value) => setValue("zone", value)}
                             error={errors?.zone?.message}
                         />
-                        <FieldEdit
-                            label={"RUTA"}
+                        <FieldSelect
+                            label={"RUTA (*)"}
                             className="col-6"
                             valueDefault={getValues("route")}
-                            onChange={(value) => setValue("route", value)}
+                            onChange={(value) => setValue("route", value?.domainvalue)}
                             error={errors?.route?.message}
+                            data={dataExtra.ruta}
+                            uset={true}
+                            optionDesc="domainvalue"
+                            optionValue="domainvalue"
                         />
                     </div>
                     <div className="row-zyx">
@@ -463,8 +482,8 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                             onChange={(value) => setValue("longitude", value)}
                             error={errors?.longitude?.message}
                         />
-                        {latitude !== 0 && longitude !== 0 && (
-                            <div className="col-2" style={{ display: "flex", alignItems: "center" }}>
+                        <div className="col-2" style={{ display: "flex", alignItems: "center" }}>
+                            {latitude !== 0 && longitude !== 0 && (
                                 <span>
                                     <a
                                         target={"_blank"}
@@ -476,8 +495,56 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                                         Geoposicion
                                     </a>
                                 </span>
-                            </div>
-                        )}
+                            )}
+                        </div>
+                        <div className="col-2">
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={getValues("glp_consignation")}
+                                        onChange={(event) => {
+                                            setValue("glp_consignation", event.target.checked);
+                                            trigger("glp_consignation");
+                                        }}
+                                        name="checkedB"
+                                        color="primary"
+                                    />
+                                }
+                                label="Consignación GLP?"
+                            />
+                        </div>
+                        <div className="col-2">
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={getValues("water_consignation")}
+                                        onChange={(event) => {
+                                            setValue("water_consignation", event.target.checked);
+                                            trigger("water_consignation");
+                                        }}
+                                        name="checkedB"
+                                        color="primary"
+                                    />
+                                }
+                                label="Consignación Agua?"
+                            />
+                        </div>
+                        <div className="col-2">
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={getValues("can_credit")}
+                                        onChange={(event) => {
+                                            setValue("can_credit", event.target.checked);
+                                            trigger("can_credit");
+                                        }}
+                                        name="checkedB"
+                                        color="primary"
+                                    />
+                                }
+                                label="Crédito habilitado?"
+                            />
+                        </div>
                     </div>
                 </div>
                 {loading && (

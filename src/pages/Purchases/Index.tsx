@@ -68,7 +68,7 @@ const useStyles = makeStyles((theme) => ({
 
 const initialRange = {
     startDate: new Date(new Date().setDate(new Date().getDate() - 30)),
-    endDate: new Date(),
+    endDate: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDay() + 3),
     key: "selection",
 };
 
@@ -176,33 +176,44 @@ const Purchase: FC = () => {
                 },
             },
             {
-                Header: "N° Orden",
+                Header: "N° ORDEN",
                 accessor: "purchase_order_number",
+                NoFilter: true,
             },
             {
-                Header: "Estado",
+                Header: 'CONDICION',
                 accessor: "status",
+                NoFilter: true,
+                prefixTranslation: "status_",
+                Cell: (props: any) => {
+                    const { status } = props.cell.row.original;
+                    return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
+                },
             },
             {
-                Header: "Proveedor",
+                Header: "PROVEEDOR",
                 accessor: "supplier_name",
+                NoFilter: true,
             },
             {
-                Header: "Almacen",
+                Header: "ALMACEN",
                 accessor: "warehouse_name",
+                NoFilter: true,
             },
             {
-                Header: "Productos",
+                Header: "PRODUCTOS",
                 accessor: "num_records",
                 type: "number",
+                NoFilter: true,
             },
             {
-                Header: "Total",
+                Header: "TOTAL",
                 type: "number",
                 accessor: "total",
+                NoFilter: true,
                 Cell: (props: any) => {
                     const { total } = props.cell.row.original;
-                    return parseFloat(total).toFixed(2);
+                    return 'S/ ' + parseFloat(total).toFixed(2);
                 },
             },
         ],
