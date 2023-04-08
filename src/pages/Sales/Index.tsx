@@ -1,73 +1,41 @@
+/*
+ ** Change insCorp for your ins function
+ */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, makeStyles } from "@material-ui/core";
-import { Dictionary } from "@types";
-import {
-    getCustomerList,
-    getDateCleaned,
-    getProductsWithStock,
-    getSales,
-    getValuesFromDomain,
-    getWareHouse,
-    insPurchase,
-} from "common/helpers";
-import { DateRangePicker, TemplateIcons } from "components";
+import { Dictionary, IFetchData } from "@types";
+import { getCustomerList, getPaginatedSaleOrder, getValuesFromDomain, getWareHouse, insCorp } from "common/helpers";
+import { FieldSelect, TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
-import { CalendarIcon } from "icons";
 import { langKeys } from "lang/keys";
 import React, { FC, useEffect, useState } from "react"; // we need this to make JSX compile
-import { Range } from "react-date-range";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
-import { execute, exportReportPDF, getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
+import { execute, getCollection, getCollectionPaginated, getMultiCollection, resetAllMain } from "store/main/actions";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
-import ReceiptIcon from '@material-ui/icons/Receipt';
+import TablePaginated from "components/fields/table-paginated";
+import { makeStyles } from "@material-ui/core";
+
+const initialRange = {
+    startDate: new Date(new Date().setDate(new Date().getDate() - 30)),
+    endDate: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDay() + 3),
+    key: "selection",
+};
 
 const useStyles = makeStyles((theme) => ({
-    container: {
-        width: "100%",
-    },
-    containerDetail: {
-        marginTop: theme.spacing(2),
-        padding: theme.spacing(2),
-        background: "#fff",
-    },
-    button: {
-        padding: 12,
-        fontWeight: 500,
-        fontSize: "14px",
-        textTransform: "initial",
-    },
     containerHeader: {
+        display: "block",
         marginBottom: 0,
-        display: "flex",
-        gap: 8,
-        flexWrap: "wrap",
-        justifyContent: "space-between",
-        alignItems: "center",
         [theme.breakpoints.up("sm")]: {
             display: "flex",
         },
-        "& > div": {
-            display: "flex",
-            gap: 8,
-        },
     },
-    itemDate: {
-        minHeight: 40,
-        height: 40,
-        border: "1px solid #bfbfc0",
-        borderRadius: 4,
-        color: "rgb(143, 146, 161)",
+    filterComponent: {
+        minWidth: "220px",
+        maxWidth: "320px",
     },
 }));
-
-const initialRange = {
-    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
-    key: "selection",
-};
 
 const Sales: FC = () => {
     const classes = useStyles();
@@ -80,9 +48,23 @@ const Sales: FC = () => {
     const [dataView, setDataView] = useState<Dictionary[]>([]);
     const applications = useSelector((state) => state.login?.validateToken?.user?.menu);
     const [pagePermissions, setPagePermissions] = useState<Dictionary>({});
-    const executeResult = useSelector((state) => state.main.exportReportPDF);
-    const [openDateRangeModal, setOpenDateRangeModal] = useState(false);
-    const [dateRange, setDateRange] = useState<Range>(initialRange);
+    const executeResult = useSelector((state) => state.main.execute);
+    const [totalrow, settotalrow] = useState(0);
+    const [pageCount, setPageCount] = useState(0);
+    const mainPaginated = useSelector((state) => state.main.mainPaginated);
+    const multiData = useSelector((state) => state.main.multiData);
+    const [allParameters, setAllParameters] = useState<Dictionary>({});
+    const [fetchDataAux, setfetchDataAux] = useState<IFetchData>({
+        pageSize: 0,
+        pageIndex: 0,
+        filters: {},
+        sorts: {},
+        daterange: initialRange,
+    });
+    const [dataExtra, setDataExtra] = useState<{
+        warehouses: Dictionary[];
+        customers: Dictionary[];
+    }>({ warehouses: [], customers: [] });
 
     useEffect(() => {
         if (applications) {
@@ -96,41 +78,12 @@ const Sales: FC = () => {
         }
     }, [applications]);
 
-    const fetchData = () =>
-        dispatch(getCollection(getSales({ startdate: dateRange.startDate, finishdate: dateRange.endDate })));
-
-    useEffect(() => {
-        // fetchData();
-        dispatch(
-            getMultiCollection([
-                getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
-                getProductsWithStock(),
-                getCustomerList(),
-                getWareHouse(),
-                getValuesFromDomain("TIPOCOMPROBANTE", "DOMAIN-TIPOCOMPROBANTE"),
-                getValuesFromDomain("METODOPAGO", "DOMAIN-METODOPAGO"),
-            ])
-        );
-        return () => {
-            dispatch(resetAllMain());
-        };
-    }, []);
-
-    useEffect(() => {
-        if (!openDateRangeModal) fetchData();
-    }, [openDateRangeModal]);
-
-    useEffect(() => {
-        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_SALE_ORDER_SEL") {
-            setDataView(mainResult.data);
-        }
-    }, [mainResult]);
-
     useEffect(() => {
         if (waitSave) {
             if (!executeResult.loading && !executeResult.error) {
+                dispatch(showSnackbar({ show: true, success: true, message: t(langKeys.successful_delete) }));
+                dispatch(showBackdrop(false));
                 setWaitSave(false);
-                window.open(executeResult.url, '_blank')
             } else if (executeResult.error) {
                 const errormessage = t(executeResult.code || "error_unexpected_error", {
                     module: t(langKeys.corporation_plural).toLocaleLowerCase(),
@@ -142,6 +95,36 @@ const Sales: FC = () => {
         }
     }, [executeResult, waitSave]);
 
+    // MultiData
+    useEffect(() => {
+        fetchData(fetchDataAux);
+        dispatch(
+            getMultiCollection([
+                getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
+                getValuesFromDomain("TIPOCORP", "DOMAIN-TIPOCORP"),
+                getWareHouse(0, "", true),
+                getCustomerList(),
+            ])
+        );
+        return () => {
+            dispatch(resetAllMain());
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!multiData.loading && !multiData.error) {
+            const warehouses = multiData.data.find((x) => x.key === "UFN_WAREHOUSE_LST");
+            const customers = multiData.data.find((x) => x.key === "UFN_CUSTOMER_LST");
+
+            if (warehouses && customers) {
+                setDataExtra({
+                    warehouses: warehouses.data,
+                    customers: customers.data,
+                });
+            }
+        }
+    }, [multiData]);
+
     const columns = React.useMemo(
         () => [
             {
@@ -151,64 +134,130 @@ const Sales: FC = () => {
                 width: "1%",
                 Cell: (props: any) => {
                     const row = props.cell.row.original;
-
-                    return <TemplateIcons
-                        // deleteFunction={() => handleDelete(row)}
-                        extraOption={"Descargar comprobante"}
-                        ExtraICon={() => <ReceiptIcon width={18} style={{ fill: "#7721AD" }} />}
-                        extraFunction={() => {
-                            dispatch(exportReportPDF({
-                                "method": "UFN_SALEORDER_INVOICE_SEL",
-                                "parameters": {
-                                    "saleorderid": row.saleorderid
-                                },
-                                "dataonparameters": false,
-                                "template": "sale_order_invoice.html",
-                                "reportname": "sale_order_invoice",
-                                "key": "sale_order_invoice"
-                            }))
-                            setWaitSave(true)
-                        }}
-                    />;
+                    return <TemplateIcons deleteFunction={() => handleDelete(row)} />;
                 },
             },
             {
-                Header: "N° Orden",
-                accessor: "bill_number",
+                Header: "Nº ORDEN",
+                accessor: "order_number",
+                NoFilter: true,
             },
             {
-                Header: "Estado",
-                accessor: "status",
+                Header: "ALMACEN",
+                accessor: "description",
+                NoFilter: true,
             },
             {
-                Header: "Cliente",
+                Header: "CANTIDAD",
+                accessor: "quantity",
+                NoFilter: true,
+            },
+            {
+                Header: "PRODUCTO",
+                accessor: "product_description",
+                NoFilter: true,
+            },
+            {
+                Header: "PRECIO UNI.",
+                type: "number",
+                accessor: "price",
+                NoFilter: true,
+                Cell: (props: any) => {
+                    const { price } = props.cell.row.original;
+                    return "S/ " + parseFloat(price).toFixed(2);
+                },
+            },
+            {
+                Header: "CLIENTE",
                 accessor: "client_name",
+                NoFilter: true,
             },
             {
-                Header: "Almacen",
-                accessor: "warehouse_name",
-            },
-            {
-                Header: "Tipo comprobante",
-                accessor: "document_type",
-            },
-            {
-                Header: "N documento",
-                accessor: "document_number",
-            },
-            {
-                Header: "Total",
+                Header: "TOTAL",
                 type: "number",
                 accessor: "total",
+                NoFilter: true,
                 Cell: (props: any) => {
                     const { total } = props.cell.row.original;
-                    return parseFloat(total).toFixed(2);
+                    return "S/ " + parseFloat(total).toFixed(2);
                 },
             },
         ],
         []
     );
 
+    const filterElement = React.useMemo(
+        () => (
+            <>
+                <div
+                    className={classes.containerHeader}
+                    style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "space-between" }}
+                >
+                    <div style={{ display: "flex", gap: 8 }}>
+                        <FieldSelect
+                            label={"Almacen"}
+                            className={classes.filterComponent}
+                            valueDefault={allParameters["warehouseid"] || 0}
+                            onChange={(value) =>
+                                setAllParameters({ ...allParameters, warehouseid: value ? value.warehouseid : 0 })
+                            }
+                            uset={true}
+                            variant="outlined"
+                            data={dataExtra.warehouses}
+                            optionDesc="description"
+                            optionValue="warehouseid"
+                        />
+                        <FieldSelect
+                            label={"Clientes"}
+                            className={classes.filterComponent}
+                            valueDefault={allParameters["customerid"] || 0}
+                            onChange={(value) =>
+                                setAllParameters({ ...allParameters, customerid: value ? value.customerid : 0 })
+                            }
+                            uset={true}
+                            variant="outlined"
+                            data={dataExtra.customers}
+                            optionDesc="description"
+                            optionValue="customerid"
+                        />
+                    </div>
+                </div>
+            </>
+        ),
+        [dataExtra]
+    );
+
+    const fetchData = ({ pageSize, pageIndex, filters, sorts, daterange }: IFetchData) => {
+        setfetchDataAux({ pageSize, pageIndex, filters, sorts, daterange });
+        dispatch(
+            getCollectionPaginated(
+                getPaginatedSaleOrder({
+                    startdate: daterange.startDate!,
+                    enddate: daterange.endDate!,
+                    take: pageSize,
+                    skip: pageIndex * pageSize,
+                    sorts: sorts,
+                    filters: {
+                        ...filters,
+                    },
+                    ...allParameters,
+                })
+            )
+        );
+    };
+
+    const fetchDataAux2 = () => {
+        fetchData(fetchDataAux);
+    };
+
+    useEffect(() => {
+        if (!mainPaginated.loading && !mainPaginated.error) {
+            setPageCount(fetchDataAux.pageSize ? Math.ceil(mainPaginated.count / fetchDataAux.pageSize) : 0);
+            settotalrow(mainPaginated.count);
+        }
+    }, [mainPaginated]);
+
+    // HandlesFunctions
     const handleRegister = () => {
         setViewSelected("view-2");
         setRowSelected(null);
@@ -219,43 +268,43 @@ const Sales: FC = () => {
         setRowSelected(row);
     };
 
+    const handleDelete = (row: Dictionary) => {
+        const callback = () => {
+            dispatch(execute(insCorp({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.saleorderid })));
+            dispatch(showBackdrop(true));
+            setWaitSave(true);
+        };
+
+        dispatch(
+            manageConfirmation({
+                visible: true,
+                question: t(langKeys.confirmation_delete),
+                callback,
+            })
+        );
+    };
+
     if (viewSelected === "view-1") {
         return (
-            <div className={classes.container}>
-                <TableZyx
-                    columns={columns}
-                    data={dataView}
-                    titlemodule={"Ventas"}
-                    download={!!pagePermissions.download}
-                    onClickRow={handleEdit}
-                    loading={mainResult.loading}
-                    register={!!pagePermissions.insert}
-                    filterGeneral={false}
-                    handleRegister={handleRegister}
-                    ButtonsElement={() => (
-                        <div className={classes.containerHeader}>
-                            <DateRangePicker
-                                open={openDateRangeModal}
-                                setOpen={setOpenDateRangeModal}
-                                range={dateRange}
-                                onSelect={setDateRange}
-                            >
-                                <Button
-                                    className={classes.itemDate}
-                                    startIcon={<CalendarIcon />}
-                                    onClick={() => setOpenDateRangeModal(!openDateRangeModal)}
-                                >
-                                    {getDateCleaned(dateRange.startDate!) + " - " + getDateCleaned(dateRange.endDate!)}
-                                </Button>
-                            </DateRangePicker>
-                        </div>
-                    )}
-                />
-            </div>
+            <TablePaginated
+                titlemodule={`Ventas`}
+                columns={columns}
+                data={mainPaginated.data}
+                totalrow={totalrow}
+                loading={mainPaginated.loading}
+                pageCount={pageCount}
+                filterrange={true}
+                // download={true}
+                fetchData={fetchData}
+                filterGeneral={false}
+                register={false}
+                initialStartDate={Number(initialRange.startDate)}
+                initialEndDate={Number(initialRange.endDate)}
+                FiltersElement={filterElement}
+            />
         );
     } else {
-        return <Detail row={rowSelected} setViewSelected={setViewSelected} fetchData={fetchData} />;
+        return <Detail row={rowSelected} setViewSelected={setViewSelected} fetchData={fetchDataAux2} />;
     }
 };
-
 export default Sales;

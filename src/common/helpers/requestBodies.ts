@@ -1,4 +1,4 @@
-import { IRequestBody, Dictionary } from "@types";
+import { IRequestBody, Dictionary, IRequestBodyPaginated } from "@types";
 
 export const getUserSel = (userid: number): IRequestBody => ({
     method: "UFN_USER_SEL",
@@ -89,6 +89,24 @@ export const getCorpSel = (id: number): IRequestBody => ({
         all: id === 0,
     },
 });
+
+export const getPaginatedSaleOrder = ({ skip, take, filters, sorts, startdate, enddate, ...allParameters }: Dictionary): IRequestBodyPaginated => ({
+    methodCollection: "UFN_SALE_ORDER_SEL",
+    methodCount: "UFN_SALE_ORDER_TOTALRECORDS",
+    parameters: {
+        origin: "saleorder",
+        startdate,
+        enddate,
+        skip,
+        take,
+        filters,
+        sorts,
+        warehouseid: allParameters['warehouseid'] ? allParameters['warehouseid'] : 0,
+        customerid: allParameters['customerid'] ? allParameters['customerid'] : 0,
+        offset: (new Date().getTimezoneOffset() / 60) * -1,
+        ...allParameters
+    }
+})
 
 export const getAccountReceivable = (): IRequestBody => ({
     method: "UFN_ACCOUNT_RECEIVABLE_SEL",
