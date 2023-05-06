@@ -138,13 +138,28 @@ const Sales: FC = () => {
                 },
             },
             {
-                Header: "Nº ORDEN",
-                accessor: "order_number",
+                Header: "FECHA",
+                accessor: "sale_date",
+                NoFilter: true,
+            },
+            {
+                Header: "HORA",
+                accessor: "sale_hour",
+                NoFilter: true,
+            },
+            {
+                Header: "CLIENTE",
+                accessor: "client_name",
+                NoFilter: true,
+            },
+            {
+                Header: "ATENDIDO POR",
+                accessor: "user_name",
                 NoFilter: true,
             },
             {
                 Header: "ALMACEN",
-                accessor: "description",
+                accessor: "warehouse",
                 NoFilter: true,
             },
             {
@@ -159,7 +174,6 @@ const Sales: FC = () => {
             },
             {
                 Header: "PRECIO UNI.",
-                type: "number",
                 accessor: "price",
                 NoFilter: true,
                 Cell: (props: any) => {
@@ -168,13 +182,7 @@ const Sales: FC = () => {
                 },
             },
             {
-                Header: "CLIENTE",
-                accessor: "client_name",
-                NoFilter: true,
-            },
-            {
                 Header: "TOTAL",
-                type: "number",
                 accessor: "total",
                 NoFilter: true,
                 Cell: (props: any) => {

@@ -149,9 +149,9 @@ const Stock: FC = () => {
                 NoFilter: true,
             },
             {
-                Header: "BALANCE",
+                Header: "STOCK",
                 accessor: "balance",
-                type: "number",
+                // type: "number",
                 NoFilter: true,
             },
             {

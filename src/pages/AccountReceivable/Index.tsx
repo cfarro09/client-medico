@@ -56,7 +56,7 @@ const AccountReceivable: FC = () => {
             }
         }
     }, [executeResult, waitSave]);
-    
+
     const fetchData = () => dispatch(getCollection(getAccountReceivable()));
 
     // MainDataFill
@@ -90,15 +90,44 @@ const AccountReceivable: FC = () => {
                 width: "1%",
                 Cell: (props: any) => {
                     const row = props.cell.row.original;
-                    return (
-                        <TemplateIcons
-                            deleteFunction={() => handleDelete(row)}
-                        />
-                    );
+                    return <TemplateIcons deleteFunction={() => handleDelete(row)} />;
                 },
             },
             {
-                Header: 'ESTADO',
+                Header: "FECHA DE VENTA",
+                accessor: "sale_date",
+                NoFilter: true,
+                Cell: (props: any) => {
+                    const date = props.cell.row.original.sale_date;
+                    return date.split(".")[0].split(" ")[0];
+                },
+            },
+            {
+                Header: "VENDIDO POR",
+                accessor: "user_name",
+                NoFilter: true,
+            },
+            {
+                Header: "ALMACEN",
+                accessor: "warehouse",
+                NoFilter: true,
+            },
+            {
+                Header: "CLIENTE",
+                accessor: "customer_name",
+                NoFilter: true,
+            },
+            {
+                Header: "DEUDA ",
+                accessor: "total_amount",
+                NoFilter: true,
+                Cell: (props: any) => {
+                    const { total_amount } = props.cell.row.original;
+                    return 'S/ ' + parseFloat(total_amount).toFixed(2);
+                },
+            },
+            {
+                Header: "CONDICION",
                 accessor: "status",
                 NoFilter: true,
                 prefixTranslation: "status_",
@@ -108,37 +137,23 @@ const AccountReceivable: FC = () => {
                 },
             },
             {
-                Header: 'CLIENTE',
-                accessor: "customer_name",
-                NoFilter: true,
-            },
-            {
-                Header: "TOTAL",
-                type: "number",
-                accessor: "total_amount",
+                Header: "FECHA DE PAGO",
+                accessor: "paid_date",
                 NoFilter: true,
                 Cell: (props: any) => {
-                    const { total_amount } = props.cell.row.original;
-                    return 'S/ ' + parseFloat(total_amount).toFixed(2);
+                    const date = props.cell.row.original.paid_date;
+                    return (date) ? date.split(".")[0].split(" ")[0] : '';
                 },
             },
             {
-                Header: 'FECHA CREACION',
-                accessor: "createdate",
+                Header: "CANCELADO A",
+                accessor: "paid_to",
                 NoFilter: true,
-                Cell: (props: any) => {
-                    const date = props.cell.row.original.createdate;
-                    return date.split(".")[0].split(" ")[0];
-                },
             },
             {
-                Header: 'FECHA EXPIRACION',
+                Header: "FECHA DE EXPIRACION",
                 accessor: "expiration_date",
                 NoFilter: true,
-                Cell: (props: any) => {
-                    const date = props.cell.row.original.expiration_date;
-                    return date.split(".")[0].split(" ")[0];
-                },
             },
         ],
         []
@@ -157,7 +172,9 @@ const AccountReceivable: FC = () => {
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(execute(insCorp({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.accountreceivableid })));
+            dispatch(
+                execute(insCorp({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.accountreceivableid }))
+            );
             dispatch(showBackdrop(true));
             setWaitSave(true);
         };
@@ -185,13 +202,7 @@ const AccountReceivable: FC = () => {
             />
         );
     } else {
-        return (
-            <Detail
-                row={rowSelected}
-                setViewSelected={setViewSelected}
-                fetchData={fetchData}
-            />
-        );
+        return <Detail row={rowSelected} setViewSelected={setViewSelected} fetchData={fetchData} />;
     }
 };
 export default AccountReceivable;

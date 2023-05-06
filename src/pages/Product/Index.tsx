@@ -93,32 +93,7 @@ const Product: FC = () => {
                 },
             },
             {
-                Header: 'Nombre',
-                accessor: 'product_name',
-                NoFilter: true,
-            },
-            {
-                Header: 'Categoria',
-                accessor: 'category',
-                NoFilter: true,
-            },
-            {
-                Header: 'Marca',
-                accessor: 'product_brand',
-                NoFilter: true,
-            },
-            {
-                Header: 'Unidad de Medida',
-                accessor: 'unit',
-                NoFilter: true,
-            },
-            {
-                Header: 'Precio costo',
-                accessor: 'purchase_price',
-                NoFilter: true,
-            },
-            {
-                Header: t(langKeys.status),
+                Header: 'ESTADO',
                 accessor: "status",
                 NoFilter: true,
                 prefixTranslation: "status_",
@@ -126,7 +101,32 @@ const Product: FC = () => {
                     const { status } = props.cell.row.original;
                     return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
                 },
-            }
+            },
+            {
+                Header: 'CATEGORIA',
+                accessor: 'category',
+                NoFilter: true,
+            },
+            {
+                Header: 'PRODUCTO',
+                accessor: 'product_name',
+                NoFilter: true,
+            },
+            {
+                Header: 'COSTO UNIT.',
+                accessor: 'purchase_price',
+                NoFilter: true,
+            },
+            {
+                Header: 'MARCA',
+                accessor: 'product_brand',
+                NoFilter: true,
+            },
+            {
+                Header: 'STOCK TOTAL',
+                accessor: 'stock_total',
+                NoFilter: true,
+            },
         ],
         []
     );

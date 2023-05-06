@@ -139,75 +139,52 @@ const DetailStock: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }
     const columns = React.useMemo(
         () => [
             {
-                Header: "TIPO",
-                accessor: "tipo",
+                Header: "FECHA",
+                accessor: "createdate",
                 NoFilter: true,
-                Cell: (props: any) => {
-                    const type = props.cell.row.original.in_out;
-                    return (
-                        <div>
-                            <Chip
-                                label={type == "in" ? "Entrada" : "Salida"}
-                                style={{
-                                    color: type == "in" ? "#28c76f" : "#ff9f43",
-                                    backgroundColor: type == "in" ? "rgba(40,199,111,.12)" : "rgba(255,159,67,.12)",
-                                    fontWeight: 600,
-                                }}
-                            />
-                        </div>
-                    );
-                },
             },
             {
-                Header: "Almacen",
-                accessor: "brand",
+                Header: "ALMACEN",
+                accessor: "warehouse",
                 NoFilter: true,
-                Cell: (props: any) => {
-                    return row?.warehouse_name;
-                },
             },
             {
-                Header: "Producto",
-                accessor: "product",
+                Header: "CHOFER",
+                accessor: "user_name",
                 NoFilter: true,
-                Cell: (props: any) => {
-                    return row?.product_name;
-                },
             },
             {
-                Header: "Documento",
-                accessor: "u_description",
+                Header: "PRODUCTO",
+                accessor: "product_description",
+                NoFilter: true,
+            },
+            {
+                Header: "STOCK INICIAL",
+                accessor: "initial_stock",
+                NoFilter: true,
+            },
+            {
+                Header: "INGRESOS",
+                accessor: "ingresos",
                 NoFilter: true,
                 Cell: (props: any) => {
                     const data = props.cell.row.original;
-                    return `${data.doc_type} # ${data.doc_num}`.toUpperCase();
+                    return (data?.in_out === 'in') ? data?.quantity : 0;
                 },
             },
             {
-                Header: "Cantidad",
-                accessor: "quantity",
-                NoFilter: true,
-                type: "number"
-            },
-            {
-                Header: "Saldo",
-                accessor: "balance",
-                NoFilter: true,
-                type: "number"
-            },
-            {
-                Header: "Estado",
-                accessor: "status",
-                NoFilter: true,
-            },
-            {
-                Header: "Fecha Registro",
-                accessor: "createdate",
+                Header: "SALIDAS",
+                accessor: "salidas",
                 NoFilter: true,
                 Cell: (props: any) => {
-                    const date = props.cell.row.original.createdate;
-                    return date.split(".")[0].split(" ")[0];
+                    const data = props.cell.row.original;
+                    return (data?.in_out === 'out') ? data?.quantity : 0;
                 },
+            },
+            {
+                Header: "STOCK FINAL",
+                accessor: "final_stock",
+                NoFilter: true,
             },
         ],
         []
@@ -217,7 +194,7 @@ const DetailStock: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }
         <div style={{ width: "100%" }}>
             <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
             <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-                <TitleDetail title={row ? `${row.warehouse_name} - ${row.product_name}` : ""} />
+                <TitleDetail title={row ? `${row.warehouse_description} - ${row.product_description}` : ""} />
                 <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                     <Button
                         variant="contained"

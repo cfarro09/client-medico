@@ -117,27 +117,31 @@ const Account: FC = () => {
                 },
             },
             {
-                Header: t(langKeys.description),
-                accessor: "description",
-                NoFilter: true,
-            },
-            {
-                Header: 'Nro de Cuenta',
-                accessor: "account_number",
-                NoFilter: true,
-            },
-            {
-                Header: t(langKeys.amount),
-                accessor: "amount",
-                NoFilter: true,
-            },
-            {
-                Header: t(langKeys.status),
+                Header: 'CONDICION',
                 accessor: "status",
                 NoFilter: true,
             },
             {
-                Header: t(langKeys.lastUpdate),
+                Header: 'CUENTA',
+                accessor: "description",
+                NoFilter: true,
+            },
+            {
+                Header: 'NRO DE CUENTA',
+                accessor: "account_number",
+                NoFilter: true,
+            },
+            {
+                Header: 'MONTO',
+                accessor: "amount",
+                NoFilter: true,
+                Cell: (props: any) => {
+                    const { amount } = props.cell.row.original;
+                    return `S/ ${(amount > 0) ? parseFloat(amount).toFixed(2) : '-'}` 
+                },
+            },
+            {
+                Header: 'ULTIMA ACTUALIZACION',
                 accessor: "changedate",
                 NoFilter: true,
                 Cell: (props: any) => {

@@ -91,22 +91,32 @@ const PaymentMethods: FC = () => {
                 },
             },
             {
-                Header: t(langKeys.description),
+                Header: 'CONDICION',
+                accessor: "status",
+                NoFilter: true,
+                prefixTranslation: "status_",
+                Cell: (props: any) => {
+                    const { status } = props.cell.row.original;
+                    return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
+                },
+            },
+            {
+                Header: 'FORMA DE PAGO',
                 accessor: "description",
                 NoFilter: true,
             },
             {
-                Header: "Cuenta debito",
+                Header: "CUENTA",
                 accessor: "debit_account_name",
                 NoFilter: true,
             },
             {
-                Header: "Cuenta credito",
-                accessor: "credit_account_name",
+                Header: "NRO CUENTA",
+                accessor: "account_number",
                 NoFilter: true,
             },
             {
-                Header: "Es Cupon?",
+                Header: "ES CUPON?",
                 accessor: "is_coupon",
                 NoFilter: true,
                 Cell: (props: any) => {
@@ -115,18 +125,12 @@ const PaymentMethods: FC = () => {
                 }
             },
             {
-                Header: "Valor del Cupon",
+                Header: "VALOR DEL CUPON",
                 accessor: "coupon_value",
                 NoFilter: true,
-            },
-            {
-                Header: t(langKeys.status),
-                accessor: "status",
-                NoFilter: true,
-                prefixTranslation: "status_",
                 Cell: (props: any) => {
-                    const { status } = props.cell.row.original;
-                    return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
+                    const { coupon_value } = props.cell.row.original;
+                    return `S/ ${(coupon_value > 0) ? parseFloat(coupon_value).toFixed(2) : '-'}` 
                 },
             },
         ],
