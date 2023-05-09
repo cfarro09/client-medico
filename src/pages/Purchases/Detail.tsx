@@ -16,7 +16,15 @@ import {
     Typography,
 } from "@material-ui/core";
 import { DetailModule, Dictionary } from "@types";
-import { FieldEdit, FieldEditArray, FieldEditMulti, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
+import {
+    FieldEdit,
+    FieldEditArray,
+    FieldSelect,
+    FieldUploadImage,
+    FieldUploadImage2,
+    TemplateBreadcrumbs,
+    TitleDetail,
+} from "components";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
 import React, { useEffect, useState } from "react"; // we need this to make JSX compile
@@ -81,6 +89,7 @@ type FormFields = {
     bill_entry_date: string;
     purchase_order_create_date: string;
     bill_number: string;
+    bill_image: File;
     observations: string;
     userid: number;
     brand: string;
@@ -90,6 +99,8 @@ type FormFields = {
     description: string;
     products: Dictionary[];
     payments: Dictionary[];
+    image1: any;
+    image2: any;
 };
 
 const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ row, setViewSelected, fetchData }) => {
@@ -193,6 +204,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
             purchase_order_create_date:
                 row?.purchase_order_create_date || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
             bill_number: row?.bill_number || "",
+            bill_image: row?.bill_image || "",
             observations: row?.observations || "",
             userid: row?.userid || 0,
             brand: row?.brand || "",
@@ -200,6 +212,8 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
             company_name: row?.company_name || "",
             guide_number: row?.guide_number || "",
             description: row?.description || "",
+            image1: row?.image1 || "",
+            image2: row?.image2 || "",
             products: [],
             payments: [],
         },
@@ -231,6 +245,8 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
     }, [getValues("products")]);
 
     const processTransaction = (data: FormFields, status: string = "") => {
+        console.log("🚀 ~ file: Detail.tsx:254 ~ processTransaction ~ data:", data);
+        return;
         if (data.products.filter((item) => item.status !== "ELIMINADO").length === 0) {
             dispatch(
                 showSnackbar({ show: true, success: false, message: "Debe tener como minimo un producto registrado" })
@@ -316,6 +332,10 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
     };
 
     const onSubmit = handleSubmit((data) => processTransaction(data));
+
+    const onChangePhoto = (value: any) => {
+        setValue("image1", value);
+    };
 
     React.useEffect(() => {
         if (!multiDataAux.error && !multiDataAux.loading) {
@@ -481,24 +501,6 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                             optionValue="supplierid"
                         />
                         <FieldEdit
-                            label={"NRO DE SCOP"}
-                            disabled={!!row}
-                            className="col-4"
-                            valueDefault={getValues("scop_number")}
-                            onChange={(value) => setValue("scop_number", value)}
-                            error={errors?.scop_number?.message}
-                        />
-                        <FieldEdit
-                            label={"FACTURA"}
-                            className="col-4"
-                            disabled={!!row}
-                            valueDefault={getValues("bill_number")}
-                            onChange={(value) => setValue("bill_number", value)}
-                            error={errors?.bill_number?.message}
-                        />
-                    </div>
-                    <div className="row-zyx">
-                        <FieldEdit
                             label={"MARCA"}
                             className="col-4"
                             disabled={!!row}
@@ -507,15 +509,6 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                             error={errors?.brand?.message}
                         />
                         <FieldEdit
-                            label={"NRO GUIA"}
-                            className="col-4"
-                            disabled={!!row}
-                            valueDefault={getValues("guide_number")}
-                            onChange={(value) => setValue("guide_number", value)}
-                            error={errors?.guide_number?.message}
-                        />
-
-                        <FieldEdit
                             label={"OBSERVACIONES"}
                             className="col-4"
                             disabled={!!row}
@@ -523,6 +516,48 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                             onChange={(value) => setValue("observations", value)}
                             error={errors?.observations?.message}
                         />
+                        
+                    </div>
+                    <div className="row-zyx"><FieldEdit
+                            label={"NRO DE SCOTT"}
+                            disabled={!!row}
+                            className="col-3"
+                            valueDefault={getValues("scop_number")}
+                            onChange={(value) => setValue("scop_number", value)}
+                            error={errors?.scop_number?.message}
+                        />
+                        <FieldUploadImage2
+                            className="col-1"
+                            valueDefault={getValues("bill_image")}
+                            onChange={(value) => setValue("bill_image", value)}
+                        />
+                        <FieldEdit
+                            label={"FACTURA"}
+                            className="col-3"
+                            disabled={!!row}
+                            valueDefault={getValues("bill_number")}
+                            onChange={(value) => setValue("bill_number", value)}
+                            error={errors?.bill_number?.message}
+                        />
+                        <FieldUploadImage2
+                            className="col-1"
+                            valueDefault={getValues("bill_image")}
+                            onChange={(value) => setValue("bill_image", value)}
+                        />
+                        <FieldEdit
+                            label={"NRO GUIA"}
+                            className="col-3"
+                            disabled={!!row}
+                            valueDefault={getValues("guide_number")}
+                            onChange={(value) => setValue("guide_number", value)}
+                            error={errors?.guide_number?.message}
+                        />
+                        <FieldUploadImage2
+                            className="col-1"
+                            valueDefault={getValues("bill_image")}
+                            onChange={(value) => setValue("bill_image", value)}
+                        />
+                        
                     </div>
                 </div>
                 {loading && (
@@ -589,7 +624,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                     <div style={{ display: "flex" }}>
                                                                         <IconButton
                                                                             size="small"
-                                                                            style={{display: !!row ? 'none' : 'auto'}}
+                                                                            style={{ display: !!row ? "none" : "auto" }}
                                                                             onClick={() => {
                                                                                 handleRemove(i, item);
                                                                             }}
@@ -706,7 +741,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                     <TableCell>
                                                         <IconButton
                                                             size="small"
-                                                            style={{display: !!row ? 'none' : 'auto'}}
+                                                            style={{ display: !!row ? "none" : "auto" }}
                                                             onClick={() => {
                                                                 const tt = getValues("payments").reduce(
                                                                     (acc, x) => acc + x.amount,
@@ -737,7 +772,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                     <div style={{ display: "flex" }}>
                                                                         <IconButton
                                                                             size="small"
-                                                                            style={{display: !!row ? 'none' : 'auto'}}
+                                                                            style={{ display: !!row ? "none" : "auto" }}
                                                                             onClick={() => {
                                                                                 handleDeletePayment(i, item);
                                                                             }}

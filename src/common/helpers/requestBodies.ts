@@ -90,6 +90,13 @@ export const getCorpSel = (id: number): IRequestBody => ({
     },
 });
 
+export const getStockFlow = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_STOCK_FLOW",
+    key: "UFN_STOCK_FLOW",
+    parameters: { ...parameters },
+});
+
+
 export const getPaginatedSaleOrder = ({ skip, take, filters, sorts, startdate, enddate, ...allParameters }: Dictionary): IRequestBodyPaginated => ({
     methodCollection: "UFN_SALE_ORDER_SEL",
     methodCount: "UFN_SALE_ORDER_TOTALRECORDS",

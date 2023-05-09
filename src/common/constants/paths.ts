@@ -23,6 +23,8 @@ const paths = {
     WAREHOUSE: '/warehouse',
     STAFF: '/staff',
     ACCOUNT_RECEIVABLE: '/account_receivable',
+    INCOMES: '/incomes',
+    OUTFLOWS: '/outflows',
 };
 
 export default paths;

@@ -170,6 +170,20 @@ export const routes: RouteConfig[] = [
         icon: (color) => <LocalMall stroke={color} fill={color} />,
     },
     {
+        key: paths.INCOMES,
+        description: "Ingresos",
+        tooltip: "Ingresos",
+        path: paths.INCOMES,
+        icon: (color) => <LocalMall stroke={color} fill={color} />,
+    },
+    {
+        key: paths.OUTFLOWS,
+        description: "Salidas",
+        tooltip: "Salidas",
+        path: paths.OUTFLOWS,
+        icon: (color) => <LocalMall stroke={color} fill={color} />,
+    },
+    {
         key: paths.SIGNIN,
         description: <Trans i18nKey={langKeys.domain_plural} count={2} />,
         tooltip: <Trans i18nKey={langKeys.domain_plural} />,

@@ -25,7 +25,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Tab, { TabProps } from '@material-ui/core/Tab';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
-import { FormControlLabel, FormHelperText, OutlinedInputProps, Radio, RadioGroup, RadioGroupProps, useTheme, TypographyVariant } from '@material-ui/core';
+import { FormControlLabel, FormHelperText, OutlinedInputProps, Radio, RadioGroup, RadioGroupProps, useTheme, TypographyVariant, Avatar } from '@material-ui/core';
 import { Divider, Grid, ListItem, ListItemText } from '@material-ui/core';
 import { Skeleton } from '@material-ui/lab';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
@@ -50,9 +50,10 @@ import {
     YoutubeIcon,
     WhatsappIcon,
     EmailIcon,
-    TelegramIcon
+    TelegramIcon,
 } from 'icons';
 import { FixedSizeList, ListChildComponentProps } from 'react-window';
+import AddAPhotoIcon from "@material-ui/icons/AddAPhoto";
 // import MuiPhoneNumber, { MaterialUiPhoneNumberProps } from 'material-ui-phone-number';
 
 interface TemplateIconsProps {
@@ -1115,7 +1116,11 @@ export const FieldUploadImage: React.FC<InputProps> = ({ className, onChange, va
     const [url, setUrl] = useState<string>("");
 
     useEffect(() => {
-        setUrl(valueDefault || "");
+        if (typeof valueDefault === 'object') {
+            setUrl(getUrl(valueDefault));
+        }
+        else 
+            setUrl(valueDefault || "");
     }, [valueDefault])
 
 
@@ -1178,6 +1183,93 @@ export const FieldUploadImage: React.FC<InputProps> = ({ className, onChange, va
                             />
                         </Box>
                     </React.Fragment>
+            }
+        </div>
+    )
+}
+
+export const FieldUploadImage2: React.FC<InputProps> = ({ className, onChange, valueDefault, label }) => {
+    const [url, setUrl] = useState<string>("");
+
+    useEffect(() => {
+        if (typeof valueDefault === 'object') {
+            setUrl(getUrl(valueDefault));
+        }
+        else 
+            setUrl(valueDefault || "");
+    }, [valueDefault])
+
+
+    const getUrl = (file: File | any): string => {
+        if (!file) return "";
+        try {
+            const url = URL.createObjectURL(file);
+            return url;
+        } catch (ex) {
+            console.error(ex);
+            return "";
+        }
+    }
+
+    return (
+        <div className={className} style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+            { url === '' ?
+                <label htmlFor="file-input">
+                    <IconButton component="span">
+                        <Avatar style={{width: '25px', height: '25px'}}>
+                            <AddAPhotoIcon style={{width: '16px'}}/>
+                        </Avatar>
+                    </IconButton>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        id="file-input"
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                            if ((e.target.files?.length || 0) > 0) {
+                                setUrl(getUrl(e.target?.files?.item(0)));
+                                onChange && onChange(e.target?.files?.item(0));
+                            }
+                        }}
+                    />
+                </label>
+                // <label htmlFor="image1-upload">
+                //     <IconButton >
+                //             <Avatar style={{width: '25px', height: '25px'}}>
+                //                 <AddAPhotoIcon style={{width: '16px'}}/>
+                //             </Avatar>
+                //         <input
+                //             type="file"
+                //             id="image1-upload"
+                //             accept=".jpg,.jpeg,.png"
+                //             style={{ display: "none" }}
+                //             onChange={(e) => {
+                //                 if ((e.target.files?.length || 0) > 0) {
+                //                     setUrl(getUrl(e.target?.files?.item(0)));
+                //                     onChange && onChange(e.target?.files?.item(0));
+                //                 }
+                //             }}
+                //         />
+                //     </IconButton>
+                // </label>
+                
+                :
+                <div style={{ position: "relative", width: 100}}>
+                    <img
+                        src={url}
+                        alt={url}
+                        style={{ maxWidth: '100px' }}
+                    />
+                    <IconButton
+                        style={{ position: "absolute", top: 0, right: 0 }}
+                        onClick={() => {
+                            setUrl("");
+                            onChange && onChange("")
+                        }}
+                    >
+                        <DeleteIcon />
+                    </IconButton>
+                </div>
             }
         </div>
     )

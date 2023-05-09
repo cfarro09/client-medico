@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
+import { Button, makeStyles } from "@material-ui/core";
 import { getAccountLs, getPaymentMethodsSel, getValuesFromDomain, insPaymentMethod } from "common/helpers";
 import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
@@ -11,8 +12,29 @@ import { useDispatch } from "react-redux";
 import { execute, getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import DetailPaymentMethods from "./Detail";
+import AddIcon from "@material-ui/icons/Add";
+
+const useStyles = makeStyles((theme) => ({
+    containerHeader: {
+        marginBottom: 0,
+        display: "flex",
+        width: "100%",
+        gap: 8,
+        flexWrap: "wrap",
+        justifyContent: "space-between",
+        alignItems: "center",
+        [theme.breakpoints.up("sm")]: {
+            display: "flex",
+        },
+        "& > div": {
+            display: "flex",
+            gap: 8,
+        },
+    },
+}));
 
 const PaymentMethods: FC = () => {
+    const classes = useStyles();
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainResult = useSelector((state) => state.main.mainData);
@@ -23,6 +45,7 @@ const PaymentMethods: FC = () => {
     const applications = useSelector((state) => state.login?.validateToken?.user?.menu);
     const [pagePermissions, setPagePermissions] = useState<Dictionary>({});
     const executeResult = useSelector((state) => state.main.execute);
+    const [newPaymentModal, setNewPaymentModal] = useState(false);
 
     useEffect(() => {
         if (applications) {
@@ -91,7 +114,7 @@ const PaymentMethods: FC = () => {
                 },
             },
             {
-                Header: 'CONDICION',
+                Header: "CONDICION",
                 accessor: "status",
                 NoFilter: true,
                 prefixTranslation: "status_",
@@ -101,7 +124,7 @@ const PaymentMethods: FC = () => {
                 },
             },
             {
-                Header: 'FORMA DE PAGO',
+                Header: "FORMA DE PAGO",
                 accessor: "description",
                 NoFilter: true,
             },
@@ -120,9 +143,9 @@ const PaymentMethods: FC = () => {
                 accessor: "is_coupon",
                 NoFilter: true,
                 Cell: (props: any) => {
-                    const {is_coupon} = props.cell.row.original;
-                    return is_coupon ? 'Si' : 'No';
-                }
+                    const { is_coupon } = props.cell.row.original;
+                    return is_coupon ? "Si" : "No";
+                },
             },
             {
                 Header: "VALOR DEL CUPON",
@@ -130,7 +153,7 @@ const PaymentMethods: FC = () => {
                 NoFilter: true,
                 Cell: (props: any) => {
                     const { coupon_value } = props.cell.row.original;
-                    return `S/ ${(coupon_value > 0) ? parseFloat(coupon_value).toFixed(2) : '-'}` 
+                    return `S/ ${coupon_value > 0 ? parseFloat(coupon_value).toFixed(2) : "-"}`;
                 },
             },
         ],
@@ -168,19 +191,44 @@ const PaymentMethods: FC = () => {
 
     if (viewSelected === "view-1") {
         return (
-            <TableZyx
-                columns={columns}
-                data={dataView}
-                titlemodule={`Metodos de Pago`}
-                download={!!pagePermissions.download}
-                onClickRow={handleEdit}
-                loading={mainResult.loading}
-                register={!!pagePermissions.insert}
-                handleRegister={handleRegister}
-            />
+            <>
+                <TableZyx
+                    columns={columns}
+                    data={dataView}
+                    titlemodule={`Metodos de Pago`}
+                    download={!!pagePermissions.download}
+                    onClickRow={handleEdit}
+                    loading={mainResult.loading}
+                    register={false}
+                    handleRegister={handleRegister}
+                    ButtonsElement={() => (
+                        <div className={classes.containerHeader}>
+                            {!!pagePermissions.insert && (
+                                <Button
+                                    disabled={mainResult.loading}
+                                    variant="contained"
+                                    color="primary"
+                                    startIcon={<AddIcon />}
+                                    style={{ width: 150, backgroundColor: "#303f9f" }}
+                                    onClick={() => setNewPaymentModal(true)}
+                                >
+                                    {`Crear nuevo`}
+                                </Button>
+                            )}
+                        </div>
+                    )}
+                />
+                <DetailPaymentMethods
+                    row={rowSelected}
+                    setViewSelected={setViewSelected}
+                    fetchData={fetchData}
+                    setNewPaymentModal={setNewPaymentModal}
+                    newPaymentModal={newPaymentModal}
+                />
+            </>
         );
     } else {
-        return <DetailPaymentMethods row={rowSelected} setViewSelected={setViewSelected} fetchData={fetchData} />;
+        return <></>;
     }
 };
 export default PaymentMethods;

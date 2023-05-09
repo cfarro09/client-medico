@@ -1,9 +1,14 @@
 /*
+ ** Change MainDataFill or delete it in case no use
+ ** Change MultiData or delete it in case no use
+ ** Change corpid from your dataset
+ ** Change ViewColumns or delete it in case no use
  ** Change insCorp for your ins function
+ ** Change TEMPALTE_TITLE
  */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getAccountReceivable, getValuesFromDomain, insCorp } from "common/helpers";
+import { getStockFlow, getValuesFromDomain, insCorp } from "common/helpers";
 import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -15,7 +20,7 @@ import { execute, getCollection, getMultiCollection, resetAllMain } from "store/
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
 
-const AccountReceivable: FC = () => {
+const Incomes: FC = () => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainResult = useSelector((state) => state.main.mainData);
@@ -30,11 +35,11 @@ const AccountReceivable: FC = () => {
     useEffect(() => {
         if (applications) {
             setPagePermissions({
-                view: applications["/account_receivable"][0],
-                modify: applications["/account_receivable"][1],
-                insert: applications["/account_receivable"][2],
-                delete: applications["/account_receivable"][3],
-                download: applications["/account_receivable"][4],
+                view: applications["/incomes"][0],
+                modify: applications["/incomes"][1],
+                insert: applications["/incomes"][2],
+                delete: applications["/incomes"][3],
+                download: applications["/incomes"][4],
             });
         }
     }, [applications]);
@@ -56,12 +61,12 @@ const AccountReceivable: FC = () => {
             }
         }
     }, [executeResult, waitSave]);
-
-    const fetchData = () => dispatch(getCollection(getAccountReceivable()));
+    
+    const fetchData = () => dispatch(getCollection(getStockFlow({})));
 
     // MainDataFill
     useEffect(() => {
-        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_ACCOUNT_RECEIVABLE_SEL") {
+        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_CORPORATION_SEL") {
             setDataView(mainResult.data);
         }
     }, [mainResult]);
@@ -84,50 +89,26 @@ const AccountReceivable: FC = () => {
     const columns = React.useMemo(
         () => [
             {
-                accessor: "accountreceivableid",
+                accessor: "corpid",
                 isComponent: true,
                 minWidth: 60,
                 width: "1%",
                 Cell: (props: any) => {
                     const row = props.cell.row.original;
-                    return <TemplateIcons deleteFunction={() => handleDelete(row)} />;
+                    return (
+                        <TemplateIcons
+                            deleteFunction={() => handleDelete(row)}
+                        />
+                    );
                 },
             },
             {
-                Header: "FECHA DE VENTA",
-                accessor: "sale_date",
-                NoFilter: true,
-                Cell: (props: any) => {
-                    const date = props.cell.row.original.sale_date;
-                    return date.split(".")[0].split(" ")[0];
-                },
-            },
-            {
-                Header: "VENDIDO POR",
-                accessor: "user_name",
+                Header: 'DESCRIPTION',
+                accessor: "description",
                 NoFilter: true,
             },
             {
-                Header: "ALMACEN",
-                accessor: "warehouse",
-                NoFilter: true,
-            },
-            {
-                Header: "CLIENTE",
-                accessor: "customer_name",
-                NoFilter: true,
-            },
-            {
-                Header: "DEUDA ",
-                accessor: "total_amount",
-                NoFilter: true,
-                Cell: (props: any) => {
-                    const { total_amount } = props.cell.row.original;
-                    return 'S/ ' + parseFloat(total_amount).toFixed(2);
-                },
-            },
-            {
-                Header: "CONDICION",
+                Header: t(langKeys.status),
                 accessor: "status",
                 NoFilter: true,
                 prefixTranslation: "status_",
@@ -137,23 +118,18 @@ const AccountReceivable: FC = () => {
                 },
             },
             {
-                Header: "FECHA DE PAGO",
-                accessor: "paid_date",
+                Header: t(langKeys.createdBy),
+                accessor: "createdby",
+                NoFilter: true,
+            },
+            {
+                Header: t(langKeys.creationDate),
+                accessor: "createdate",
                 NoFilter: true,
                 Cell: (props: any) => {
-                    const date = props.cell.row.original.paid_date;
-                    return (date) ? date.split(".")[0].split(" ")[0] : '';
+                    const date = props.cell.row.original.createdate;
+                    return date.split(".")[0].split(" ")[0];
                 },
-            },
-            {
-                Header: "CANCELADO A",
-                accessor: "paid_to_name",
-                NoFilter: true,
-            },
-            {
-                Header: "FECHA DE EXPIRACION",
-                accessor: "expiration_date",
-                NoFilter: true,
             },
         ],
         []
@@ -172,9 +148,7 @@ const AccountReceivable: FC = () => {
 
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
-            dispatch(
-                execute(insCorp({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.accountreceivableid }))
-            );
+            dispatch(execute(insCorp({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.corpid })));
             dispatch(showBackdrop(true));
             setWaitSave(true);
         };
@@ -193,7 +167,7 @@ const AccountReceivable: FC = () => {
             <TableZyx
                 columns={columns}
                 data={dataView}
-                titlemodule={`Cuentas por cobrar`}
+                titlemodule={`Ingresos`}
                 download={!!pagePermissions.download}
                 onClickRow={handleEdit}
                 loading={mainResult.loading}
@@ -202,7 +176,13 @@ const AccountReceivable: FC = () => {
             />
         );
     } else {
-        return <Detail row={rowSelected} setViewSelected={setViewSelected} fetchData={fetchData} />;
+        return (
+            <Detail
+                row={rowSelected}
+                setViewSelected={setViewSelected}
+                fetchData={fetchData}
+            />
+        );
     }
 };
-export default AccountReceivable;
+export default Incomes;
