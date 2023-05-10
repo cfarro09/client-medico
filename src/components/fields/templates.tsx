@@ -1214,7 +1214,7 @@ export const FieldUploadImage2: React.FC<InputProps> = ({ className, onChange, v
     return (
         <div className={className} style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
             { url === '' ?
-                <label htmlFor="file-input">
+                <label htmlFor={label}>
                     <IconButton component="span">
                         <Avatar style={{width: '25px', height: '25px'}}>
                             <AddAPhotoIcon style={{width: '16px'}}/>
@@ -1223,7 +1223,7 @@ export const FieldUploadImage2: React.FC<InputProps> = ({ className, onChange, v
                     <input
                         type="file"
                         accept="image/*"
-                        id="file-input"
+                        id={label}
                         style={{ display: 'none' }}
                         onChange={(e) => {
                             if ((e.target.files?.length || 0) > 0) {
@@ -1233,26 +1233,6 @@ export const FieldUploadImage2: React.FC<InputProps> = ({ className, onChange, v
                         }}
                     />
                 </label>
-                // <label htmlFor="image1-upload">
-                //     <IconButton >
-                //             <Avatar style={{width: '25px', height: '25px'}}>
-                //                 <AddAPhotoIcon style={{width: '16px'}}/>
-                //             </Avatar>
-                //         <input
-                //             type="file"
-                //             id="image1-upload"
-                //             accept=".jpg,.jpeg,.png"
-                //             style={{ display: "none" }}
-                //             onChange={(e) => {
-                //                 if ((e.target.files?.length || 0) > 0) {
-                //                     setUrl(getUrl(e.target?.files?.item(0)));
-                //                     onChange && onChange(e.target?.files?.item(0));
-                //                 }
-                //             }}
-                //         />
-                //     </IconButton>
-                // </label>
-                
                 :
                 <div style={{ position: "relative", width: 100}}>
                     <img

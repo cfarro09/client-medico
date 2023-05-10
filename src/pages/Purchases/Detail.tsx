@@ -45,6 +45,7 @@ import {
 import { ExpandMore } from "@material-ui/icons";
 import DeleteIcon from "@material-ui/icons/Delete";
 import AddIcon from "@material-ui/icons/Add";
+import { CommonService } from "network";
 
 const arrayBread = [
     { id: "view-1", name: "Purchase" },
@@ -89,7 +90,6 @@ type FormFields = {
     bill_entry_date: string;
     purchase_order_create_date: string;
     bill_number: string;
-    bill_image: File;
     observations: string;
     userid: number;
     brand: string;
@@ -99,8 +99,9 @@ type FormFields = {
     description: string;
     products: Dictionary[];
     payments: Dictionary[];
-    image1: any;
-    image2: any;
+    guide_image: File;
+    scop_image: File;
+    bill_image: File;
 };
 
 const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ row, setViewSelected, fetchData }) => {
@@ -204,7 +205,6 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
             purchase_order_create_date:
                 row?.purchase_order_create_date || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
             bill_number: row?.bill_number || "",
-            bill_image: row?.bill_image || "",
             observations: row?.observations || "",
             userid: row?.userid || 0,
             brand: row?.brand || "",
@@ -212,10 +212,11 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
             company_name: row?.company_name || "",
             guide_number: row?.guide_number || "",
             description: row?.description || "",
-            image1: row?.image1 || "",
-            image2: row?.image2 || "",
             products: [],
             payments: [],
+            guide_image: row?.guide_image || "",
+            scop_image: row?.scop_image || "",
+            bill_image: row?.bill_image || "",
         },
     });
 
@@ -245,8 +246,6 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
     }, [getValues("products")]);
 
     const processTransaction = (data: FormFields, status: string = "") => {
-        console.log("🚀 ~ file: Detail.tsx:254 ~ processTransaction ~ data:", data);
-        return;
         if (data.products.filter((item) => item.status !== "ELIMINADO").length === 0) {
             dispatch(
                 showSnackbar({ show: true, success: false, message: "Debe tener como minimo un producto registrado" })
@@ -282,8 +281,34 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
             return;
         }
 
-        const callback = () => {
+        const callback = async () => {
             dispatch(showBackdrop(true));
+            if (typeof data.bill_image === "object") {
+                const fd = new FormData();
+                fd.append("file", data.bill_image, data.bill_image.name);
+                data.bill_image = (await CommonService.uploadFile(fd)).data["url"];
+            }
+            if (typeof data.scop_image === "object") {
+                const fd = new FormData();
+                fd.append("file", data.scop_image, data.scop_image.name);
+                data.scop_image = (await CommonService.uploadFile(fd)).data["url"];
+            }
+            if (typeof data.guide_image === "object") {
+                const fd = new FormData();
+                fd.append("file", data.guide_image, data.guide_image.name);
+                data.guide_image = (await CommonService.uploadFile(fd)).data["url"];
+            }
+
+            await Promise.all(
+                data.payments.map(async (i, idx) => {
+                    if (typeof i.evidence === "object") {
+                        const fd = new FormData();
+                        fd.append("file", i.evidence, i.evidence.name);
+                        i.evidence_url = (await CommonService.uploadFile(fd)).data["url"];
+                    }
+                })
+            );
+
             dispatch(
                 execute(
                     {
@@ -333,10 +358,6 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
 
     const onSubmit = handleSubmit((data) => processTransaction(data));
 
-    const onChangePhoto = (value: any) => {
-        setValue("image1", value);
-    };
-
     React.useEffect(() => {
         if (!multiDataAux.error && !multiDataAux.loading) {
             const detailProducts = multiDataAux.data.find((x) => x.key === "UFN_PURHCASE_ORDER_DETAIL_SEL");
@@ -370,6 +391,8 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                         method: x.method,
                         amount: x.amount,
                         status: x.status,
+                        evidence: x.evidence,
+                        n_operation: x.n_operation
                     }))
                 );
             }
@@ -516,9 +539,9 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                             onChange={(value) => setValue("observations", value)}
                             error={errors?.observations?.message}
                         />
-                        
                     </div>
-                    <div className="row-zyx"><FieldEdit
+                    <div className="row-zyx">
+                        <FieldEdit
                             label={"NRO DE SCOTT"}
                             disabled={!!row}
                             className="col-3"
@@ -528,8 +551,9 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                         />
                         <FieldUploadImage2
                             className="col-1"
-                            valueDefault={getValues("bill_image")}
-                            onChange={(value) => setValue("bill_image", value)}
+                            label={"scop_image"}
+                            valueDefault={getValues("scop_image")}
+                            onChange={(value) => setValue("scop_image", value)}
                         />
                         <FieldEdit
                             label={"FACTURA"}
@@ -541,6 +565,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                         />
                         <FieldUploadImage2
                             className="col-1"
+                            label={"bill_image"}
                             valueDefault={getValues("bill_image")}
                             onChange={(value) => setValue("bill_image", value)}
                         />
@@ -554,10 +579,10 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                         />
                         <FieldUploadImage2
                             className="col-1"
-                            valueDefault={getValues("bill_image")}
-                            onChange={(value) => setValue("bill_image", value)}
+                            label={"guide_image"}
+                            valueDefault={getValues("guide_image")}
+                            onChange={(value) => setValue("guide_image", value)}
                         />
-                        
                     </div>
                 </div>
                 {loading && (
@@ -737,7 +762,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                     <TableContainer>
                                         <Table size="small">
                                             <TableHead>
-                                                <TableRow>
+                                                <TableRow key={"id"}>
                                                     <TableCell>
                                                         <IconButton
                                                             size="small"
@@ -753,6 +778,8 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                     method: "",
                                                                     amount: totalOrder - tt,
                                                                     status: "ACTIVO",
+                                                                    n_operation: "",
+                                                                    evidence: "",
                                                                 });
                                                             }}
                                                         >
@@ -760,7 +787,9 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                         </IconButton>
                                                     </TableCell>
                                                     <TableCell>Modo de pago</TableCell>
+                                                    <TableCell>Nº Operacion</TableCell>
                                                     <TableCell>Monto a pagar</TableCell>
+                                                    <TableCell>Evidencia</TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody style={{ marginTop: 5 }}>
@@ -817,6 +846,23 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                 <TableCell width={180}>
                                                                     <FieldEditArray
                                                                         fregister={{
+                                                                            ...register(`payments.${i}.n_operation`),
+                                                                        }}
+                                                                        disabled={!!row}
+                                                                        valueDefault={getValues(
+                                                                            `payments.${i}.n_operation`
+                                                                        )}
+                                                                        error={
+                                                                            errors?.payments?.[i]?.n_operation?.message
+                                                                        }
+                                                                        onChange={(value) =>
+                                                                            setValue(`payments.${i}.n_operation`, value)
+                                                                        }
+                                                                    />
+                                                                </TableCell>
+                                                                <TableCell width={180}>
+                                                                    <FieldEditArray
+                                                                        fregister={{
                                                                             ...register(`payments.${i}.amount`, {
                                                                                 validate: (value) =>
                                                                                     value >= 0 ||
@@ -836,6 +882,21 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                                 `payments.${i}.amount`,
                                                                                 parseFloat(value || "0")
                                                                             )
+                                                                        }
+                                                                    />
+                                                                </TableCell>
+                                                                <TableCell width={20}>
+                                                                    <FieldUploadImage2
+                                                                        fregister={{
+                                                                            ...register(`payments.${i}.evidence`),
+                                                                        }}
+                                                                        className="col-1"
+                                                                        label={`payments.${i}.evidence`}
+                                                                        valueDefault={getValues(
+                                                                            `payments.${i}.evidence`
+                                                                        )}
+                                                                        onChange={(value) =>
+                                                                            setValue(`payments.${i}.evidence`, value)
                                                                         }
                                                                     />
                                                                 </TableCell>

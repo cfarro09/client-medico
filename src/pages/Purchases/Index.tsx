@@ -23,9 +23,21 @@ import { execute, getCollection, getMultiCollection, resetAllMain } from "store/
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
 import SystemUpdateAltIcon from "@material-ui/icons/SystemUpdateAlt";
-import { Button, makeStyles, Typography } from "@material-ui/core";
+import { Avatar, Button, IconButton, makeStyles, Modal, Paper, Typography } from "@material-ui/core";
 import { Range } from "react-date-range";
 import { CalendarIcon } from "icons";
+import { AvatarGroup } from "@material-ui/lab";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
+const settings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+};
 
 const useStyles = makeStyles((theme) => ({
     container: {
@@ -64,6 +76,19 @@ const useStyles = makeStyles((theme) => ({
         borderRadius: 4,
         color: "rgb(143, 146, 161)",
     },
+    customModal: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    modalContainer: {
+        backgroundColor: "#fff",
+    },
+    sliderContainer: {
+        margin: '0 auto', // Agregar esta propiedad
+        display: "flex",
+        justifyContent: "center",
+    },
 }));
 
 const initialRange = {
@@ -87,6 +112,11 @@ const Purchase: FC = () => {
     const [merchantEntry, setMerchantEntry] = useState(false);
     const [openDateRangeModal, setOpenDateRangeModal] = useState(false);
     const [dateRange, setDateRange] = useState<Range>(initialRange);
+    const [open, setOpen] = useState(false);
+    const [openSlider, setOpenSlider] = useState(false);
+    const [selectedImage, setSelectedImage] = useState("");
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [imagesGroup, setImagesGroup] = useState<Dictionary[] | null>(null);
 
     useEffect(() => {
         if (applications) {
@@ -113,7 +143,7 @@ const Purchase: FC = () => {
                 getPaymentMethodList(),
                 getDriversLst(),
                 getVehicles(),
-                getSupplierList()
+                getSupplierList(),
             ])
         );
         return () => {
@@ -149,62 +179,134 @@ const Purchase: FC = () => {
         }
     }, [executeResult, waitSave]);
 
+    const handleAvatarClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, scop_image: string) => {
+        event.stopPropagation();
+        setOpen(true);
+        setSelectedImage(scop_image);
+    };
+
+    const handleAvatarGroupClick = (
+        event: React.MouseEvent<HTMLDivElement, MouseEvent>,
+        index: number,
+        payments: Dictionary[]
+    ) => {
+        console.log("🚀 ~ file: Index.tsx:170 ~ handleAvatarGroupClick ~ payments:", payments);
+        event.stopPropagation();
+        setSelectedImageIndex(index);
+        setImagesGroup(payments);
+        setOpenSlider(true);
+    };
+
+    //   const handleAvatarClick2 = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, imageUrl: string) => {
+    //     event.stopPropagation();
+    //     setOpen(true);
+    //     setSelectedImage(imageUrl); // Aquí se almacena la URL de la imagen seleccionada
+    //   };
+
     const columns = React.useMemo(
         () => [
+            // {
+            //     accessor: "purchaseorderid",
+            //     isComponent: true,
+            //     minWidth: 60,
+            //     width: "1%",
+            //     Cell: (props: any) => {
+            //         const row = props.cell.row.original;
+            //         if (row.status === "ENTREGADO") {
+            //             return null;
+            //         }
+            //         return (
+            //             <TemplateIcons
+            //                 deleteFunction={() => handleDelete(row)}
+            //                 // extraOption={"Entrada de mercaderia"}
+            //                 // ExtraICon={() => <SystemUpdateAltIcon width={18} style={{ fill: "#7721AD" }} />}
+            //                 // extraFunction={() => {
+            //                 //     setMerchantEntry(true);
+            //                 //     setViewSelected("view-2");
+            //                 //     setRowSelected(row);
+            //                 // }}
+            //             />
+            //         );
+            //     },
+            // },
             {
-                accessor: "purchaseorderid",
-                isComponent: true,
-                minWidth: 60,
-                width: "1%",
+                Header: "FECHA",
+                accessor: "createdate",
+                NoFilter: true,
+            },
+            {
+                Header: "CHOFER",
+                accessor: "client_name",
+                NoFilter: true,
+            },
+            {
+                Header: "CONDICION",
+                accessor: "status",
+                NoFilter: true,
+            },
+            {
+                Header: "PEDIDO",
+                accessor: "warehouse",
+                NoFilter: true,
+            },
+            {
+                Header: "NRO SCOTT",
+                accessor: "scop_number",
+                NoFilter: true,
                 Cell: (props: any) => {
-                    const row = props.cell.row.original;
-                    if (row.status === "ENTREGADO") {
-                        return null;
-                    }
+                    const { scop_number, scop_image } = props.cell.row.original;
                     return (
-                        <TemplateIcons
-                            deleteFunction={() => handleDelete(row)}
-                            // extraOption={"Entrada de mercaderia"}
-                            // ExtraICon={() => <SystemUpdateAltIcon width={18} style={{ fill: "#7721AD" }} />}
-                            // extraFunction={() => {
-                            //     setMerchantEntry(true);
-                            //     setViewSelected("view-2");
-                            //     setRowSelected(row);
-                            // }}
-                        />
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <div>{scop_number}</div>
+                            {scop_image && (
+                                <div onClick={(event) => handleAvatarClick(event, scop_image)}>
+                                    <Avatar src={scop_image} />
+                                </div>
+                            )}
+                        </div>
                     );
                 },
             },
             {
-                Header: "N° ORDEN",
-                accessor: "purchase_order_number",
+                Header: "FACTURADO",
+                accessor: "company_name",
                 NoFilter: true,
             },
             {
-                Header: 'CONDICION',
-                accessor: "status",
+                Header: "NRO DE FACTURA",
+                accessor: "bill_number",
                 NoFilter: true,
-                prefixTranslation: "status_",
                 Cell: (props: any) => {
-                    const { status } = props.cell.row.original;
-                    return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
+                    const { bill_number, bill_image } = props.cell.row.original;
+                    return (
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <div>{bill_number}</div>
+                            {bill_image && (
+                                <div onClick={(event) => handleAvatarClick(event, bill_image)}>
+                                    <Avatar src={bill_image} />
+                                </div>
+                            )}
+                        </div>
+                    );
                 },
             },
             {
-                Header: "PROVEEDOR",
-                accessor: "supplier_name",
+                Header: "GUIA",
+                accessor: "guide_number",
                 NoFilter: true,
-            },
-            {
-                Header: "ALMACEN",
-                accessor: "warehouse_name",
-                NoFilter: true,
-            },
-            {
-                Header: "PRODUCTOS",
-                accessor: "num_records",
-                type: "number",
-                NoFilter: true,
+                Cell: (props: any) => {
+                    const { guide_number, guide_image } = props.cell.row.original;
+                    return (
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <div>{guide_number}</div>
+                            {guide_image && (
+                                <div onClick={(event) => handleAvatarClick(event, guide_image)}>
+                                    <Avatar src={guide_image} />
+                                </div>
+                            )}
+                        </div>
+                    );
+                },
             },
             {
                 Header: "TOTAL",
@@ -213,7 +315,26 @@ const Purchase: FC = () => {
                 NoFilter: true,
                 Cell: (props: any) => {
                     const { total } = props.cell.row.original;
-                    return 'S/ ' + parseFloat(total).toFixed(2);
+                    return "S/ " + parseFloat(total).toFixed(2);
+                },
+            },
+            {
+                Header: "BANCARIZACION",
+                accessor: "nada",
+                NoFilter: true,
+                Cell: (props: any) => {
+                    const { payments } = props.cell.row.original;
+                    return (
+                        <>
+                            {payments && (
+                                <AvatarGroup max={3} onClick={(event) => handleAvatarGroupClick(event, 0, payments)}>
+                                    {payments.map((image: any, index: number) => (
+                                        <Avatar key={index} src={image?.evidence} />
+                                    ))}
+                                </AvatarGroup>
+                            )}
+                        </>
+                    );
                 },
             },
         ],
@@ -235,9 +356,7 @@ const Purchase: FC = () => {
     const handleDelete = (row: Dictionary) => {
         const callback = () => {
             dispatch(
-                execute(
-                    insPurchase({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.purchaseorderid })
-                )
+                execute(insPurchase({ ...row, operation: "DELETE", status: "ELIMINADO", id: row.purchaseorderid }))
             );
             dispatch(showBackdrop(true));
             setWaitSave(true);
@@ -291,6 +410,22 @@ const Purchase: FC = () => {
                         </div>
                     )}
                 />
+                <Modal open={open} onClose={() => setOpen(false)} className={classes.customModal}>
+                    <img src={selectedImage} alt="Imagen" style={{ maxWidth: 800 }} />
+                </Modal>
+                <Modal open={openSlider} onClose={() => setOpenSlider(false)} className={classes.customModal}>
+                    <div style={{ maxWidth: 800 }}>
+                        <Paper className={classes.modalContainer}>
+                            <Slider {...settings} initialSlide={selectedImageIndex} className={classes.sliderContainer}>
+                                {imagesGroup?.map((image, index) => (
+                                    <div key={index}>
+                                        <img src={image.evidence} alt={`Imagen ${index}`} style={{ maxHeight: 600 }} />
+                                    </div>
+                                ))}
+                            </Slider>
+                        </Paper>
+                    </div>
+                </Modal>
             </div>
         );
     } else {
