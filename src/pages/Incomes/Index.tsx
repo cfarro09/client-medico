@@ -1,15 +1,22 @@
 /*
+ ** Change getStockFlow to the actual sel of your main data
  ** Change MainDataFill or delete it in case no use
  ** Change MultiData or delete it in case no use
  ** Change corpid from your dataset
  ** Change ViewColumns or delete it in case no use
  ** Change insCorp for your ins function
- ** Change TEMPALTE_TITLE
  */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getStockFlow, getValuesFromDomain, insCorp } from "common/helpers";
-import { TemplateIcons } from "components";
+import {
+    getStockFlow,
+    getDateCleaned,
+    getValuesFromDomain,
+    insCorp,
+    getWareHouse,
+    getCustomerList,
+} from "common/helpers";
+import { DateRangePicker, FieldSelect, TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
@@ -19,8 +26,68 @@ import { useDispatch } from "react-redux";
 import { execute, getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
+import { Range } from "react-date-range";
+import { Button, makeStyles } from "@material-ui/core";
+import { CalendarIcon, SearchIcon } from "icons";
+
+const useStyles = makeStyles((theme) => ({
+    container: {
+        width: "100%",
+    },
+    containerDetail: {
+        marginTop: theme.spacing(2),
+        padding: theme.spacing(2),
+        background: "#fff",
+    },
+    button: {
+        padding: 12,
+        fontWeight: 500,
+        fontSize: "14px",
+        textTransform: "initial",
+    },
+    containerHeader: {
+        marginBottom: 0,
+        display: "flex",
+        width: "100%",
+        gap: 8,
+        flexWrap: "wrap",
+        justifyContent: "space-between",
+        alignItems: "center",
+        [theme.breakpoints.up("sm")]: {
+            display: "flex",
+        },
+        "& > div": {
+            display: "flex",
+            gap: 8,
+        },
+    },
+    itemDate: {
+        minHeight: 40,
+        height: 40,
+        border: "1px solid #bfbfc0",
+        borderRadius: 4,
+        color: "rgb(143, 146, 161)",
+    },
+    title: {
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: theme.palette.text.primary,
+        padding: "10px 0 ",
+    },
+    filterComponent: {
+        minWidth: "220px",
+        maxWidth: "320px",
+    },
+}));
+
+const initialRange = {
+    startDate: new Date(new Date().setDate(new Date().getDate() - 30)),
+    endDate: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()),
+    key: "selection",
+};
 
 const Incomes: FC = () => {
+    const classes = useStyles();
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const mainResult = useSelector((state) => state.main.mainData);
@@ -31,6 +98,17 @@ const Incomes: FC = () => {
     const applications = useSelector((state) => state.login?.validateToken?.user?.menu);
     const [pagePermissions, setPagePermissions] = useState<Dictionary>({});
     const executeResult = useSelector((state) => state.main.execute);
+    const [openDateRangeModal, setOpenDateRangeModal] = useState(false);
+    const [dateRange, setDateRange] = useState<Range>(initialRange);
+    const multiData = useSelector((state) => state.main.multiData);
+    const [filters, setFilters] = useState({
+        customerid: 0,
+        warehouseid: 0,
+    });
+    const [dataExtra, setDataExtra] = useState<{
+        warehouses: Dictionary[];
+        customers: Dictionary[];
+    }>({ warehouses: [], customers: [] });
 
     useEffect(() => {
         if (applications) {
@@ -61,25 +139,45 @@ const Incomes: FC = () => {
             }
         }
     }, [executeResult, waitSave]);
-    
-    const fetchData = () => dispatch(getCollection(getStockFlow({})));
+
+    const fetchData = () =>
+        dispatch(
+            getCollection(
+                getStockFlow({
+                    startdate: dateRange.startDate,
+                    finishdate: dateRange.endDate,
+                    customerid: filters.customerid,
+                    warehouseid: filters.warehouseid,
+                    type: "in",
+                })
+            )
+        );
 
     // MainDataFill
     useEffect(() => {
-        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_CORPORATION_SEL") {
+        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_STOCK_FLOW") {
             setDataView(mainResult.data);
         }
     }, [mainResult]);
 
+    useEffect(() => {
+        if (!multiData.loading && !multiData.error) {
+            const warehouses = multiData.data.find((x) => x.key === "UFN_WAREHOUSE_LST");
+            const customers = multiData.data.find((x) => x.key === "UFN_CUSTOMER_LST");
+
+            if (warehouses && customers) {
+                setDataExtra({
+                    warehouses: warehouses.data,
+                    customers: customers.data,
+                });
+            }
+        }
+    }, [multiData]);
+
     // MultiData
     useEffect(() => {
         fetchData();
-        dispatch(
-            getMultiCollection([
-                getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
-                getValuesFromDomain("TIPOCORP", "DOMAIN-TIPOCORP"),
-            ])
-        );
+        dispatch(getMultiCollection([getWareHouse(0, "", true), getCustomerList()]));
         return () => {
             dispatch(resetAllMain());
         };
@@ -88,48 +186,78 @@ const Incomes: FC = () => {
     // ViewColumns
     const columns = React.useMemo(
         () => [
+            // {
+            //     accessor: "kardexid",
+            //     isComponent: true,
+            //     minWidth: 60,
+            //     width: "1%",
+            //     Cell: (props: any) => {
+            //         const row = props.cell.row.original;
+            //         return <TemplateIcons deleteFunction={() => handleDelete(row)} />;
+            //     },
+            // },
             {
-                accessor: "corpid",
-                isComponent: true,
-                minWidth: 60,
-                width: "1%",
-                Cell: (props: any) => {
-                    const row = props.cell.row.original;
-                    return (
-                        <TemplateIcons
-                            deleteFunction={() => handleDelete(row)}
-                        />
-                    );
-                },
-            },
-            {
-                Header: 'DESCRIPTION',
-                accessor: "description",
-                NoFilter: true,
-            },
-            {
-                Header: t(langKeys.status),
-                accessor: "status",
-                NoFilter: true,
-                prefixTranslation: "status_",
-                Cell: (props: any) => {
-                    const { status } = props.cell.row.original;
-                    return (t(`status_${status}`.toLowerCase()) || "").toUpperCase();
-                },
-            },
-            {
-                Header: t(langKeys.createdBy),
-                accessor: "createdby",
-                NoFilter: true,
-            },
-            {
-                Header: t(langKeys.creationDate),
+                Header: "FECHA",
                 accessor: "createdate",
                 NoFilter: true,
+            },
+            {
+                Header: "HORA",
+                accessor: "rowhour",
+                NoFilter: true,
+            },
+            {
+                Header: "ATENDIDO POR",
+                accessor: "user_name",
+                NoFilter: true,
+            },
+            {
+                Header: "ALMACEN",
+                accessor: "warehouse",
+                NoFilter: true,
+            },
+            {
+                Header: "CONDICION",
+                accessor: "doc_type",
+                NoFilter: true,
+            },
+            {
+                Header: "CLIENTE - REFERENCIA",
+                accessor: "client_name",
+                NoFilter: true,
+            },
+            {
+                Header: "CANTIDAD",
+                accessor: "quantity",
+                NoFilter: true,
+            },
+            {
+                Header: "PRODUCTO",
+                accessor: "product_description",
+                NoFilter: true,
+            },
+            {
+                Header: "PRECIO UNI.",
+                accessor: "price",
+                NoFilter: true,
                 Cell: (props: any) => {
-                    const date = props.cell.row.original.createdate;
-                    return date.split(".")[0].split(" ")[0];
+                    const { price } = props.cell.row.original;
+                    return "S/ " + parseFloat(price).toFixed(2);
                 },
+            },
+            {
+                Header: "TOTAL",
+                accessor: "total",
+                NoFilter: true,
+                Cell: (props: any) => {
+                    const { total } = props.cell.row.original;
+                    return "S/ " + parseFloat(total).toFixed(2);
+                },
+            },
+            {
+                Header: "ESTADO",
+                accessor: "status",
+                NoFilter: true,
             },
         ],
         []
@@ -164,25 +292,75 @@ const Incomes: FC = () => {
 
     if (viewSelected === "view-1") {
         return (
-            <TableZyx
-                columns={columns}
-                data={dataView}
-                titlemodule={`Ingresos`}
-                download={!!pagePermissions.download}
-                onClickRow={handleEdit}
-                loading={mainResult.loading}
-                register={!!pagePermissions.insert}
-                handleRegister={handleRegister}
-            />
+            <div className={classes.container}>
+                <div className={classes.title}>{"Ingresos"}</div>
+                <TableZyx
+                    columns={columns}
+                    data={dataView}
+                    titlemodule={``}
+                    download={!!pagePermissions.download}
+                    // onClickRow={handleEdit}
+                    loading={mainResult.loading}
+                    register={!!pagePermissions.insert}
+                    handleRegister={handleRegister}
+                    filterGeneral={false}
+                    ButtonsElement={() => (
+                        <div className={classes.containerHeader}>
+                            <DateRangePicker
+                                open={openDateRangeModal}
+                                setOpen={setOpenDateRangeModal}
+                                range={dateRange}
+                                onSelect={setDateRange}
+                            >
+                                <Button
+                                    className={classes.itemDate}
+                                    startIcon={<CalendarIcon />}
+                                    onClick={() => setOpenDateRangeModal(!openDateRangeModal)}
+                                >
+                                    {getDateCleaned(dateRange.startDate!) + " - " + getDateCleaned(dateRange.endDate!)}
+                                </Button>
+                            </DateRangePicker>
+                            <FieldSelect
+                                label={"Almacen"}
+                                className={classes.filterComponent}
+                                valueDefault={filters.warehouseid}
+                                onChange={(value) => setFilters({ ...filters, warehouseid: value?.warehouseid || 0 })}
+                                uset={true}
+                                variant="outlined"
+                                loading={multiData.loading}
+                                data={dataExtra.warehouses}
+                                optionDesc="description"
+                                optionValue="warehouseid"
+                            />
+                            <FieldSelect
+                                label={"Clientes"}
+                                className={classes.filterComponent}
+                                valueDefault={filters.customerid}
+                                onChange={(value) => setFilters({ ...filters, customerid: value?.customerid || 0 })}
+                                uset={true}
+                                variant="outlined"
+                                loading={multiData.loading}
+                                data={dataExtra.customers}
+                                optionDesc="description"
+                                optionValue="customerid"
+                            />
+                            <Button
+                                disabled={mainResult.loading}
+                                variant="contained"
+                                color="primary"
+                                startIcon={<SearchIcon style={{ color: "white" }} />}
+                                style={{ width: 120, backgroundColor: "#55BD84" }}
+                                onClick={() => fetchData()}
+                            >
+                                {t(langKeys.search)}
+                            </Button>
+                        </div>
+                    )}
+                />
+            </div>
         );
     } else {
-        return (
-            <Detail
-                row={rowSelected}
-                setViewSelected={setViewSelected}
-                fetchData={fetchData}
-            />
-        );
+        return <Detail row={rowSelected} setViewSelected={setViewSelected} fetchData={fetchData} />;
     }
 };
 export default Incomes;

@@ -148,7 +148,7 @@ const Outflows: FC = () => {
                     finishdate: dateRange.endDate,
                     customerid: filters.customerid,
                     warehouseid: filters.warehouseid,
-                    type: "in",
+                    type: "out",
                 })
             )
         );
