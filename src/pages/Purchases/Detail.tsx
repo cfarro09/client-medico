@@ -635,9 +635,9 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                 <TableRow>
                                                     <TableCell></TableCell>
                                                     <TableCell>Producto</TableCell>
-                                                    <TableCell style={{ textAlign: "right" }}>Cantidad</TableCell>
-                                                    <TableCell style={{ textAlign: "right" }}>Precio</TableCell>
-                                                    <TableCell style={{ textAlign: "right" }}>Subtotal</TableCell>
+                                                    <TableCell style={{ textAlign: "right", padding: 6 }}>Cantidad</TableCell>
+                                                    <TableCell style={{ textAlign: "right", padding: 6 }}>Precio</TableCell>
+                                                    <TableCell style={{ textAlign: "right", padding: 6 }}>Subtotal</TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody style={{ marginTop: 5 }}>
@@ -645,7 +645,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                     (item, i: number) =>
                                                         item.status === "ACTIVO" && (
                                                             <TableRow key={item.id}>
-                                                                <TableCell width={10} style={{padding: 6}}>
+                                                                <TableCell style={{ padding: 6 }} width={10} >
                                                                     <div style={{ display: "flex" }}>
                                                                         <IconButton
                                                                             size="small"
@@ -661,7 +661,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                 <TableCell>
                                                                     {getValues(`products.${i}.description`)}
                                                                 </TableCell>
-                                                                <TableCell width={180}>
+                                                                <TableCell style={{ padding: 6 }} width={180}>
                                                                     <FieldEditArray
                                                                         fregister={{
                                                                             ...register(
@@ -702,7 +702,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                         }
                                                                     />
                                                                 </TableCell>
-                                                                <TableCell width={180}>
+                                                                <TableCell style={{ padding: 6 }} width={180}>
                                                                     <FieldEditArray
                                                                         fregister={{
                                                                             ...register(`products.${i}.price`, {
@@ -732,7 +732,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                         }}
                                                                     />
                                                                 </TableCell>
-                                                                <TableCell width={180}>
+                                                                <TableCell style={{ padding: 6 }} width={180}>
                                                                     <div style={{ textAlign: "right" }}>
                                                                         S/. {getValues(`products.${i}.subtotal`)}
                                                                     </div>
@@ -763,32 +763,34 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                         <Table size="small">
                                             <TableHead>
                                                 <TableRow key={"id"}>
-                                                    <TableCell>
-                                                        <IconButton
-                                                            size="small"
-                                                            style={{ display: !!row ? "none" : "auto" }}
-                                                            onClick={() => {
-                                                                const tt = getValues("payments").reduce(
-                                                                    (acc, x) => acc + x.amount,
-                                                                    0
-                                                                );
-                                                                paymentAppend({
-                                                                    purchaseorderpaymentid: fieldsPayment.length * -1,
-                                                                    paymentmethodid: 0,
-                                                                    method: "",
-                                                                    amount: totalOrder - tt,
-                                                                    status: "ACTIVO",
-                                                                    n_operation: "",
-                                                                    evidence: "",
-                                                                });
-                                                            }}
-                                                        >
-                                                            <AddIcon />
-                                                        </IconButton>
+                                                    <TableCell style={{ padding: 6 }} width={10} >
+                                                        <div style={{ display: "flex" }}>
+                                                            <IconButton
+                                                                size="small"
+                                                                style={{ display: !!row ? "none" : "auto" }}
+                                                                onClick={() => {
+                                                                    const tt = getValues("payments").reduce(
+                                                                        (acc, x) => acc + x.amount,
+                                                                        0
+                                                                    );
+                                                                    paymentAppend({
+                                                                        purchaseorderpaymentid: fieldsPayment.length * -1,
+                                                                        paymentmethodid: 0,
+                                                                        method: "",
+                                                                        amount: totalOrder - tt,
+                                                                        status: "ACTIVO",
+                                                                        n_operation: "",
+                                                                        evidence: "",
+                                                                    });
+                                                                }}
+                                                            >
+                                                                <AddIcon />
+                                                            </IconButton>
+                                                        </div>
                                                     </TableCell>
-                                                    <TableCell>Modo de pago</TableCell>
+                                                    <TableCell>Método</TableCell>
                                                     <TableCell>Nº Operacion</TableCell>
-                                                    <TableCell>Monto a pagar</TableCell>
+                                                    <TableCell>Monto</TableCell>
                                                     <TableCell>Evidencia</TableCell>
                                                 </TableRow>
                                             </TableHead>
@@ -797,7 +799,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                     (item, i: number) =>
                                                         item.status === "ACTIVO" && (
                                                             <TableRow key={item.id}>
-                                                                <TableCell width={10} style={{padding: 6}}>
+                                                                <TableCell style={{ padding: 6 }} width={10} >
                                                                     <div style={{ display: "flex" }}>
                                                                         <IconButton
                                                                             size="small"
@@ -810,40 +812,41 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                         </IconButton>
                                                                     </div>
                                                                 </TableCell>
-                                                                <TableCell width={200}>
-                                                                    <FieldSelect
-                                                                        label={""}
-                                                                        className="col-6"
-                                                                        disabled={!!row}
-                                                                        valueDefault={getValues(
-                                                                            `payments.${i}.paymentmethodid`
-                                                                        )}
-                                                                        onChange={(value) => {
-                                                                            console.log("value", value);
-                                                                            setValue(
-                                                                                `payments.${i}.method`,
-                                                                                value.description
-                                                                            );
-                                                                            setValue(
-                                                                                `payments.${i}.paymentmethodid`,
-                                                                                value.paymentmethodid
-                                                                            );
-                                                                        }}
-                                                                        disableClearable={true}
-                                                                        error={errors?.payments?.[i]?.method?.message}
-                                                                        data={dataExtra.payments}
-                                                                        fregister={{
-                                                                            ...register(`payments.${i}.method`, {
-                                                                                validate: (value) =>
-                                                                                    !!value ||
-                                                                                    "Debe ingresar una cantidad correcta",
-                                                                            }),
-                                                                        }}
-                                                                        optionDesc="description"
-                                                                        optionValue="paymentmethodid"
-                                                                    />
+                                                                <TableCell style={{ padding: 6 }}>
+                                                                    <div style={{ width: 100 }}>
+                                                                        <FieldSelect
+                                                                            label={""}
+                                                                            disabled={!!row}
+                                                                            valueDefault={getValues(
+                                                                                `payments.${i}.paymentmethodid`
+                                                                            )}
+                                                                            onChange={(value) => {
+                                                                                console.log("value", value);
+                                                                                setValue(
+                                                                                    `payments.${i}.method`,
+                                                                                    value.description
+                                                                                );
+                                                                                setValue(
+                                                                                    `payments.${i}.paymentmethodid`,
+                                                                                    value.paymentmethodid
+                                                                                );
+                                                                            }}
+                                                                            disableClearable={true}
+                                                                            error={errors?.payments?.[i]?.method?.message}
+                                                                            data={dataExtra.payments}
+                                                                            fregister={{
+                                                                                ...register(`payments.${i}.method`, {
+                                                                                    validate: (value) =>
+                                                                                        !!value ||
+                                                                                        "Debe ingresar una cantidad correcta",
+                                                                                }),
+                                                                            }}
+                                                                            optionDesc="description"
+                                                                            optionValue="paymentmethodid"
+                                                                        />
+                                                                    </div>
                                                                 </TableCell>
-                                                                <TableCell width={180}>
+                                                                <TableCell style={{ padding: 6 }} width={180}>
                                                                     <FieldEditArray
                                                                         fregister={{
                                                                             ...register(`payments.${i}.n_operation`),
@@ -860,7 +863,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                         }
                                                                     />
                                                                 </TableCell>
-                                                                <TableCell width={180}>
+                                                                <TableCell style={{ padding: 6 }} width={180}>
                                                                     <FieldEditArray
                                                                         fregister={{
                                                                             ...register(`payments.${i}.amount`, {
@@ -885,7 +888,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                                         }
                                                                     />
                                                                 </TableCell>
-                                                                <TableCell width={20}>
+                                                                <TableCell style={{ padding: 6 }} width={20}>
                                                                     <FieldUploadImage2
                                                                         fregister={{
                                                                             ...register(`payments.${i}.evidence`),
