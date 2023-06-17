@@ -22,6 +22,8 @@ import { getCollection, getMultiCollection, resetAllMain } from "store/main/acti
 import { showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
 
+const diaSemana = ['DOMINGO', 'LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
+
 const useStyles = makeStyles((theme) => ({
     container: {
         width: "100%",
@@ -186,39 +188,61 @@ const Routes: FC = () => {
     const columns = React.useMemo(
         () => [
             {
-                Header: "Cliente",
+                Header: "FECHA",
+                accessor: "createdate",
+                NoFilter: true,
+                Cell: (props: any) => {
+                    const { createdate } = props.cell.row.original;
+                    return createdate.split(" ")[0];
+                },
+            },
+            {
+                Header: "DIA",
+                accessor: "dia",
+                NoFilter: true,
+                Cell: (props: any) => {
+                    const { dow } = props.cell.row.original;
+                    return diaSemana[dow];
+                }
+            },
+            {
+                Header: "CHOFER",
                 accessor: "full_name",
-                width: "auto",
                 NoFilter: true,
             },
             {
-                Header: "Tipo Doc.",
-                accessor: "doc_type",
-                width: "auto",
-                NoFilter: true,
-            },
-            {
-                Header: "Num. Doc.",
-                accessor: "doc_number",
-                width: "auto",
-                NoFilter: true,
-            },
-            {
-                Header: "Unidad",
-                accessor: "plate_number",
-                width: "auto",
-                NoFilter: true,
-            },
-            {
-                Header: "Asistentes",
+                Header: "AUXILIAR",
                 accessor: "assistants",
-                width: "auto",
                 NoFilter: true,
             },
             {
-                Header: "Estado",
+                Header: "ALMACEN",
+                accessor: "warehouse",
+                NoFilter: true,
+            },
+            {
+                Header: "CATEGORIA",
+                accessor: "type",
+                NoFilter: true,
+            },
+            {
+                Header: "RUTA",
+                accessor: "route",
+                NoFilter: true,
+            },
+            {
+                Header: "ESTADO",
                 accessor: "status",
-                width: "auto",
+                NoFilter: true,
+            },
+            {
+                Header: "CONFIRMADO POR",
+                accessor: "confirmed_by",
+                NoFilter: true,
+            },
+            {
+                Header: "HORA",
+                accessor: "confirmed_date",
                 NoFilter: true,
             },
         ],
@@ -246,9 +270,6 @@ const Routes: FC = () => {
                     onClickRow={handleEdit}
                     loading={mainResult.loading}
                     register={!!pagePermissions.insert}
-                    useSelection={true}
-                    selectionKey={selectionKey}
-                    setSelectedRows={setSelectedRows}
                     filterGeneral={false}
                     handleRegister={handleRegister}
                     ButtonsElement={() => (

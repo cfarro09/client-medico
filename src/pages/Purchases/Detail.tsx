@@ -337,6 +337,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                     id: p.purchaseorderpaymentid,
                                     status: "ACTIVO",
                                     amount: p.amount,
+                                    evidence_url: p.evidence_url ? p.evidence_url : '',
                                 })
                             ),
                         ],
