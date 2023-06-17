@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Snackbar from '@material-ui/core/Snackbar';
 import Backdrop from '@material-ui/core/Backdrop';
 import CircularProgress from '@material-ui/core/CircularProgress';
@@ -16,6 +16,7 @@ import { showSnackbar, manageConfirmation, manageLightBox } from 'store/popus/ac
 import { useTranslation } from 'react-i18next';
 import { langKeys } from 'lang/keys';
 import Button from '@material-ui/core/Button';
+import { FieldEdit } from "components";
 
 const useStyles = makeStyles({
     cookieAlert: {
@@ -35,11 +36,11 @@ const Popus: React.FC = () => {
     const lightbox = useSelector(state => state.popus.lightbox);
 
     const handleCloseSnackbar = () => dispatch(showSnackbar({ ...popus.snackbar, show: false }));
-
     const manageConfirmationTmp = () => dispatch(manageConfirmation({ ...popus.question, visible: false }));
-
     const manageLightBoxTmp = (lightboxtmp: any) => dispatch(manageLightBox(lightboxtmp));
-    
+
+    const [value, setvalue] = useState("")
+
     return (
         <>
             <Snackbar
@@ -71,6 +72,11 @@ const Popus: React.FC = () => {
                     <DialogContentText color="textPrimary">
                         {popus.question.question}
                     </DialogContentText>
+                    <FieldEdit
+                        label={'Clave para realizar la operación'}
+                        className="col-6"
+                        onChange={(value) => setvalue(value)}
+                    />
                 </DialogContent>
                 <DialogActions>
                     <Button
@@ -87,8 +93,12 @@ const Popus: React.FC = () => {
                         variant="contained"
                         style={{ backgroundColor: "#55BD84" }}
                         onClick={() => {
-                            popus.question.callback && popus.question.callback()
-                            manageConfirmationTmp()
+                            if (value === "nevygas2023#") {
+                                popus.question.callback && popus.question.callback()
+                                manageConfirmationTmp()
+                            } else {
+                                alert("Clave incorrecta!")
+                            }
                         }}
                         color="primary">
                         {t(langKeys.continue)}
