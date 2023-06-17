@@ -83,28 +83,7 @@ interface NotificaionMenuItemProps {
     onClick?: MouseEventHandler<HTMLLIElement>;
 }
 
-const NotificaionMenuItem: FC<NotificaionMenuItemProps> = ({ title, description, date, onClick, user }) => {
-    const classes = useNotificaionStyles();
 
-    return (
-        <MenuItem button className={classes.root} onClick={onClick}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%' }}>
-                <div style={{ flex: 1 }}>
-                    <div className={classes.row}>
-                        <div className={classes.textOneLine}>
-                            <span className={classes.title}>{title}</span>
-                        </div>
-                        <div style={{ width: 12 }} />
-                        <span className={classes.date}>{date}</span>
-                    </div>
-                    <div className={clsx(classes.description, classes.textOneLine)}>
-                        <span>{description}</span>
-                    </div>
-                </div>
-            </div>
-        </MenuItem>
-    );
-}
 
 const NotificationMenu: FC<BoxProps> = (boxProps) => {
     const classes = useNotificationMenuStyles();
@@ -147,32 +126,6 @@ const NotificationMenu: FC<BoxProps> = (boxProps) => {
                         <BellNotificationIcon />}
                 </div>
             </IconButton>
-            <Menu
-                id="notification-list-menu-popover"
-                anchorEl={anchorEl}
-                open={open}
-                getContentAnchorEl={null}
-                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-                transformOrigin={{ vertical: "top", horizontal: "center" }}
-                onClose={handleClose}
-                className={classes.menu}
-                MenuListProps={{
-                    'aria-labelledby': 'lock-button',
-                    role: 'listbox',
-                }}
-            >
-                <div style={{ fontWeight: 'bold', marginLeft: 10, fontSize: 20 }}>{"Próximas citas"}</div>
-                {notifications.map((e, i) => (
-                    <NotificaionMenuItem
-                        key={i}
-                        user={e.patient}
-                        image={""}
-                        title={e.patient}
-                        description={"Última sesión: " + e.description}
-                        date={e.nextappointmentdate}
-                    />
-                ))}
-            </Menu>
         </Box>
     );
 };

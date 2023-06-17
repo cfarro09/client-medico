@@ -120,9 +120,9 @@ const useStyles = makeStyles((theme) => ({
         color: theme.palette.text.primary,
     },
     containerButtons: {
-        gridGap: theme.spacing(1),
-        display: 'grid',
-        gridAutoFlow: 'column',
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 6
     },
     containerHeader: {
         display: 'block',

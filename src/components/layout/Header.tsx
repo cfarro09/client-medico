@@ -53,7 +53,6 @@ const Header = ({ classes }: IProps) => {
                 <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                         <AccountMenu />
-                        <NotificationMenu />
 
                     </div>
                 </div>

@@ -44,9 +44,11 @@ const Outflows = lazy(() => import('pages/Outflows/Index'));
 
 const useStyles = makeStyles((theme) => ({
 	main: {
-		padding: theme.spacing(2),
 		paddingTop: theme.spacing(1),
-		width: '100%'
+		width: '100%',
+        [theme.breakpoints.up('sm')]: {
+            padding: theme.spacing(2),
+        },
 	},
 }));
 

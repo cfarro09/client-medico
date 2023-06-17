@@ -55,7 +55,7 @@ const arrayBread = [
 const useStyles = makeStyles((theme) => ({
     containerDetail: {
         marginTop: theme.spacing(2),
-        padding: theme.spacing(2),
+        // padding: theme.spacing(2),
         background: "#fff",
         width: "100%",
     },
@@ -645,7 +645,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                     (item, i: number) =>
                                                         item.status === "ACTIVO" && (
                                                             <TableRow key={item.id}>
-                                                                <TableCell width={30}>
+                                                                <TableCell width={10} style={{padding: 6}}>
                                                                     <div style={{ display: "flex" }}>
                                                                         <IconButton
                                                                             size="small"
@@ -797,7 +797,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                                                     (item, i: number) =>
                                                         item.status === "ACTIVO" && (
                                                             <TableRow key={item.id}>
-                                                                <TableCell width={20}>
+                                                                <TableCell width={10} style={{padding: 6}}>
                                                                     <div style={{ display: "flex" }}>
                                                                         <IconButton
                                                                             size="small"
