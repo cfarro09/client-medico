@@ -160,6 +160,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
             userid: row?.userid || 0,
             warehouseid: row?.warehouseid || 0,
             route: row?.route || "",
+            zone: row?.zone  || "",
             assistants: '',
         },
     });
