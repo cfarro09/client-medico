@@ -117,6 +117,7 @@ type FormFields = {
     warehouseid: number;
     assistants: string;
     route: string;
+    zone: string;
 };
 
 const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
