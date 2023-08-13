@@ -18,8 +18,22 @@ import { useDispatch } from "react-redux";
 import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
-import { execute, getCollectionAux, resetMainAux } from "store/main/actions";
-import { getDetailSale, insOrderSale, insSaleDetail, paymentIns, getPaymentByOrder, insRoute } from "common/helpers";
+import { execute, getCollectionAux, getMultiCollectionAux, resetMainAux } from "store/main/actions";
+import {
+    getDetailSale,
+    insOrderSale,
+    insSaleDetail,
+    paymentIns,
+    getPaymentByOrder,
+    insRoute,
+    getRouteStockSel,
+    getRouteCashSel,
+    getRouteSalesLst,
+    getRouteSalesPaymentsLst,
+    getRouteSalesPaymentsDetail,
+    formatMoney,
+    setTitleCase,
+} from "common/helpers";
 import {
     Button,
     makeStyles,
@@ -34,6 +48,10 @@ import {
     AppBar,
     Tab,
     Box,
+    CircularProgress,
+    TablePagination,
+    Avatar,
+    Modal,
 } from "@material-ui/core";
 import DeleteIcon from "@material-ui/icons/Delete";
 import Tabs from "@material-ui/core/Tabs";
@@ -42,7 +60,7 @@ import AccordionDetails from "@material-ui/core/AccordionDetails";
 import AccordionSummary from "@material-ui/core/AccordionSummary";
 import Typography from "@material-ui/core/Typography";
 import AddIcon from "@material-ui/icons/Add";
-import { ExpandMore } from "@material-ui/icons";
+import { CheckCircle, ExpandMore } from "@material-ui/icons";
 import TableZyx from "components/fields/table-simple";
 
 interface TabPanelProps {
@@ -109,6 +127,17 @@ const useStyles = makeStyles((theme) => ({
         maxWidth: "unset",
         flexGrow: 1,
     },
+    taCenter: {
+        textAlign: "center",
+    },
+    taRight: {
+        textAlign: "right",
+    },
+    customModal: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+    },
 }));
 
 type FormFields = {
@@ -121,12 +150,17 @@ type FormFields = {
 };
 
 const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
-    console.log('row',row)
     const classes = useStyles();
     const [waitSave, setWaitSave] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
     const multiData = useSelector((state) => state.main.multiData);
+    const multiDataAux = useSelector((state) => state.main.multiDataAux);
     const [tabIndex, setTabIndex] = useState("0");
+    const [loading, setLoading] = useState<Boolean>(false);
+    const [page, setPage] = React.useState(0);
+    const [rowsPerPage, setRowsPerPage] = React.useState(10);
+    const [open, setOpen] = useState(false);
+    const [selectedImage, setSelectedImage] = useState("");
     const [dataExtra, setDataExtra] = useState<{
         driver: Dictionary[];
         routes: Dictionary[];
@@ -137,6 +171,19 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
         routes: [],
         vehicle: [],
         assistans: [],
+    });
+    const [dataAux, setDataAux] = useState<{
+        stock: Dictionary[];
+        cash: Dictionary[];
+        sales: Dictionary[];
+        cash_info: Dictionary[];
+        payments_detail: Dictionary[];
+    }>({
+        payments_detail: [],
+        cash_info: [],
+        cash: [],
+        sales: [],
+        stock: [],
     });
     const dispatch = useDispatch();
     const { t } = useTranslation();
@@ -181,6 +228,25 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
             });
         }
     }, [multiData]);
+
+    useEffect(() => {
+        if (!multiDataAux.error && !multiDataAux.loading) {
+            const stock = multiDataAux.data.find((x) => x.key === "UFN_ROUTE_STOCK_SEL");
+            const cash = multiDataAux.data.find((x) => x.key === "UFN_ROUTE_CASH_SEL");
+            const sales = multiDataAux.data.find((x) => x.key === "UFN_ROUTE_SALE_LST");
+            const cash_info = multiDataAux.data.find((x) => x.key === "UFN_ROUTE_SALE_PAYMENTS_LST");
+            const payments_detail = multiDataAux.data.find((x) => x.key === "UFN_ROUTE_SALE_PAYMENTS_DETAIL");
+
+            setDataAux({
+                stock: stock?.data || [],
+                cash: cash?.data || [],
+                sales: sales?.data || [],
+                cash_info: cash_info?.data || [],
+                payments_detail: payments_detail?.data || [],
+            });
+            setLoading(false);
+        }
+    }, [multiDataAux]);
 
     useEffect(() => {
         if (waitSave) {
@@ -234,14 +300,42 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
         register("route", { validate: (value) => (value && value.length > 0) || "" + t(langKeys.field_required) });
         register("userid", { validate: (value) => (value && value > 0) || "" + t(langKeys.field_required) });
         register("warehouseid", { validate: (value) => (value && value > 0) || "" + t(langKeys.field_required) });
+        if (!!row) {
+            setLoading(true);
+            dispatch(
+                getMultiCollectionAux([
+                    getRouteStockSel(row?.warehouseid),
+                    getRouteCashSel(row?.routeid),
+                    getRouteSalesLst(row?.routeid),
+                    getRouteSalesPaymentsLst(row?.routeid),
+                    getRouteSalesPaymentsDetail(row?.routeid),
+                ])
+            );
+        }
     }, [register]);
+
+    const handleChangePage = (event: unknown, newPage: number) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setRowsPerPage(+event.target.value);
+        setPage(0);
+    };
+
+    const handleAvatarClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, url_evidence: string) => {
+        event.stopPropagation();
+        if (!url_evidence) return;
+        setOpen(true);
+        setSelectedImage(url_evidence);
+    };
 
     return (
         <div style={{ width: "100%" }}>
             <form onSubmit={onSubmit}>
                 <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
                 <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-                    <TitleDetail title={row ? `Ver Ruta - ${row?.unit}` : "Nueva ruta"} />
+                    <TitleDetail title={row ? `${row?.full_name} - ${row?.warehouse}` : "Nueva ruta"} />
                     <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                         <Button
                             variant="contained"
@@ -293,172 +387,337 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                 indicatorColor="primary"
                             >
                                 <Tab className={classes.tab} label={"Información General"} value="0" />
-                                <Tab className={classes.tab} label={"Ventas"} value="1" />
+                                <Tab className={classes.tab} label={"Información de Caja"} value="1" />
                                 <Tab className={classes.tab} label={"Gastos"} value="2" />
                             </Tabs>
                         </AppBar>
                         <TabPanel value="0" index={tabIndex}>
-                            <div className={classes.containerDetail}>
-                                <div className="row-zyx">
-                                    <FieldSelect
-                                        loading={multiData.loading}
-                                        label={"Unidad"}
-                                        className="col-6"
-                                        valueDefault={getValues("warehouseid")}
-                                        data={dataExtra.vehicle}
-                                        disabled={true}
-                                        optionDesc="plate_number"
-                                        optionValue="warehouseid"
-                                    />
-                                    <FieldSelect
-                                        loading={multiData.loading}
-                                        label={`Rutas`}
-                                        className="col-6"
-                                        valueDefault={getValues("route")}
-                                        data={dataExtra.routes}
-                                        optionDesc="domaindesc"
-                                        disabled={true}
-                                        optionValue="domainvalue"
-                                    />
+                            <div>
+                                <div className={classes.containerDetail}>
+                                    <div className="row-zyx">
+                                        <FieldSelect
+                                            loading={multiData.loading}
+                                            label={"Unidad"}
+                                            className="col-6"
+                                            valueDefault={getValues("warehouseid")}
+                                            data={dataExtra.vehicle}
+                                            disabled={true}
+                                            optionDesc="plate_number"
+                                            optionValue="warehouseid"
+                                        />
+                                        <FieldSelect
+                                            loading={multiData.loading}
+                                            label={`Rutas`}
+                                            className="col-6"
+                                            valueDefault={getValues("route")}
+                                            data={dataExtra.routes}
+                                            optionDesc="domaindesc"
+                                            disabled={true}
+                                            optionValue="domainvalue"
+                                        />
+                                    </div>
+                                    <div className="row-zyx">
+                                        <FieldSelect
+                                            loading={multiData.loading}
+                                            label={t(langKeys.driver)}
+                                            className="col-6"
+                                            valueDefault={getValues("userid")}
+                                            data={dataExtra.driver}
+                                            disabled={true}
+                                            optionDesc="full_name"
+                                            optionValue="userid"
+                                        />
+                                        <FieldSelect
+                                            loading={multiData.loading}
+                                            label={t(langKeys.helpers)}
+                                            className="col-6"
+                                            //valueDefault={getValues('customerid')}
+                                            data={[]}
+                                            optionDesc="description"
+                                            disabled={true}
+                                            optionValue="customerid"
+                                        />
+                                    </div>
                                 </div>
-                                <div className="row-zyx">
-                                    <FieldSelect
-                                        loading={multiData.loading}
-                                        label={t(langKeys.driver)}
-                                        className="col-6"
-                                        valueDefault={getValues("userid")}
-                                        data={dataExtra.driver}
-                                        disabled={true}
-                                        optionDesc="full_name"
-                                        optionValue="userid"
-                                    />
-                                    <FieldSelect
-                                        loading={multiData.loading}
-                                        label={t(langKeys.helpers)}
-                                        className="col-6"
-                                        //valueDefault={getValues('customerid')}
-                                        data={[]}
-                                        optionDesc="description"
-                                        disabled={true}
-                                        optionValue="customerid"
-                                    />
-                                </div>
-                                <div className={classes.title}>Inventario - GLP</div>
-                                <div style={{ padding: "15px 0" }}>
-                                    <TableContainer>
-                                        <Table size="small">
-                                            <TableHead>
-                                                <TableRow>
-                                                    <TableCell>Producto</TableCell>
-                                                    <TableCell>Vacio</TableCell>
-                                                    <TableCell>Llenos</TableCell>
-                                                    <TableCell>Total</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody style={{ marginTop: 5 }}>
-                                                <TableRow>
-                                                    <TableCell>Carga 10KG</TableCell>
-                                                    <TableCell>4</TableCell>
-                                                    <TableCell>100</TableCell>
-                                                    <TableCell>104</TableCell>
-                                                </TableRow>
-                                                <TableRow>
-                                                    <TableCell>Carga 40KG</TableCell>
-                                                    <TableCell>4</TableCell>
-                                                    <TableCell>40</TableCell>
-                                                    <TableCell>40</TableCell>
-                                                </TableRow>
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
-                                </div>
-                                <div className={classes.title} style={{ padding: "10px 0" }}>
-                                    {"Información de Caja"}
-                                </div>
-                                <div style={{ width: "100%", justifyContent: "space-between", display: "flex" }}>
-                                    <div>Ingresos (Total):</div>
-                                    <div>S/ 20.340,50</div>
-                                    <div>Gastos:</div>
-                                    <div>S/ 300,50</div>
-                                    <div>Total Efe. por liquidar:</div>
-                                    <div>S/ 20.340,50</div>
-                                </div>
+                                {loading && (
+                                    <div style={{ textAlign: "center", marginTop: "20px" }}>
+                                        <CircularProgress />
+                                    </div>
+                                )}
+                                {!loading && (
+                                    <>
+                                        <div className={classes.containerDetail} style={{ marginTop: "8px" }}>
+                                            <div className={classes.title}>Inventario - GLP</div>
+                                            <div style={{ padding: "15px 0" }}>
+                                                <TableContainer>
+                                                    <Table size="small">
+                                                        <TableHead>
+                                                            <TableRow>
+                                                                <TableCell>PRODUCTO</TableCell>
+                                                                <TableCell>LLENOS</TableCell>
+                                                                <TableCell>VACIOS</TableCell>
+                                                                <TableCell>TOTAL</TableCell>
+                                                            </TableRow>
+                                                        </TableHead>
+                                                        <TableBody style={{ marginTop: 5 }}>
+                                                            {dataAux.stock.map((x) => (
+                                                                <TableRow key={x.productid}>
+                                                                    <TableCell>{x.product_name}</TableCell>
+                                                                    <TableCell>{x.carga}</TableCell>
+                                                                    <TableCell>{x.envase - x.carga}</TableCell>
+                                                                    <TableCell>{x.envase}</TableCell>
+                                                                </TableRow>
+                                                            ))}
+                                                        </TableBody>
+                                                    </Table>
+                                                </TableContainer>
+                                            </div>
+                                        </div>
+                                        <div className={classes.containerDetail} style={{ marginTop: "8px" }}>
+                                            <div className={classes.title} style={{ padding: "10px 0" }}>
+                                                {"Productos Vendidos"}
+                                            </div>
+                                            <div style={{ padding: "15px 0" }}>
+                                                <TableContainer>
+                                                    <Table size="small">
+                                                        <TableHead>
+                                                            <TableRow>
+                                                                <TableCell>PRODUCTO</TableCell>
+                                                                <TableCell style={{ textAlign: "center" }}>
+                                                                    CANTIDAD
+                                                                </TableCell>
+                                                                <TableCell style={{ textAlign: "center" }}>
+                                                                    SUBTOTAL
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        </TableHead>
+                                                        <TableBody>
+                                                            {dataAux.sales.map((x) => (
+                                                                <TableRow key={x.producto}>
+                                                                    <TableCell>{x.producto}</TableCell>
+                                                                    <TableCell style={{ textAlign: "center" }}>
+                                                                        {x.cantidad}
+                                                                    </TableCell>
+                                                                    <TableCell style={{ textAlign: "right" }}>
+                                                                        S/ {formatMoney(x.total)}
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            ))}
+                                                            <TableRow>
+                                                                <TableCell rowSpan={2} style={{ border: 0 }} />
+                                                                <TableCell
+                                                                    style={{
+                                                                        textAlign: "right",
+                                                                        paddingTop: "20px",
+                                                                        border: 0,
+                                                                    }}
+                                                                    colSpan={1}
+                                                                >
+                                                                    <b>TOTAL</b>
+                                                                </TableCell>
+                                                                <TableCell
+                                                                    style={{
+                                                                        textAlign: "right",
+                                                                        paddingTop: "20px",
+                                                                        border: 0,
+                                                                    }}
+                                                                >
+                                                                    <strong>
+                                                                        S/{" "}
+                                                                        {formatMoney(
+                                                                            dataAux.sales.reduce(
+                                                                                (acc, curr) =>
+                                                                                    acc + parseFloat(curr.total),
+                                                                                0
+                                                                            )
+                                                                        )}
+                                                                    </strong>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        </TableBody>
+                                                    </Table>
+                                                </TableContainer>
+                                            </div>
+                                        </div>
+                                        <div className={classes.containerDetail} style={{ marginTop: "8px" }}>
+                                            <div className={classes.title} style={{ padding: "10px 0" }}>
+                                                {"Información de Caja"}
+                                            </div>
+                                            <div
+                                                style={{
+                                                    width: "100%",
+                                                    justifyContent: "space-between",
+                                                    display: "flex",
+                                                    marginTop: "10px",
+                                                }}
+                                            >
+                                                <div>
+                                                    <b>Ingresos (Total):</b>
+                                                </div>
+                                                <div>S/ {dataAux.cash[0]?.amount || 0}</div>
+                                                <div>
+                                                    <b>Gastos:</b>
+                                                </div>
+                                                <div>S/ 300,50</div>
+                                                <div>
+                                                    <b>Total Efe. por liquidar:</b>
+                                                </div>
+                                                <div>S/ {dataAux.cash[0]?.settled_amount || 0}</div>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </TabPanel>
                         <TabPanel value="1" index={tabIndex}>
-                            <div className={classes.containerDetail}>
-                                <div style={{ padding: "15px 20%" }}>
-                                    <TableContainer style={{ minWidth: 450 }}>
-                                        <Table size="small">
-                                            <TableHead>
-                                                <TableRow>
-                                                    <TableCell>Producto</TableCell>
-                                                    <TableCell>Cantidad</TableCell>
-                                                    <TableCell>Subtotal</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody style={{ marginTop: 5 }}>
-                                                <TableRow>
-                                                    <TableCell>Carga 10KG</TableCell>
-                                                    <TableCell>4</TableCell>
-                                                    <TableCell>100</TableCell>
-                                                </TableRow>
-                                                <TableRow>
-                                                    <TableCell>Carga 40KG</TableCell>
-                                                    <TableCell>0</TableCell>
-                                                    <TableCell>40</TableCell>
-                                                </TableRow>
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
+                            <>
+                                <div className={classes.containerDetail}>
+                                    <div className={classes.title}>Información de Caja</div>
+                                    <div style={{ padding: "15px 0" }}>
+                                        <TableContainer>
+                                            <Table size="small">
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell className={classes.taCenter}>
+                                                            METODO DE PAGO
+                                                        </TableCell>
+                                                        <TableCell className={classes.taCenter}>CAJA</TableCell>
+                                                        <TableCell className={classes.taCenter}>MONTO</TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody style={{ marginTop: 5 }}>
+                                                    {dataAux.cash_info.map((x) => (
+                                                        <TableRow key={x.paymentmethodid}>
+                                                            <TableCell className={classes.taCenter}>
+                                                                {x.payment}
+                                                            </TableCell>
+                                                            <TableCell className={classes.taCenter}>
+                                                                {x.account}
+                                                            </TableCell>
+                                                            <TableCell className={classes.taRight}>
+                                                                S/ {formatMoney(x.total)}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                    <TableRow>
+                                                        <TableCell rowSpan={1} style={{ border: 0 }} />
+                                                        <TableCell
+                                                            style={{
+                                                                textAlign: "right",
+                                                                paddingTop: "20px",
+                                                                border: 0,
+                                                            }}
+                                                            colSpan={1}
+                                                        >
+                                                            <b>TOTAL</b>
+                                                        </TableCell>
+                                                        <TableCell
+                                                            style={{
+                                                                textAlign: "right",
+                                                                paddingTop: "20px",
+                                                                border: 0,
+                                                            }}
+                                                        >
+                                                            <strong>
+                                                                S/{" "}
+                                                                {formatMoney(
+                                                                    dataAux.cash_info.reduce(
+                                                                        (ac, cur) => ac + parseFloat(cur.total),
+                                                                        0
+                                                                    )
+                                                                )}
+                                                            </strong>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                    </div>
                                 </div>
-                                <div style={{ fontSize: "1.5em", fontWeight: "bold", textAlign: "end" }}>
-                                    Total: S/ 20.430,50
+                                <div className={classes.containerDetail} style={{ marginTop: "8px", overflow: "auto" }}>
+                                    <div className={classes.title}>Detalle de Pagos</div>
+                                    <div style={{ padding: "15px 0" }}>
+                                        <TableContainer style={{ minWidth: 450 }}>
+                                            <Table size="small">
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell className={classes.taCenter}>CLIENTES</TableCell>
+                                                        <TableCell className={classes.taCenter}>
+                                                            FORMA DE PAGO
+                                                        </TableCell>
+                                                        <TableCell className={classes.taCenter}>MONTO</TableCell>
+                                                        <TableCell className={classes.taCenter}>FOTO</TableCell>
+                                                        <TableCell className={classes.taCenter}>CONFIRMADO</TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody style={{ marginTop: 5 }}>
+                                                    {dataAux.payments_detail
+                                                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                                        .map((row) => (
+                                                            <TableRow key={row.saleorderpaymentid}>
+                                                                <TableCell>{setTitleCase(row.client_name)}</TableCell>
+                                                                <TableCell className={classes.taCenter}>
+                                                                    {row.payment}
+                                                                </TableCell>
+                                                                <TableCell className={classes.taRight}>
+                                                                    S/ {formatMoney(row.amount)}
+                                                                </TableCell>
+                                                                <TableCell className={classes.taCenter}>
+                                                                    <div
+                                                                        style={{
+                                                                            display: "flex",
+                                                                            justifyContent: "center",
+                                                                            cursor: "pointer",
+                                                                        }}
+                                                                        onClick={(event) => {
+                                                                            handleAvatarClick(event, row.evidence_url);
+                                                                        }}
+                                                                    >
+                                                                        <Avatar
+                                                                            src={row.evidence_url}
+                                                                            style={{ width: "25px", height: "25px" }}
+                                                                        />
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {!row.confirmed && (
+                                                                        <div
+                                                                            style={{
+                                                                                display: "flex",
+                                                                                justifyContent: "center",
+                                                                                alignItems: "center",
+                                                                                gap: "8px",
+                                                                            }}
+                                                                        >
+                                                                            <CheckCircle style={{ color: "#45DB63" }} />
+                                                                            {"Confirmado"}
+                                                                        </div>
+                                                                    )}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                        <TablePagination
+                                            rowsPerPageOptions={[10, 25, 100]}
+                                            component="div"
+                                            count={dataAux.payments_detail.length}
+                                            rowsPerPage={rowsPerPage}
+                                            page={page}
+                                            onPageChange={handleChangePage}
+                                            onRowsPerPageChange={handleChangeRowsPerPage}
+                                        />
+                                        <Modal
+                                            open={open}
+                                            onClose={() => setOpen(false)}
+                                            className={classes.customModal}
+                                        >
+                                            <img src={selectedImage} alt="Imagen" style={{ maxWidth: 800 }} />
+                                        </Modal>
+                                    </div>
                                 </div>
-                                <div className={classes.title} style={{ padding: "10px 0" }}>
-                                    {"Información de Caja"}
-                                </div>
-                                <div style={{ padding: "15px 20%" }}>
-                                    <TableContainer style={{ minWidth: 450 }}>
-                                        <Table size="small">
-                                            <TableHead>
-                                                <TableRow>
-                                                    <TableCell>Método de Pago</TableCell>
-                                                    <TableCell>Cantidad</TableCell>
-                                                    <TableCell>Total</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody style={{ marginTop: 5 }}>
-                                                <TableRow>
-                                                    <TableCell>Yape</TableCell>
-                                                    <TableCell>4</TableCell>
-                                                    <TableCell>S/ 100</TableCell>
-                                                </TableRow>
-                                                <TableRow>
-                                                    <TableCell>Yape</TableCell>
-                                                    <TableCell>4</TableCell>
-                                                    <TableCell>S/ 100</TableCell>
-                                                </TableRow>
-                                                <TableRow>
-                                                    <TableCell>Transferencia</TableCell>
-                                                    <TableCell>0</TableCell>
-                                                    <TableCell>S/ 40</TableCell>
-                                                </TableRow>
-                                                <TableRow>
-                                                    <TableCell>Efectivo</TableCell>
-                                                    <TableCell>10</TableCell>
-                                                    <TableCell>S/ 2.230,20</TableCell>
-                                                </TableRow>
-                                                <TableRow>
-                                                    <TableCell>Vale FISE</TableCell>
-                                                    <TableCell>5</TableCell>
-                                                    <TableCell>S/ 450,20</TableCell>
-                                                </TableRow>
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
-                                </div>
-                            </div>
+                            </>
                         </TabPanel>
                         <TabPanel value="2" index={tabIndex}>
                             <div className={classes.containerDetail}>
@@ -545,7 +804,9 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                     label={"AYUDANTES"}
                                     className="col-6"
                                     // variant="outlined"
-                                    onChange={(value) => setValue(`assistants`, (value?.map((o: Dictionary) => o.userid) || []).join())}
+                                    onChange={(value) =>
+                                        setValue(`assistants`, (value?.map((o: Dictionary) => o.userid) || []).join())
+                                    }
                                     data={dataExtra.assistans}
                                     optionDesc="full_name"
                                     optionValue="userid"

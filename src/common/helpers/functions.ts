@@ -329,6 +329,20 @@ export const getFirstDayMonth = () => new Date(new Date(new Date().setHours(10))
 
 export const getLastDayMonth = () => new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
 
+export const formatMoney = (amount: any) => (
+    parseFloat(amount).toLocaleString("es-ES", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        useGrouping: true,
+    })
+)
+
+export const setTitleCase = (text: string) => {
+    return text.toLowerCase().replace(/(?:^|\s)\w/g, function(match) {
+        return match.toUpperCase();
+    });
+}
+
 export const getLocaleDateString = () => {
     const formats: any = {
         "af-ZA": "yyyy/MM/dd",

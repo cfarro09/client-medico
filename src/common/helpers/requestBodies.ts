@@ -96,8 +96,15 @@ export const getStockFlow = (parameters: Dictionary): IRequestBody => ({
     parameters: { ...parameters },
 });
 
-
-export const getPaginatedSaleOrder = ({ skip, take, filters, sorts, startdate, enddate, ...allParameters }: Dictionary): IRequestBodyPaginated => ({
+export const getPaginatedSaleOrder = ({
+    skip,
+    take,
+    filters,
+    sorts,
+    startdate,
+    enddate,
+    ...allParameters
+}: Dictionary): IRequestBodyPaginated => ({
     methodCollection: "UFN_SALE_ORDER_SEL",
     methodCount: "UFN_SALE_ORDER_TOTALRECORDS",
     parameters: {
@@ -108,12 +115,12 @@ export const getPaginatedSaleOrder = ({ skip, take, filters, sorts, startdate, e
         take,
         filters,
         sorts,
-        warehouseid: allParameters['warehouseid'] ? allParameters['warehouseid'] : 0,
-        customerid: allParameters['customerid'] ? allParameters['customerid'] : 0,
+        warehouseid: allParameters["warehouseid"] ? allParameters["warehouseid"] : 0,
+        customerid: allParameters["customerid"] ? allParameters["customerid"] : 0,
         offset: (new Date().getTimezoneOffset() / 60) * -1,
-        ...allParameters
-    }
-})
+        ...allParameters,
+    },
+});
 
 export const getAccountReceivable = (): IRequestBody => ({
     method: "UFN_ACCOUNT_RECEIVABLE_SEL",
@@ -369,6 +376,46 @@ export const getCustomerProductsSel = (customerid: number): IRequestBody => ({
     key: "UFN_CUSTOMER_PRODUCT_SEL",
     parameters: {
         customerid,
+    },
+});
+
+export const getRouteStockSel = (warehouseid: number): IRequestBody => ({
+    method: "UFN_ROUTE_STOCK_SEL",
+    key: "UFN_ROUTE_STOCK_SEL",
+    parameters: {
+        warehouseid,
+    },
+});
+
+export const getRouteCashSel = (routeid: number): IRequestBody => ({
+    method: "UFN_ROUTE_CASH_SEL",
+    key: "UFN_ROUTE_CASH_SEL",
+    parameters: {
+        routeid,
+    },
+});
+
+export const getRouteSalesLst = (routeid: number): IRequestBody => ({
+    method: "UFN_ROUTE_SALE_LST",
+    key: "UFN_ROUTE_SALE_LST",
+    parameters: {
+        routeid,
+    },
+});
+
+export const getRouteSalesPaymentsLst = (routeid: number): IRequestBody => ({
+    method: "UFN_ROUTE_SALE_PAYMENTS_LST",
+    key: "UFN_ROUTE_SALE_PAYMENTS_LST",
+    parameters: {
+        routeid,
+    },
+});
+
+export const getRouteSalesPaymentsDetail = (routeid: number): IRequestBody => ({
+    method: "UFN_ROUTE_SALE_PAYMENTS_DETAIL",
+    key: "UFN_ROUTE_SALE_PAYMENTS_DETAIL",
+    parameters: {
+        routeid,
     },
 });
 
