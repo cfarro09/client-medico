@@ -56,6 +56,11 @@ export const getRoutes = (parameters: Dictionary): IRequestBody => ({
     key: "UFN_ROUTES_SEL",
     parameters: { ...parameters },
 });
+export const getCompleteRoutes = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_ROUTE_COMPLETE_SEL",
+    key: "UFN_ROUTE_COMPLETE_SEL",
+    parameters: { ...parameters },
+});
 export const getDrivers = (): IRequestBody => ({
     method: "UFN_DRIVER_USERS_SEL",
     key: "UFN_DRIVER_USERS_SEL",

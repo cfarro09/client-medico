@@ -5,7 +5,7 @@ import {
     getAssistantSel,
     getDateCleaned,
     getDrivers,
-    getRoutes,
+    getCompleteRoutes,
     getValuesFromDomain,
     getVehicles,
 } from "common/helpers";
@@ -21,8 +21,9 @@ import { useDispatch } from "react-redux";
 import { getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
 import { showBackdrop, showSnackbar } from "store/popus/actions";
 import Detail from "./Detail";
+import DetailPurcharse from "../Purchases/Detail";
 
-const diaSemana = ['DOMINGO', 'LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
+const diaSemana = ["DOMINGO", "LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO", "DOMINGO"];
 
 const useStyles = makeStyles((theme) => ({
     container: {
@@ -124,7 +125,7 @@ const Routes: FC = () => {
     const fetchData = () =>
         dispatch(
             getCollection(
-                getRoutes({
+                getCompleteRoutes({
                     startdate: dateRange.startDate,
                     finishdate: dateRange.endDate,
                     userid: filters.userid,
@@ -153,7 +154,7 @@ const Routes: FC = () => {
     }, [openDateRangeModal]);
 
     useEffect(() => {
-        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_ROUTES_SEL") {
+        if (!mainResult.loading && !mainResult.error && mainResult.key === "UFN_ROUTE_COMPLETE_SEL") {
             setDataView(mainResult.data);
         }
     }, [mainResult]);
@@ -188,6 +189,11 @@ const Routes: FC = () => {
     const columns = React.useMemo(
         () => [
             {
+                Header: "TIPO",
+                accessor: "row_type",
+                NoFilter: true,
+            },
+            {
                 Header: "FECHA",
                 accessor: "createdate",
                 NoFilter: true,
@@ -203,7 +209,7 @@ const Routes: FC = () => {
                 Cell: (props: any) => {
                     const { dow } = props.cell.row.original;
                     return diaSemana[dow];
-                }
+                },
             },
             {
                 Header: "CHOFER",
@@ -255,7 +261,8 @@ const Routes: FC = () => {
     };
 
     const handleEdit = (row: Dictionary) => {
-        setViewSelected("view-2");
+        if (row.row_type === 'RUTA') setViewSelected("view-2");
+        else setViewSelected("view-3");
         setRowSelected(row);
     };
 
@@ -326,8 +333,17 @@ const Routes: FC = () => {
                 />
             </div>
         );
-    } else {
+    } else if (viewSelected === "view-2") {
         return <Detail row={rowSelected} setViewSelected={setViewSelected} fetchData={fetchData} />;
+    } else {
+        return (
+            <DetailPurcharse
+                row={rowSelected}
+                setViewSelected={setViewSelected}
+                fetchData={fetchData}
+                merchantEntry={false}
+            />
+        );
     }
 };
 
