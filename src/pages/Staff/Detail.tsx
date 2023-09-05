@@ -67,7 +67,9 @@ interface StaffValues {
     staff_type: string;
     comision: boolean;
     comision_amount: number;
-    salary: boolean;
+    paidperday: number;
+    dayswithoutwork: number;
+    salary: number;
     salary_amount: number;
     travel: boolean;
     travel_amount: number;
@@ -157,6 +159,9 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
             operation: row ? "UPDATE" : "INSERT",
             full_name: row?.full_name || "",
             password: row?.password || "",
+            paidperday: row?.paidperday ?? 0, 
+            dayswithoutwork: row?.dayswithoutwork ?? 0, 
+            salary: row?.salary ?? 0,
             usr: row?.usr || "",
             email: row?.email || "",
             doc_type: row?.doc_type || "DNI",
@@ -201,17 +206,18 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
     ]);
 
     const onSubmit = handleSubmit((data) => {
+        debugger
         if (data.staff_type === "FIJO") {
             if (
                 data.payment_type.salary_amount +
-                    data.payment_type.travel_amount +
-                    data.payment_type.comision_amount ===
+                data.payment_type.travel_amount +
+                data.payment_type.comision_amount ===
                 0
             ) {
                 dispatch(showSnackbar({ show: true, success: false, message: "Debe asignar algun tipo de pago" }));
                 return;
             }
-            if (comision && data.payment_type.comision_amount === 0){
+            if (comision && data.payment_type.comision_amount === 0) {
                 dispatch(showSnackbar({ show: true, success: false, message: "Debe asignar algun tipo de comnision" }));
                 return;
             }
@@ -453,6 +459,32 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                             data={dataExtra.tipopersonal}
                             optionDesc="domaindesc"
                             optionValue="domainvalue"
+                        />
+                    </div>
+                    <div className="row-zyx">
+                        <FieldEdit
+                            label={"Pago por dia"}
+                            type="number"
+                            className="col-4"
+                            valueDefault={getValues("paidperday")}
+                            onChange={(value) => setValue("paidperday", parseFloat(value ?? "0"))}
+                            error={errors?.doc_number?.message}
+                        />
+                        <FieldEdit
+                            label={"Días sin trabajar"}
+                            type="number"
+                            className="col-4"
+                            valueDefault={getValues("dayswithoutwork")}
+                            onChange={(value) => setValue("dayswithoutwork", parseInt(value ?? "0"))}
+                            error={errors?.doc_number?.message}
+                        />
+                        <FieldEdit
+                            label={"Salario"}
+                            type="number"
+                            className="col-4"
+                            valueDefault={getValues("salary")}
+                            onChange={(value) => setValue("salary", parseFloat(value ?? "0"))}
+                            error={errors?.doc_number?.message}
                         />
                     </div>
                 </div>
