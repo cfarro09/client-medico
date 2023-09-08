@@ -136,8 +136,8 @@ export const routes: RouteConfig[] = [
     },
     {
         key: paths.PURCHASES,
-        description: "Compras",
-        tooltip: "Compras",
+        description: "Facturación",
+        tooltip: "Facturación",
         path: paths.PURCHASES,
         icon: (color) => <Receipt stroke={color} fill={color} />,
     },

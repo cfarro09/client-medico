@@ -52,6 +52,11 @@ const arrayBread = [
     { id: "view-2", name: "Purchase detail" },
 ];
 
+const listType = [
+    { value: "COMPRA" },
+    { value: "VENTA" },
+]
+
 const useStyles = makeStyles((theme) => ({
     containerDetail: {
         marginTop: theme.spacing(2),
@@ -90,6 +95,7 @@ type FormFields = {
     bill_entry_date: string;
     purchase_order_create_date: string;
     bill_number: string;
+    invoicetype: string;
     observations: string;
     userid: number;
     brand: string;
@@ -205,6 +211,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
             purchase_order_create_date:
                 row?.purchase_order_create_date || new Date(new Date().setHours(10)).toISOString().substring(0, 10),
             bill_number: row?.bill_number || "",
+            invoicetype: row?.invoicetype || "",
             observations: row?.observations || "",
             userid: row?.userid || 0,
             brand: row?.brand || "",
@@ -407,6 +414,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
         register("warehouseid", { validate: (value) => (value && value > 0) || "" + t(langKeys.field_required) });
         register("userid", { validate: (value) => (value && value > 0) || "" + t(langKeys.field_required) });
         register("supplierid", { validate: (value) => (value && value > 0) || "" + t(langKeys.field_required) });
+        // register("invoicetype", { validate: (value) => (value) || "" + t(langKeys.field_required) });
 
         if (row?.purchaseorderid) {
             dispatch(
@@ -583,6 +591,21 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
                             label={"guide_image"}
                             valueDefault={getValues("guide_image")}
                             onChange={(value) => setValue("guide_image", value)}
+                        />
+                    </div>
+                    <div className="row-zyx">
+                        <FieldSelect
+                            className="col-4"
+                            label={"Tipo de facturacion"}
+                            variant="standard"
+                            data={listType}
+                            error={errors?.invoicetype?.message}
+                            optionDesc="value"
+                            optionValue="value"
+                            valueDefault={getValues("invoicetype")}
+                            onChange={(value) => {
+                                setValue("invoicetype", (value?.value ?? ""))
+                            }}
                         />
                     </div>
                 </div>

@@ -197,38 +197,8 @@ const Purchase: FC = () => {
         setOpenSlider(true);
     };
 
-    //   const handleAvatarClick2 = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, imageUrl: string) => {
-    //     event.stopPropagation();
-    //     setOpen(true);
-    //     setSelectedImage(imageUrl); // Aquí se almacena la URL de la imagen seleccionada
-    //   };
-
     const columns = React.useMemo(
         () => [
-            // {
-            //     accessor: "purchaseorderid",
-            //     isComponent: true,
-            //     minWidth: 60,
-            //     width: "1%",
-            //     Cell: (props: any) => {
-            //         const row = props.cell.row.original;
-            //         if (row.status === "ENTREGADO") {
-            //             return null;
-            //         }
-            //         return (
-            //             <TemplateIcons
-            //                 deleteFunction={() => handleDelete(row)}
-            //                 // extraOption={"Entrada de mercaderia"}
-            //                 // ExtraICon={() => <SystemUpdateAltIcon width={18} style={{ fill: "#7721AD" }} />}
-            //                 // extraFunction={() => {
-            //                 //     setMerchantEntry(true);
-            //                 //     setViewSelected("view-2");
-            //                 //     setRowSelected(row);
-            //                 // }}
-            //             />
-            //         );
-            //     },
-            // },
             {
                 Header: "FECHA",
                 accessor: "createdate",
@@ -374,17 +344,10 @@ const Purchase: FC = () => {
     if (viewSelected === "view-1") {
         return (
             <div className={classes.container}>
-                {/* <div style={{ height: 10 }}></div>
-                <div>
-                    <Typography variant="h5" component="div">
-                    Ordenes de compra
-                    </Typography>
-                </div>
-                <br /> */}
                 <TableZyx
                     columns={columns}
                     data={dataView}
-                    titlemodule={"Ordenes de compra"}
+                    titlemodule={"Facturacion"}
                     download={!!pagePermissions.download}
                     onClickRow={handleEdit}
                     loading={mainResult.loading}

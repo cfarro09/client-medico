@@ -227,11 +227,6 @@ const Routes: FC = () => {
                 NoFilter: true,
             },
             {
-                Header: "CATEGORIA",
-                accessor: "type",
-                NoFilter: true,
-            },
-            {
                 Header: "RUTA",
                 accessor: "route",
                 NoFilter: true,

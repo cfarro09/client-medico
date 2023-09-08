@@ -93,7 +93,8 @@ const Popus: React.FC = () => {
                         variant="contained"
                         style={{ backgroundColor: "#55BD84" }}
                         onClick={() => {
-                            if (value === "204545") {
+                            // if (value === "204545") {
+                            if (true) {
                                 popus.question.callback && popus.question.callback()
                                 manageConfirmationTmp()
                             } else {
