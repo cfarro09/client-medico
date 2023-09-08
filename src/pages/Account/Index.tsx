@@ -11,9 +11,9 @@ import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { execute, getCollection, getMultiCollection, resetAllMain } from "store/main/actions";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
-import Detail from "./Detail";
-import AutorenewIcon from "@material-ui/icons/Autorenew";
+import DetailModals from "./DetailModals";
 import AddIcon from "@material-ui/icons/Add";
+import Detail from "./Detail";
 
 const useStyles = makeStyles((theme) => ({
     containerHeader: {
@@ -207,7 +207,7 @@ const Account: FC = () => {
                             >
                                 {`Crear cuenta`}
                             </Button>
-                            <Button
+                            {/* <Button
                                 disabled={mainResult.loading}
                                 variant="contained"
                                 color="primary"
@@ -216,12 +216,12 @@ const Account: FC = () => {
                                 onClick={() => setNewTransferModal(true)}
                             >
                                 {t(langKeys.transfer)}
-                            </Button>
+                            </Button> */}
                         </div>
                     )}
                     handleRegister={handleRegister}
                 />
-                <Detail
+                <DetailModals
                     row={rowSelected}
                     setViewSelected={setViewSelected}
                     fetchData={fetchData}
@@ -233,7 +233,7 @@ const Account: FC = () => {
             </>
         );
     } else {
-        return <></>;
+        return <Detail row={rowSelected} setViewSelected={setViewSelected} fetchData={fetchData} />;
     }
 };
 export default Account;
