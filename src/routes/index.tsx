@@ -108,7 +108,7 @@ const RouterApp: FC = () => {
 	const classes = useStyles();
 
 	return (
-		<Router basename={process.env.PUBLIC_URL}>
+		<Router basename={import.meta.env.PUBLIC_URL}>
 			<React.Suspense fallback={(
 				<Backdrop style={{ zIndex: 999999999, color: '#fff', }} open={true}>
 					<CircularProgress color="inherit" />
