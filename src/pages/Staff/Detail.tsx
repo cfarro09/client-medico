@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, Checkbox, CircularProgress, makeStyles, Switch, Typography } from "@material-ui/core";
+import { Button, Checkbox, CircularProgress, FormControlLabel, makeStyles, Switch, Typography } from "@material-ui/core";
 import { DetailModule, Dictionary } from "@types";
 import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
 import { useSelector } from "hooks";
@@ -75,6 +75,7 @@ interface StaffValues {
     travel_amount: number;
     payment_type: Dictionary;
     products: Dictionary[];
+    select_route: boolean;
 }
 
 const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData }) => {
@@ -170,6 +171,7 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
             status: row?.status || "ACTIVO",
             roleid: row?.roleid || 0,
             staff_type: row?.staff_type || "",
+            select_routes: row?.route_selected || false,
             payment_type: {
                 salary_amount: row?.payment_type?.salary_amount || 0,
                 travel_amount: row?.payment_type?.travel_amount || 0,
@@ -460,6 +462,22 @@ const DetailDriver: React.FC<DetailModule> = ({ row, setViewSelected, fetchData 
                             optionDesc="domaindesc"
                             optionValue="domainvalue"
                         />
+                        <div className="col-4">
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={getValues("select_route")}
+                                        onChange={(event) => {
+                                            setValue("select_route", event.target.checked);
+                                            trigger("select_route");
+                                        }}
+                                        name="checkedB"
+                                        color="primary"
+                                    />
+                                }
+                                label="Consignación GLP?"
+                            />
+                        </div>
                     </div>
                     <div className="row-zyx">
                         <FieldEdit
