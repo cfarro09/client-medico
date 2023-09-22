@@ -1,7 +1,6 @@
 /*
  ** Change insCorp for your ins function
  */
-/* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary, IFetchData } from "@types";
 import { getCustomerList, getPaginatedSaleOrder, getValuesFromDomain, getWareHouse, insCorp } from "common/helpers";
 import { FieldSelect, TemplateIcons } from "components";

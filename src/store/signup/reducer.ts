@@ -7,13 +7,13 @@ export interface IState {
     channelList: IListStatePaginated<Dictionary>;
     currencyList: IListStatePaginated<Dictionary>;
     countryList: IListStatePaginated<Dictionary>;
-    successinsert: Boolean;
+    successinsert: boolean;
     insertChannel: IObjectState<{ success : boolean, integrationid: string }>;
     verifyPlan: IListStatePaginated<Dictionary>;
-    isvalid: Boolean;
-    loading: Boolean;
-    error: Boolean;
-    message: String;
+    isvalid: boolean;
+    loading: boolean;
+    error: boolean;
+    message: string;
 }
 
 export const initialState: IState = {

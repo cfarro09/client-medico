@@ -198,7 +198,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
         getValues,
         control,
         trigger,
-        formState: { errors, isDirty, isValid },
+        formState: { errors },
     } = useForm<FormFields>({
         defaultValues: {
             id: row?.purchaseorderid || 0,
@@ -252,7 +252,7 @@ const DetailPurcharse: React.FC<DetailModule & { merchantEntry: Boolean }> = ({ 
         setTotalOrder(total);
     }, [getValues("products")]);
 
-    const processTransaction = (data: FormFields, status: string = "") => {
+    const processTransaction = (data: FormFields) => {
         if (data.products.filter((item) => item.status !== "ELIMINADO").length === 0) {
             dispatch(
                 showSnackbar({ show: true, success: false, message: "Debe tener como minimo un producto registrado" })

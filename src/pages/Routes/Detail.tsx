@@ -53,15 +53,9 @@ import {
     Avatar,
     Modal,
 } from "@material-ui/core";
-import DeleteIcon from "@material-ui/icons/Delete";
 import Tabs from "@material-ui/core/Tabs";
-import Accordion from "@material-ui/core/Accordion";
-import AccordionDetails from "@material-ui/core/AccordionDetails";
-import AccordionSummary from "@material-ui/core/AccordionSummary";
-import Typography from "@material-ui/core/Typography";
 import AddIcon from "@material-ui/icons/Add";
-import { CheckCircle, ExpandMore } from "@material-ui/icons";
-import TableZyx from "components/fields/table-simple";
+import { CheckCircle } from "@material-ui/icons";
 
 interface TabPanelProps {
     value: string;

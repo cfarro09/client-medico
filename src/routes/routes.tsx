@@ -1,3 +1,4 @@
+import React from 'react';
 import { AccessibilityNew, AccountBalance, AccountBalanceWallet, AccountCircle, AllInbox, Apartment, AssignmentInd, Contacts, Domain, LocalMall, LocalShipping, Loyalty, Motorcycle, PersonPin, Receipt, Store } from "@material-ui/icons";
 import { RouteConfig } from "@types";
 import paths from "common/constants/paths";
