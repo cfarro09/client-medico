@@ -304,6 +304,12 @@ export const insAccount = (parameters: Dictionary): IRequestBody => ({
     parameters: { ...parameters },
 });
 
+export const insSettlementDetailUpdate = (parameters: Dictionary): IRequestBody => ({
+    method: "UFN_SETTLEMENT_DETAIL_UPDATE",
+    key: `UFN_SETTLEMENT_DETAIL_UPDATE`,
+    parameters: { ...parameters },
+});
+
 export const getProductsWithStock = (): IRequestBody => ({
     method: "UFN_AVAILABLE_STOCK_SEL",
     key: `UFN_AVAILABLE_STOCK_SEL`,
@@ -425,6 +431,14 @@ export const getRouteSalesPaymentsLst = (routeid: number): IRequestBody => ({
 export const getRouteSalesPaymentsDetail = (routeid: number): IRequestBody => ({
     method: "UFN_ROUTE_SALE_PAYMENTS_DETAIL",
     key: "UFN_ROUTE_SALE_PAYMENTS_DETAIL",
+    parameters: {
+        routeid,
+    },
+});
+
+export const getRouteSettlementsDetail = (routeid: number): IRequestBody => ({
+    method: "UFN_ROUTE_SETTLEMENTS_DETAIL",
+    key: "UFN_ROUTE_SETTLEMENTS_DETAIL",
     parameters: {
         routeid,
     },

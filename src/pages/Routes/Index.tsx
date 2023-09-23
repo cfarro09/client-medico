@@ -8,6 +8,9 @@ import {
     getCompleteRoutes,
     getValuesFromDomain,
     getVehicles,
+    getCashboxSel,
+    getAccountSel,
+    getPaymentMethodsSel,
 } from "common/helpers";
 import { DateRangePicker, FieldSelect } from "components";
 import TableZyx from "components/fields/table-simple";
@@ -142,6 +145,9 @@ const Routes: FC = () => {
                 getDrivers(),
                 getVehicles(),
                 getAssistantSel(0),
+                getCashboxSel(0),
+                getAccountSel(0),
+                getPaymentMethodsSel(0)
             ])
         );
         return () => {

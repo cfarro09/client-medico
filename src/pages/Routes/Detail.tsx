@@ -1,30 +1,17 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { DetailModule, Dictionary } from "@types";
-import {
-    FieldEdit,
-    FieldEditArray,
-    FieldEditMulti,
-    FieldMultiSelect,
-    FieldSelect,
-    TemplateBreadcrumbs,
-    TitleDetail,
-} from "components";
+import { FieldMultiSelect, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
 import React, { FC, useEffect, useState } from "react"; // we need this to make JSX compile
-import { useFieldArray, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import ClearIcon from "@material-ui/icons/Clear";
 import SaveIcon from "@material-ui/icons/Save";
 import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/actions";
-import { execute, getCollectionAux, getMultiCollectionAux, resetMainAux } from "store/main/actions";
+import { execute, getMultiCollectionAux } from "store/main/actions";
 import {
-    getDetailSale,
-    insOrderSale,
-    insSaleDetail,
-    paymentIns,
-    getPaymentByOrder,
     insRoute,
     getRouteStockSel,
     getRouteCashSel,
@@ -33,18 +20,17 @@ import {
     getRouteSalesPaymentsDetail,
     formatMoney,
     setTitleCase,
+    getRouteSettlementsDetail,
 } from "common/helpers";
 import {
     Button,
     makeStyles,
-    IconButton,
     Table,
     TableBody,
     TableCell,
     TableContainer,
     TableHead,
     TableRow,
-    TableFooter,
     AppBar,
     Tab,
     Box,
@@ -52,10 +38,13 @@ import {
     TablePagination,
     Avatar,
     Modal,
+    Backdrop,
+    Fade,
 } from "@material-ui/core";
 import Tabs from "@material-ui/core/Tabs";
 import AddIcon from "@material-ui/icons/Add";
-import { CheckCircle } from "@material-ui/icons";
+import { CheckCircle, Error } from "@material-ui/icons";
+import SettlementDetailModal from "./Modals/SettlementDetailModal";
 
 interface TabPanelProps {
     value: string;
@@ -81,7 +70,7 @@ const TabPanel: FC<TabPanelProps> = ({ children, value, index }) => {
     );
 };
 
-const useStyles = makeStyles((theme) => ({
+const useStyles: any = makeStyles((theme) => ({
     containerDetail: {
         marginTop: theme.spacing(2),
         padding: theme.spacing(2),
@@ -132,6 +121,17 @@ const useStyles = makeStyles((theme) => ({
         alignItems: "center",
         justifyContent: "center",
     },
+    modal: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    paper: {
+        backgroundColor: theme.palette.background.paper,
+        border: "2px solid #000",
+        boxShadow: theme.shadows[5],
+        padding: theme.spacing(2, 4, 3),
+    },
 }));
 
 type FormFields = {
@@ -172,7 +172,9 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
         sales: Dictionary[];
         cash_info: Dictionary[];
         payments_detail: Dictionary[];
+        settlement_detail: Dictionary[];
     }>({
+        settlement_detail: [],
         payments_detail: [],
         cash_info: [],
         cash: [],
@@ -181,6 +183,8 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
     });
     const dispatch = useDispatch();
     const { t } = useTranslation();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedRow, setSelectedRow] = useState<Dictionary | null>(null);
 
     const [expanded, setExpanded] = React.useState<string | false>("panel1");
 
@@ -202,8 +206,8 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
             userid: row?.userid || 0,
             warehouseid: row?.warehouseid || 0,
             route: row?.route || "",
-            zone: row?.zone  || "",
-            assistants: '',
+            zone: row?.zone || "",
+            assistants: "",
         },
     });
 
@@ -230,6 +234,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
             const sales = multiDataAux.data.find((x) => x.key === "UFN_ROUTE_SALE_LST");
             const cash_info = multiDataAux.data.find((x) => x.key === "UFN_ROUTE_SALE_PAYMENTS_LST");
             const payments_detail = multiDataAux.data.find((x) => x.key === "UFN_ROUTE_SALE_PAYMENTS_DETAIL");
+            const settlement_detail = multiDataAux.data.find((x) => x.key === "UFN_ROUTE_SETTLEMENTS_DETAIL");
 
             setDataAux({
                 stock: stock?.data || [],
@@ -237,6 +242,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                 sales: sales?.data || [],
                 cash_info: cash_info?.data || [],
                 payments_detail: payments_detail?.data || [],
+                settlement_detail: settlement_detail?.data || [],
             });
             setLoading(false);
         }
@@ -303,6 +309,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                     getRouteSalesLst(row?.routeid),
                     getRouteSalesPaymentsLst(row?.routeid),
                     getRouteSalesPaymentsDetail(row?.routeid),
+                    getRouteSettlementsDetail(row?.routeid),
                 ])
             );
         }
@@ -322,6 +329,21 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
         if (!url_evidence) return;
         setOpen(true);
         setSelectedImage(url_evidence);
+    };
+
+    const updateRow = (updatedRow: Dictionary) => {
+        const updatedData = { ...dataAux };
+        const index = updatedData.settlement_detail.findIndex(x => x.settlementdetailid === updatedRow.settlementdetailid)
+        
+        if (index !== -1) {
+            updatedData.settlement_detail[index].status = updatedRow.new_status;
+            setDataAux(updatedData);
+        }
+    };
+
+    const handleRowClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, row: Dictionary) => {
+        setIsModalOpen(true);
+        setSelectedRow(row);
     };
 
     return (
@@ -383,6 +405,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                 <Tab className={classes.tab} label={"Información General"} value="0" />
                                 <Tab className={classes.tab} label={"Información de Caja"} value="1" />
                                 <Tab className={classes.tab} label={"Gastos"} value="2" />
+                                <Tab className={classes.tab} label={"Liquidacion"} value="3" />
                             </Tabs>
                         </AppBar>
                         <TabPanel value="0" index={tabIndex}>
@@ -751,6 +774,105 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                     </TableContainer>
                                 </div>
                             </div>
+                        </TabPanel>
+                        <TabPanel value="3" index={tabIndex}>
+                            <>
+                                <div className={classes.containerDetail}>
+                                    <div className={classes.title}>Liquidacion</div>
+                                    <div style={{ padding: "15px 0" }}>
+                                        <TableContainer style={{ minWidth: 450 }}>
+                                            <Table size="small">
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell className={classes.taCenter}>PROCEDENCIA</TableCell>
+                                                        <TableCell className={classes.taCenter}>
+                                                            FORMA DE PAGO
+                                                        </TableCell>
+                                                        <TableCell className={classes.taCenter}>DESTINO</TableCell>
+                                                        <TableCell className={classes.taCenter}>MONTO</TableCell>
+                                                        <TableCell className={classes.taCenter}>FOTO</TableCell>
+                                                        <TableCell className={classes.taCenter}>CONFIRMADO</TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody style={{ marginTop: 5 }}>
+                                                    {dataAux.settlement_detail
+                                                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                                        .map((row) => (
+                                                            <TableRow
+                                                                key={row.settlementdetailid}
+                                                                onClick={(event) => handleRowClick(event, row)} // Agregar evento onClick
+                                                            >
+                                                                <TableCell>{setTitleCase(row.origin)}</TableCell>
+                                                                <TableCell className={classes.taCenter}>
+                                                                    {row.payment_method}
+                                                                </TableCell>
+                                                                <TableCell className={classes.taCenter}>
+                                                                    {row.cash_box ? row.cash_box : row.account}
+                                                                </TableCell>
+                                                                <TableCell className={classes.taRight}>
+                                                                    S/ {formatMoney(row.amount)}
+                                                                </TableCell>
+                                                                <TableCell className={classes.taCenter}>
+                                                                    <div
+                                                                        style={{
+                                                                            display: "flex",
+                                                                            justifyContent: "center",
+                                                                            cursor: "pointer",
+                                                                        }}
+                                                                        onClick={(event) => {
+                                                                            handleAvatarClick(event, row.evidence_url);
+                                                                        }}
+                                                                    >
+                                                                        <Avatar
+                                                                            src={row.evidence_url}
+                                                                            style={{ width: "25px", height: "25px" }}
+                                                                        />
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div
+                                                                        style={{
+                                                                            display: "flex",
+                                                                            justifyContent: "center",
+                                                                            alignItems: "center",
+                                                                            gap: "8px",
+                                                                        }}
+                                                                    >
+                                                                        <CheckCircle
+                                                                            style={{
+                                                                                color: "#45DB63",
+                                                                                display:
+                                                                                    row.status === "CONFIRMADO"
+                                                                                        ? "block"
+                                                                                        : "none",
+                                                                            }}
+                                                                        />
+                                                                        <Error
+                                                                            style={{
+                                                                                color: "#ff6c6c",
+                                                                                display:
+                                                                                    row.status === "RECHAZADO"
+                                                                                        ? "block"
+                                                                                        : "none",
+                                                                            }}
+                                                                        />
+                                                                        {row.status === 'ACTIVO' ? 'PENDIENTE' : row.status}
+                                                                    </div>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                        <SettlementDetailModal
+                                            openModal={isModalOpen}
+                                            setOpenModal={setIsModalOpen}
+                                            row={selectedRow}
+                                            updateRow={updateRow}
+                                        />
+                                    </div>
+                                </div>
+                            </>
                         </TabPanel>
                     </>
                 )}
