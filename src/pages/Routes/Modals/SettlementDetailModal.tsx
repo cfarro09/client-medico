@@ -23,6 +23,8 @@ const SettlementDetailModal: React.FC<modalPorps> = ({ openModal, setOpenModal, 
     const multiData = useSelector((state) => state.main.multiData);
     const dispatch = useDispatch();
     const [waitSave, setWaitSave] = useState(false);
+    const [updatedRow, setUpdatedRow] = useState({});
+    const [action, setAction] = useState('');
     const executeResult = useSelector((state) => state.main.execute);
     const [dataExtra, setDataExtra] = useState<{
         accounts: Dictionary[];
@@ -44,7 +46,7 @@ const SettlementDetailModal: React.FC<modalPorps> = ({ openModal, setOpenModal, 
                         message: t(langKeys.successful_register),
                     })
                 );
-                updateRow && updateRow(row || {});
+                updateRow && updateRow(updatedRow || {});
                 dispatch(showBackdrop(false));
                 setWaitSave(false);
                 handleCancelModal();
@@ -88,7 +90,15 @@ const SettlementDetailModal: React.FC<modalPorps> = ({ openModal, setOpenModal, 
             origin: row?.origin || "",
             settlementdetailid: row?.settlementdetailid || 0,
             accountid: 0,
+            account: "",
             cashboxid: 0,
+            cashbox: "",
+            confirmed: "",
+            confirmed_by: "",
+            evidence_url: "",
+            payment_method: "",
+            settlementid: 0,
+            routeid: 0,
             amount: row?.amount || 0,
             paymentmethodid: 0,
             observations: "",
@@ -121,7 +131,15 @@ const SettlementDetailModal: React.FC<modalPorps> = ({ openModal, setOpenModal, 
             origin: row?.origin || "",
             settlementdetailid: row?.settlementdetailid || 0,
             accountid: row?.accountid || 0,
+            account: row?.account || "",
             cashboxid: row?.cashboxid || 0,
+            cashbox: row?.cashbox || "",
+            confirmed: row?.confirmed || "",
+            confirmed_by: row?.confirmed_by || "",
+            evidence_url: row?.evidence_url || "",
+            payment_method: row?.payment_method || "",
+            settlementid: row?.settlementid || 0,
+            routeid: row?.routeid || 0,
             amount: row?.amount || 0,
             paymentmethodid: row?.paymentmethodid || 0,
             observations: "",
@@ -141,7 +159,7 @@ const SettlementDetailModal: React.FC<modalPorps> = ({ openModal, setOpenModal, 
     };
 
     const onConfirm = handleSubmit((data) => {
-        if (row?.status) row.new_status = "CONFIRMADO";
+        setUpdatedRow({ ...data, new_status: "CONFIRMADO" });
         const callback = () => {
             dispatch(showBackdrop(true));
             dispatch(execute(insSettlementDetailUpdate({ ...data, status: "CONFIRMADO" })));
@@ -159,7 +177,7 @@ const SettlementDetailModal: React.FC<modalPorps> = ({ openModal, setOpenModal, 
     });
 
     const onReject = handleSubmit((data) => {
-        if (row) row.new_status = "RECHAZADO";
+        setUpdatedRow({ ...data, new_status: "RECHAZADO" });
         const callback = () => {
             dispatch(showBackdrop(true));
             dispatch(execute(insSettlementDetailUpdate({ ...data, status: "RECHAZADO" })));
@@ -204,7 +222,10 @@ const SettlementDetailModal: React.FC<modalPorps> = ({ openModal, setOpenModal, 
                     label={"METODO DE PAGO"}
                     className="col-6"
                     valueDefault={getValues("paymentmethodid")}
-                    onChange={(value) => setValue("paymentmethodid", value?.paymentmethodid)}
+                    onChange={(value) => {
+                        setValue("paymentmethodid", value?.paymentmethodid);
+                        setValue("payment_method", value?.description);
+                    }}
                     data={dataExtra.payment_methods}
                     optionDesc="description"
                     optionValue="paymentmethodid"
@@ -218,7 +239,11 @@ const SettlementDetailModal: React.FC<modalPorps> = ({ openModal, setOpenModal, 
                         label={"DESTINO - CUENTA"}
                         className="col-6"
                         valueDefault={getValues("accountid")}
-                        onChange={(value) => setValue("accountid", value?.accountid)}
+                        onChange={(value) => {
+                            setValue("accountid", value?.accountid);
+                            setValue("account", value?.description);
+                            setValue("cashboxid", 0);
+                        }}
                         data={dataExtra.accounts}
                         optionDesc="description"
                         optionValue="accountid"
@@ -231,7 +256,11 @@ const SettlementDetailModal: React.FC<modalPorps> = ({ openModal, setOpenModal, 
                         label={"DESTINO - CAJA"}
                         className="col-6"
                         valueDefault={getValues("cashboxid")}
-                        onChange={(value) => setValue("cashboxid", value?.cashboxid)}
+                        onChange={(value) => {
+                            setValue("cashboxid", value?.cashboxid);
+                            setValue("cashbox", value?.description);
+                            setValue("accountid", 0);
+                        }}
                         data={dataExtra.cashboxes}
                         optionDesc="description"
                         optionValue="cashboxid"

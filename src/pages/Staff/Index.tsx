@@ -54,7 +54,7 @@ const Staff: FC = () => {
         }
     }, [executeResult, waitSave]);
     
-    const fetchData = () => dispatch(getCollection(getStaffSel(0)));
+    const fetchData = () => dispatch(getCollection(getStaffSel(1)));
 
     // MainDataFill
     useEffect(() => {

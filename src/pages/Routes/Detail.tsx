@@ -21,6 +21,7 @@ import {
     formatMoney,
     setTitleCase,
     getRouteSettlementsDetail,
+    getRouteStockSalesSel,
 } from "common/helpers";
 import {
     Button,
@@ -173,7 +174,9 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
         cash_info: Dictionary[];
         payments_detail: Dictionary[];
         settlement_detail: Dictionary[];
+        resume: Dictionary[];
     }>({
+        resume: [],
         settlement_detail: [],
         payments_detail: [],
         cash_info: [],
@@ -229,12 +232,13 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
 
     useEffect(() => {
         if (!multiDataAux.error && !multiDataAux.loading) {
-            const stock = multiDataAux.data.find((x) => x.key === "UFN_ROUTE_STOCK_SEL");
-            const cash = multiDataAux.data.find((x) => x.key === "UFN_ROUTE_CASH_SEL");
-            const sales = multiDataAux.data.find((x) => x.key === "UFN_ROUTE_SALE_LST");
-            const cash_info = multiDataAux.data.find((x) => x.key === "UFN_ROUTE_SALE_PAYMENTS_LST");
-            const payments_detail = multiDataAux.data.find((x) => x.key === "UFN_ROUTE_SALE_PAYMENTS_DETAIL");
-            const settlement_detail = multiDataAux.data.find((x) => x.key === "UFN_ROUTE_SETTLEMENTS_DETAIL");
+            const stock = multiDataAux.data.find((x: any) => x.key === "UFN_ROUTE_STOCK_SEL");
+            const cash = multiDataAux.data.find((x: any) => x.key === "UFN_ROUTE_CASH_SEL");
+            const sales = multiDataAux.data.find((x: any) => x.key === "UFN_ROUTE_SALE_LST");
+            const cash_info = multiDataAux.data.find((x: any) => x.key === "UFN_ROUTE_SALE_PAYMENTS_LST");
+            const payments_detail = multiDataAux.data.find((x: any) => x.key === "UFN_ROUTE_SALE_PAYMENTS_DETAIL");
+            const settlement_detail = multiDataAux.data.find((x: any) => x.key === "UFN_ROUTE_SETTLEMENTS_DETAIL");
+            const resume = multiDataAux.data.find((x: any) => x.key === "UFN_ROUTE_STOCK_SALES_SEL");
 
             setDataAux({
                 stock: stock?.data || [],
@@ -243,6 +247,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                 cash_info: cash_info?.data || [],
                 payments_detail: payments_detail?.data || [],
                 settlement_detail: settlement_detail?.data || [],
+                resume: resume?.data || [],
             });
             setLoading(false);
         }
@@ -310,6 +315,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                     getRouteSalesPaymentsLst(row?.routeid),
                     getRouteSalesPaymentsDetail(row?.routeid),
                     getRouteSettlementsDetail(row?.routeid),
+                    getRouteStockSalesSel(row?.routeid),
                 ])
             );
         }
@@ -333,10 +339,13 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
 
     const updateRow = (updatedRow: Dictionary) => {
         const updatedData = { ...dataAux };
-        const index = updatedData.settlement_detail.findIndex(x => x.settlementdetailid === updatedRow.settlementdetailid)
-        
+        const index = updatedData.settlement_detail.findIndex(
+            (x) => x.settlementdetailid === updatedRow.settlementdetailid
+        );
+
         if (index !== -1) {
-            updatedData.settlement_detail[index].status = updatedRow.new_status;
+            const item = updatedData.settlement_detail[index];
+            updatedData.settlement_detail[index] = { ...item, ...updatedRow, status: updatedRow.new_status };
             setDataAux(updatedData);
         }
     };
@@ -470,19 +479,33 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                                     <Table size="small">
                                                         <TableHead>
                                                             <TableRow>
+                                                                <TableCell>ALMACEN</TableCell>
                                                                 <TableCell>PRODUCTO</TableCell>
-                                                                <TableCell>LLENOS</TableCell>
-                                                                <TableCell>VACIOS</TableCell>
-                                                                <TableCell>TOTAL</TableCell>
+                                                                <TableCell className={classes.taCenter}>
+                                                                    STOCK
+                                                                </TableCell>
+                                                                <TableCell className={classes.taCenter}>
+                                                                    VENTA (CANT)
+                                                                </TableCell>
+                                                                <TableCell className={classes.taRight}>
+                                                                    VENTA TOTAL
+                                                                </TableCell>
                                                             </TableRow>
                                                         </TableHead>
                                                         <TableBody style={{ marginTop: 5 }}>
-                                                            {dataAux.stock.map((x) => (
-                                                                <TableRow key={x.productid}>
-                                                                    <TableCell>{x.product_name}</TableCell>
-                                                                    <TableCell>{x.carga}</TableCell>
-                                                                    <TableCell>{x.envase - x.carga}</TableCell>
-                                                                    <TableCell>{x.envase}</TableCell>
+                                                            {dataAux.resume.map((x) => (
+                                                                <TableRow key={x.stockid}>
+                                                                    <TableCell>{row?.warehouse}</TableCell>
+                                                                    <TableCell>{x.producto}</TableCell>
+                                                                    <TableCell className={classes.taCenter}>
+                                                                        {x.balance}
+                                                                    </TableCell>
+                                                                    <TableCell className={classes.taCenter}>
+                                                                        {x.cantidad}
+                                                                    </TableCell>
+                                                                    <TableCell className={classes.taRight}>
+                                                                        S/ {formatMoney(x.total)}
+                                                                    </TableCell>
                                                                 </TableRow>
                                                             ))}
                                                         </TableBody>
@@ -490,7 +513,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                                 </TableContainer>
                                             </div>
                                         </div>
-                                        <div className={classes.containerDetail} style={{ marginTop: "8px" }}>
+                                        {/* <div className={classes.containerDetail} style={{ marginTop: "8px" }}>
                                             <div className={classes.title} style={{ padding: "10px 0" }}>
                                                 {"Productos Vendidos"}
                                             </div>
@@ -555,7 +578,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                                     </Table>
                                                 </TableContainer>
                                             </div>
-                                        </div>
+                                        </div> */}
                                         <div className={classes.containerDetail} style={{ marginTop: "8px" }}>
                                             <div className={classes.title} style={{ padding: "10px 0" }}>
                                                 {"Información de Caja"}
@@ -807,7 +830,7 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                                                     {row.payment_method}
                                                                 </TableCell>
                                                                 <TableCell className={classes.taCenter}>
-                                                                    {row.cash_box ? row.cash_box : row.account}
+                                                                    {row.cashboxid ? row.cash_box : row.account}
                                                                 </TableCell>
                                                                 <TableCell className={classes.taRight}>
                                                                     S/ {formatMoney(row.amount)}
@@ -856,7 +879,9 @@ const DetailPurcharse: React.FC<DetailModule> = ({ row, setViewSelected, fetchDa
                                                                                         : "none",
                                                                             }}
                                                                         />
-                                                                        {row.status === 'ACTIVO' ? 'PENDIENTE' : row.status}
+                                                                        {row.status === "ACTIVO"
+                                                                            ? "PENDIENTE"
+                                                                            : row.status}
                                                                     </div>
                                                                 </TableCell>
                                                             </TableRow>

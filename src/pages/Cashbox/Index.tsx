@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Dictionary } from "@types";
-import { getCashboxSel, getValuesFromDomain, insCashbox } from "common/helpers";
+import { getCashboxSel, getStaffSel, getValuesFromDomain, insCashbox } from "common/helpers";
 import { TemplateIcons } from "components";
 import TableZyx from "components/fields/table-simple";
 import { useSelector } from "hooks";
@@ -70,6 +70,7 @@ const Cashbox: FC = () => {
             getMultiCollection([
                 getValuesFromDomain("ESTADOGENERICO", "DOMAIN-ESTADOGENERICO"),
                 getValuesFromDomain("TIPOCORP", "DOMAIN-TIPOCORP"),
+                getStaffSel(0)
             ])
         );
         return () => {

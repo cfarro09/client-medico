@@ -444,6 +444,14 @@ export const getRouteSettlementsDetail = (routeid: number): IRequestBody => ({
     },
 });
 
+export const getRouteStockSalesSel = (routeid: number): IRequestBody => ({
+    method: "UFN_ROUTE_STOCK_SALES_SEL",
+    key: "UFN_ROUTE_STOCK_SALES_SEL",
+    parameters: {
+        routeid,
+    },
+});
+
 export const getUserComissionProduct = (userid: number): IRequestBody => ({
     method: "UFN_USER_COMMISSION_PRODUCT_LS",
     key: "UFN_USER_COMMISSION_PRODUCT_LS",

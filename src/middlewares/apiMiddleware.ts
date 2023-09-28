@@ -20,8 +20,8 @@ const handleError = (error: AxiosError, dispatch: Dispatch<IAction>, actionType:
     if (!response) {
         dispatch({ type: actionType, payload: { error: true, message: messages.GENERAL_ERROR, code: '500' } });
     } else if (response.data) {
-        const { message, code } = response.data;
-        dispatch({ type: actionType, payload: { message, code } }); 
+        const { message, code, usererror } = response.data;
+        dispatch({ type: actionType, payload: { message, code, usererror } }); 
     }
     // else if (await authorizationHelper.isUnauthorizedCall(dispatch, response)) return;
     else if (response.status === 400 || response.status === 404) {
