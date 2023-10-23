@@ -21,6 +21,12 @@ export const getProductList = (): IRequestBody => ({
     parameters: {},
 });
 
+export const getProductHistoricalList = (productid: number): IRequestBody => ({
+    method: "UFN_PRODUCT_LST",
+    key: "UFN_HISTORICAL_PRODUCT_LST",
+    parameters: { productid },
+});
+
 export const getProductList2 = (): IRequestBody => ({
     method: "UFN_PRODUCT_LST2",
     key: "UFN_PRODUCT_LST2",

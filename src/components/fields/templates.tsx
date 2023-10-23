@@ -308,6 +308,7 @@ interface InputProps {
     prefixTranslation?: string;
     variant?: "standard" | "outlined" | "filled" | undefined;
     inputProps?: any;
+    styleX?: any;
     InputProps?: Partial<OutlinedInputProps>;
     size?: "small" | "medium" | undefined;
 }
@@ -322,7 +323,7 @@ interface TemplateAutocompleteProps extends InputProps {
     disableClearable?: boolean;
 }
 
-export const FieldEdit: React.FC<InputProps> = ({ label, size, className, disabled = false, valueDefault = "", onChange, onBlur, error, type = "text", rows = 1, fregister = {}, inputProps = {}, InputProps = {}, variant = "standard", style }) => {
+export const FieldEdit: React.FC<InputProps> = ({ label, size, className, disabled = false, valueDefault = "", onChange, onBlur, error, type = "text", rows = 1, fregister = {}, inputProps = {}, InputProps = {}, variant = "standard", style, styleX }) => {
     const [value, setvalue] = useState("");
 
     useEffect(() => {
@@ -330,7 +331,7 @@ export const FieldEdit: React.FC<InputProps> = ({ label, size, className, disabl
     }, [valueDefault])
 
     return (
-        <div className={className}>
+        <div className={className} style={styleX}>
             {variant === "standard" &&
                 <Box fontWeight={500} lineHeight="18px" fontSize={14} mb={1} color="textPrimary">{label}</Box>
             }

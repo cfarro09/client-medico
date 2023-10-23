@@ -10,6 +10,7 @@ import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/acti
 import { execute } from "store/main/actions";
 import { insAccount } from "common/helpers";
 import { Dictionary } from "@types";
+import { Box, FormControlLabel, InputAdornment, Switch } from "@material-ui/core";
 
 interface DataSelected {
     item: Dictionary | null;
@@ -58,15 +59,19 @@ const ProductModal: React.FC<modalPorps> = ({
         getValues,
         formState: { errors },
         clearErrors,
+        trigger
     } = useForm({
         defaultValues: {
             productid: 0,
             description: "",
             price: "",
+            price_factura: "",
+            price_pvo: "",
             bonification_value: "",
             product_type: "",
             label: "",
             identifier: "",
+            bonificacionx: false
         },
     });
 
@@ -120,20 +125,71 @@ const ProductModal: React.FC<modalPorps> = ({
                     error={errors?.description?.message}
                 />
                 <FieldEdit
-                    label={"Precio (*)"}
+                    label={"Precio unitario"}
                     className="col-12"
                     type="number"
                     valueDefault={getValues("price")}
                     onChange={(value) => setValue("price", value)}
                     error={errors?.price?.message}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                S/.
+                            </InputAdornment>
+                        )
+                    }}
                 />
                 <FieldEdit
-                    label={"Bonificacion"}
+                    label={"Precio factura"}
                     className="col-12"
-                    valueDefault={getValues("bonification_value")}
-                    onChange={(value) => setValue("bonification_value", value)}
-                    error={errors?.bonification_value?.message}
+                    type="number"
+                    valueDefault={getValues("price_factura")}
+                    onChange={(value) => setValue("price_factura", value)}
+                    error={errors?.price_factura?.message}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                S/.
+                            </InputAdornment>
+                        )
+                    }}
                 />
+                <FieldEdit
+                    label={"Precio PVO"}
+                    className="col-12"
+                    type="number"
+                    valueDefault={getValues("price_pvo")}
+                    onChange={(value) => setValue("price_pvo", value)}
+                    error={errors?.price_pvo?.message}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                S/.
+                            </InputAdornment>
+                        )
+                    }}
+                />
+                <div style={{ display: 'flex' }}>
+                    <Switch
+                        checked={getValues("bonificacionx")}
+                        onChange={(event) => {
+                            setValue("bonificacionx", event.target.checked);
+                            trigger("bonificacionx");
+                        }}
+                        name="checkedB"
+                        color="primary"
+                    />
+
+                    <FieldEdit
+                        label={"Bonificacion"}
+                        className={"col-6"}
+                        disabled={getValues("bonificacionx")}
+                        styleX={{ flex: 1 }}
+                        valueDefault={getValues("bonification_value")}
+                        onChange={(value) => setValue("bonification_value", value)}
+                        error={errors?.bonification_value?.message}
+                    />
+                </div>
             </div>
         </DialogZyx>
     );

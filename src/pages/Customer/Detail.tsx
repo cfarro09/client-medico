@@ -14,7 +14,7 @@ import {
     TableRow,
 } from "@material-ui/core";
 import { DetailModule, Dictionary } from "@types";
-import { FieldEdit, FieldSelect, TemplateBreadcrumbs, TitleDetail } from "components";
+import { FieldEdit, FieldSelect, AntTab, FieldUploadImage2, TemplateBreadcrumbs, TitleDetail } from "components";
 import { useSelector } from "hooks";
 import { langKeys } from "lang/keys";
 import React, { useEffect, useState } from "react"; // we need this to make JSX compile
@@ -28,7 +28,10 @@ import { manageConfirmation, showBackdrop, showSnackbar } from "store/popus/acti
 import { execute, getCollectionAux, resetMainAux } from "store/main/actions";
 import { getCustomerProductsSel, insCostumer, insCustomerProduct } from "common/helpers";
 import ProductModal from "./Modals/ProductModal";
-import { red } from "@material-ui/core/colors";
+import HistoryProduct from "./Modals/HistoryProductModal";
+import Tabs from '@material-ui/core/Tabs';
+import { Visibility } from "@material-ui/icons";
+import DocumentationModal from "./Modals/DocumentationModal";
 
 const arrayBread = [
     { id: "view-1", name: "Clients" },
@@ -43,11 +46,13 @@ type FormValues = {
     contact_name: string;
     contact_email: string;
     contact_phone: string;
+    dni_image: string;
     address: string;
     status: string;
     type: string;
     operation: string;
     products: Dictionary[];
+    documentation: Dictionary[] | null;
     latitude: number;
     longitude: number;
     route: string;
@@ -83,12 +88,15 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
     const { t } = useTranslation();
     const [waitSave, setWaitSave] = useState(false);
     const [openModal, setOpenModal] = useState(false);
+    const [openModalHistorical, setOpenModalHistorical] = useState(false);
     const executeResult = useSelector((state) => state.main.execute);
     const multiData = useSelector((state) => state.main.multiData);
     const [productsToShow, setProductsToShow] = useState<Dictionary[]>([]);
     const [productsToDelete, setProductsToDelete] = useState<Dictionary[]>([]);
     const mainAux = useSelector((state) => state.main.mainAux);
-    const [loading, setLoading] = useState<Boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [pageSelected, setPageSelected] = useState(0);
+    const [prodHistoricalSelected, setProdHistoricalSelected] = useState<Dictionary | null>(null);
     const [productSelected, setProductSelected] = useState<{
         item: Dictionary | null;
         edit: boolean;
@@ -273,7 +281,7 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
         };
     }, [mainAux]);
 
-    const processTransaction = (data: FormValues, status: string = "") => {
+    const processTransaction = (data: FormValues) => {
         if (data.products.filter((item) => item.status !== "ELIMINADO").length === 0) {
             dispatch(
                 showSnackbar({ show: true, success: false, message: "Debe tener como minimo un producto registrado" })
@@ -356,7 +364,7 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
 
     return (
         <div style={{ width: "100%" }}>
-            <form onSubmit={onSubmit}>
+            <form onSubmit={onSubmit} >
                 <TemplateBreadcrumbs breadcrumbs={arrayBread} handleClick={setViewSelected} />
                 <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
                     <TitleDetail title={row ? `${row.description}` : "Nuevo Cliente"} />
@@ -383,227 +391,244 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                         </Button>
                     </div>
                 </div>
-                <div className={classes.containerDetail}>
-                    <div className="row-zyx">
-                        <FieldEdit
-                            label={"NOMBRE CLIENTE (*)"}
-                            className="col-6"
-                            valueDefault={getValues("description")}
-                            onChange={(value) => setValue("description", value)}
-                            error={errors?.description?.message}
-                        />
-                        <FieldEdit
-                            label={`RUC/DNI (*)`}
-                            className="col-6"
-                            valueDefault={getValues("doc_number")}
-                            onChange={(value) => setValue("doc_number", value)}
-                            type="number"
-                            error={errors?.doc_number?.message}
-                            InputProps={{ inputProps: { min: "0", max: "99999999999" } }}
-                        />
-                    </div>
-                    <div className="row-zyx">
-                        <FieldEdit
-                            label={"TELEFONO"}
-                            className="col-6"
-                            valueDefault={getValues("contact_phone")}
-                            onChange={(value) => setValue("contact_phone", value)}
-                            error={errors?.contact_phone?.message}
-                            type="number"
-                            InputProps={{ inputProps: { min: "0", max: "999999999" } }}
-                        />
-                        <FieldEdit
-                            label={"DIRECCION"}
-                            className="col-6"
-                            valueDefault={getValues("address")}
-                            onChange={(value) => setValue("address", value)}
-                            error={errors?.address?.message}
-                        />
-                    </div>
-                    <div className="row-zyx">
-                        <FieldEdit
-                            label={"ZONA"}
-                            className="col-6"
-                            valueDefault={getValues("zone")}
-                            onChange={(value) => setValue("zone", value)}
-                            error={errors?.zone?.message}
-                        />
-                        <FieldSelect
-                            label={"RUTA (*)"}
-                            className="col-6"
-                            valueDefault={getValues("route")}
-                            onChange={(value) => setValue("route", value?.domainvalue)}
-                            error={errors?.route?.message}
-                            data={dataExtra.ruta}
-                            uset={true}
-                            optionDesc="domainvalue"
-                            optionValue="domainvalue"
-                        />
-                    </div>
-                    <div className="row-zyx">
-                        <FieldSelect
-                            label={"TIPO CLIENTE"}
-                            className="col-6"
-                            valueDefault={getValues("type")}
-                            onChange={(value) => setValue("type", value?.domainvalue)}
-                            error={errors?.type?.message}
-                            data={dataExtra.tipoCliente}
-                            uset={true}
-                            optionDesc="domainvalue"
-                            optionValue="domainvalue"
-                        />
-                        <FieldSelect
-                            label={"CONDICION"}
-                            className="col-6"
-                            valueDefault={getValues("status")}
-                            onChange={(value) => setValue("status", value?.domainvalue)}
-                            error={errors?.status?.message}
-                            data={dataExtra.status}
-                            uset={true}
-                            prefixTranslation="status_"
-                            optionDesc="domainvalue"
-                            optionValue="domainvalue"
-                        />
-                    </div>
-                    <div className="row-zyx">
-                        <FieldEdit
-                            label={"LATITUD"}
-                            className="col-2"
-                            type="number"
-                            valueDefault={getValues("latitude")}
-                            onChange={(value) => setValue("latitude", value)}
-                            error={errors?.latitude?.message}
-                        />
-                        <FieldEdit
-                            label={"LONGITUD"}
-                            className="col-2"
-                            type="number"
-                            valueDefault={getValues("longitude")}
-                            onChange={(value) => setValue("longitude", value)}
-                            error={errors?.longitude?.message}
-                        />
-                        <div className="col-2" style={{ display: "flex", alignItems: "center" }}>
-                            {latitude !== 0 && longitude !== 0 && (
-                                <span>
-                                    <a
-                                        target={"_blank"}
-                                        href={`http://www.google.com/maps/place/${getValues("latitude")},${getValues(
-                                            "longitude"
-                                        )}`}
-                                        rel="noreferrer"
-                                    >
-                                        Geoposicion
-                                    </a>
-                                </span>
-                            )}
-                        </div>
-                        <div className="col-2">
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        checked={getValues("glp_consignation")}
-                                        onChange={(event) => {
-                                            setValue("glp_consignation", event.target.checked);
-                                            trigger("glp_consignation");
-                                        }}
-                                        name="checkedB"
-                                        color="primary"
-                                    />
-                                }
-                                label="Consignación GLP?"
-                            />
-                        </div>
-                        <div className="col-2">
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        checked={getValues("water_consignation")}
-                                        onChange={(event) => {
-                                            setValue("water_consignation", event.target.checked);
-                                            trigger("water_consignation");
-                                        }}
-                                        name="checkedB"
-                                        color="primary"
-                                    />
-                                }
-                                label="Consignación Agua?"
-                            />
-                        </div>
-                        <div className="col-2">
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        checked={getValues("can_credit")}
-                                        onChange={(event) => {
-                                            setValue("can_credit", event.target.checked);
-                                            trigger("can_credit");
-                                        }}
-                                        name="checkedB"
-                                        color="primary"
-                                    />
-                                }
-                                label="Crédito habilitado?"
-                            />
-                        </div>
-                    </div>
+
+                <div style={{ width: '100%!important' }}>
+                    <Tabs
+                        value={pageSelected}
+                        indicatorColor="primary"
+                        variant="scrollable"
+                        scrollButtons="auto"
+                        style={{ borderBottom: '1px solid #EBEAED', backgroundColor: '#FFF', marginTop: 8 }}
+                        textColor="primary"
+                        onChange={(_, value) => setPageSelected(value)}
+                    >
+                        <AntTab label={"Datos"} />
+                        <AntTab label={"Productos"} />
+                        { getValues("type") === "FORMAL" && (
+                            <AntTab label={"Documentos"} />
+                        ) }
+                    </Tabs>
                 </div>
-                {loading && (
-                    <div style={{ textAlign: "center", marginTop: "20px" }}>
-                        <CircularProgress />
-                    </div>
-                )}
-                {!loading && (
+
+                {pageSelected === 0 && (<>
                     <div className={classes.containerDetail}>
-                        <FieldSelect
-                            label={"Product"}
-                            variant="outlined"
-                            optionDesc="label"
-                            optionValue="productid"
-                            data={productsToShow}
-                            onChange={(value) => {
-                                handleChange(value);
-                            }}
-                        />
-                        <TableContainer>
-                            <Table size="small">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell></TableCell>
-                                        <TableCell>Producto</TableCell>
-                                        <TableCell style={{}}>Precio</TableCell>
-                                        <TableCell style={{}}>Bonificacion</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody style={{ marginTop: 5 }}>
-                                    {fieldsProduct.map((item, i: number) => (
-                                        <TableRow key={item.id} className={classes.simple_table}>
-                                            <TableCell>
-                                                <div style={{ display: "flex" }}>
+                        <div className="row-zyx">
+                            <FieldEdit
+                                label={"NOMBRE CLIENTE (*)"}
+                                className="col-6"
+                                valueDefault={getValues("description")}
+                                onChange={(value) => setValue("description", value)}
+                                error={errors?.description?.message}
+                            />
+                            <div className="col-6" style={{ display: 'flex', flex: 1 }}>
+                                <FieldEdit
+                                    label={`RUC/DNI (*)`}
+                                    styleX={{ flex: 1 }}
+                                    style={{ flex: 1 }}
+                                    valueDefault={getValues("doc_number")}
+                                    onChange={(value) => setValue("doc_number", value)}
+                                    type="number"
+                                    error={errors?.doc_number?.message}
+                                    InputProps={{ inputProps: { min: "0", max: "99999999999" } }}
+                                />
+                                <FieldUploadImage2
+                                    className="col-1"
+
+                                    label="Foto de DNI"
+                                    valueDefault={getValues("dni_image")}
+                                    onChange={(value) => setValue("dni_image", value)}
+                                />
+                            </div>
+                        </div>
+                        <div className="row-zyx">
+                            <FieldEdit
+                                label={"TELEFONO"}
+                                className="col-6"
+                                valueDefault={getValues("contact_phone")}
+                                onChange={(value) => setValue("contact_phone", value)}
+                                error={errors?.contact_phone?.message}
+                                type="number"
+                                InputProps={{ inputProps: { min: "0", max: "999999999" } }}
+                            />
+                            <FieldEdit
+                                label={"DIRECCION"}
+                                className="col-6"
+                                valueDefault={getValues("address")}
+                                onChange={(value) => setValue("address", value)}
+                                error={errors?.address?.message}
+                            />
+                        </div>
+                        <div className="row-zyx">
+                            <FieldEdit
+                                label={"ZONA"}
+                                className="col-6"
+                                valueDefault={getValues("zone")}
+                                onChange={(value) => setValue("zone", value)}
+                                error={errors?.zone?.message}
+                            />
+                            <FieldSelect
+                                label={"RUTA (*)"}
+                                className="col-6"
+                                valueDefault={getValues("route")}
+                                onChange={(value) => setValue("route", value?.domainvalue)}
+                                error={errors?.route?.message}
+                                data={dataExtra.ruta}
+                                uset={true}
+                                optionDesc="domainvalue"
+                                optionValue="domainvalue"
+                            />
+                        </div>
+                        <div className="row-zyx">
+                            <FieldSelect
+                                label={"TIPO CLIENTE"}
+                                className="col-6"
+                                valueDefault={getValues("type")}
+                                onChange={(value) => {
+                                    setValue("type", value?.domainvalue ?? "")
+                                    trigger("type")
+                                }}
+                                error={errors?.type?.message}
+                                data={dataExtra.tipoCliente}
+                                uset={true}
+                                optionDesc="domainvalue"
+                                optionValue="domainvalue"
+                            />
+                            <FieldSelect
+                                label={"CONDICION"}
+                                className="col-6"
+                                valueDefault={getValues("status")}
+                                onChange={(value) => setValue("status", value?.domainvalue)}
+                                error={errors?.status?.message}
+                                data={dataExtra.status}
+                                uset={true}
+                                prefixTranslation="status_"
+                                optionDesc="domainvalue"
+                                optionValue="domainvalue"
+                            />
+                        </div>
+                        <div className="row-zyx">
+                            <FieldEdit
+                                label={"LATITUD"}
+                                className="col-2"
+                                type="number"
+                                valueDefault={getValues("latitude")}
+                                onChange={(value) => setValue("latitude", value)}
+                                error={errors?.latitude?.message}
+                            />
+                            <FieldEdit
+                                label={"LONGITUD"}
+                                className="col-2"
+                                type="number"
+                                valueDefault={getValues("longitude")}
+                                onChange={(value) => setValue("longitude", value)}
+                                error={errors?.longitude?.message}
+                            />
+                            <div className="col-2" style={{ display: "flex", alignItems: "center" }}>
+                                {latitude !== 0 && longitude !== 0 && (
+                                    <span>
+                                        <a
+                                            target={"_blank"}
+                                            href={`http://www.google.com/maps/place/${getValues("latitude")},${getValues(
+                                                "longitude"
+                                            )}`}
+                                            rel="noreferrer"
+                                        >
+                                            Geoposicion
+                                        </a>
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </>)}
+                {pageSelected === 1 && (<>
+                    {loading && (
+                        <div style={{ textAlign: "center", marginTop: "20px" }}>
+                            <CircularProgress />
+                        </div>
+                    )}
+                    {!loading && (
+                        <div className={classes.containerDetail}>
+                            <FieldSelect
+                                label={"Product"}
+                                variant="outlined"
+                                optionDesc="label"
+                                optionValue="productid"
+                                data={productsToShow}
+                                onChange={(value) => {
+                                    handleChange(value);
+                                }}
+                            />
+                            <TableContainer>
+                                <Table size="small">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell></TableCell>
+                                            <TableCell>Producto</TableCell>
+                                            <TableCell style={{}}>Precio Unitario</TableCell>
+                                            <TableCell style={{}}>Precio Facturacion</TableCell>
+                                            <TableCell style={{}}>Precio POV</TableCell>
+                                            <TableCell style={{}}>Fecha Actualizacion</TableCell>
+                                            <TableCell style={{}}>Bonificacion</TableCell>
+                                            <TableCell></TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody style={{ marginTop: 5 }}>
+                                        {fieldsProduct.map((item, i: number) => (
+                                            <TableRow key={item.id} className={classes.simple_table}>
+                                                <TableCell>
+                                                    <div style={{ display: "flex" }}>
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => {
+                                                                handleDelete({ item, i });
+                                                            }}
+                                                        >
+                                                            <DeleteIcon style={{ color: "#777777" }} />
+                                                        </IconButton>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell onClick={() => handleEditProduct({ item, idx: i })}>
+                                                    <div>{getValues(`products.${i}.product_description`)}</div>
+                                                </TableCell>
+                                                <TableCell onClick={() => handleEditProduct({ item, idx: i })}>
+                                                    <div>S/. {getValues(`products.${i}.price`)}</div>
+                                                </TableCell>
+                                                <TableCell onClick={() => handleEditProduct({ item, idx: i })}>
+                                                    <div>S/. {getValues(`products.${i}.price`)}</div>
+                                                </TableCell>
+                                                <TableCell onClick={() => handleEditProduct({ item, idx: i })}>
+                                                    <div>S/. {getValues(`products.${i}.price`)}</div>
+                                                </TableCell>
+                                                <TableCell onClick={() => handleEditProduct({ item, idx: i })}>
+                                                    <div>2023-01-01</div>
+                                                </TableCell>
+                                                <TableCell onClick={() => handleEditProduct({ item, idx: i })}>
+                                                    <div>S/. {getValues(`products.${i}.bonification_value`)}</div>
+                                                </TableCell>
+                                                <TableCell>
                                                     <IconButton
                                                         size="small"
                                                         onClick={() => {
-                                                            handleDelete({ item, i });
+                                                            setProdHistoricalSelected(item);
+                                                            setOpenModalHistorical(true)
                                                         }}
                                                     >
-                                                        <DeleteIcon style={{ color: "#777777" }} />
+                                                        <Visibility style={{ color: "#777777" }} />
                                                     </IconButton>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell onClick={() => handleEditProduct({ item, idx: i })}>
-                                                <div>{getValues(`products.${i}.product_description`)}</div>
-                                            </TableCell>
-                                            <TableCell onClick={() => handleEditProduct({ item, idx: i })}>
-                                                <div>{getValues(`products.${i}.price`)}</div>
-                                            </TableCell>
-                                            <TableCell onClick={() => handleEditProduct({ item, idx: i })}>
-                                                <div>{getValues(`products.${i}.bonification_value`)}</div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </div>
+                    )}
+                </>)}
+                {pageSelected === 2 && (
+                    <DocumentationModal 
+                        documentationData={[]}
+                    />
                 )}
             </form>
             <ProductModal
@@ -614,6 +639,11 @@ const DetailCustomer: React.FC<DetailModule> = ({ row, setViewSelected, fetchDat
                 parentAppendValue={productAppend}
                 setProductsToShow={setProductsToShow}
                 productsToShow={productsToShow}
+            />
+            <HistoryProduct
+                parentData={prodHistoricalSelected}
+                openModal={openModalHistorical}
+                setOpenModal={setOpenModalHistorical}
             />
         </div>
     );
